@@ -1,8 +1,9 @@
 2004-10-18  Kurt Schwehr  <schwehr@catbox>
 
 	* version: Released 0.11
-	Tar ball now includes Makefile.endian so it might actually work now.
-	Fix waypoint read/write in ascii mode.
+	Tar ball now includes Makefile.endian so it might actually work
+	Also includes data for ardath shale
+	Fix waypoint read/write in ascii mode
 	Waypoint Inventor mode crashes on load of the SpotLightDragger?!?
 	
 2004-10-17  Kurt Schwehr  <schwehr@catbox>
