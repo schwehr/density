@@ -424,13 +424,32 @@ bool test3() {
 
 
 bool test4() {
-  // FIX: test these...
-  Density();
-  Density(string("filename"));
-  resize();
-  getSize();
-  getCellFromWHD();
-  getCellNeighbor();
+  bool ok=true;
+  {
+    // This is a pretty small/simple test case
+    Density d;
+    d.resize(1,2,3, 0.,2., 0.,2., 0.,2.);
+
+    if (1!=d.getWidth()) {ok=false;FAILED_HERE;}
+    if (2!=d.getHeight()) {ok=false;FAILED_HERE;}
+    if (3!=d.getDepth()) {ok=false;FAILED_HERE;}
+    if (6!=d.getSize()) {ok=false;FAILED_HERE;}
+
+    if (0!=d.getCellFromWHD(0,0,0))  {ok=false; FAILED_HERE;}
+    if (1!=d.getCellFromWHD(0,1,0)) {ok=false;FAILED_HERE;}
+
+    if (Density::badValue()!=d.getCellNeighbor(0,Density::LEFT)) {ok=false;FAILED_HERE;}
+    if (Density::badValue()!=d.getCellNeighbor(0,Density::RIGHT)) {ok=false;FAILED_HERE;}
+
+    if (Density::badValue()!=d.getCellNeighbor(0,Density::FRONT)) {ok=false;FAILED_HERE;}
+    if (1!=d.getCellNeighbor(0,Density::BACK)) {ok=false;FAILED_HERE;}
+
+    if (Density::badValue()!=d.getCellNeighbor(0,Density::BELOW)) {ok=false;FAILED_HERE;}
+    if (2!=d.getCellNeighbor(0,Density::ABOVE)) {ok=false;FAILED_HERE;}
+  }
+
+  //Density(string("filename")); //FIX: Implement and test
+  return(ok);
 }
 
 int main (UNUSED int argc, char *argv[]) {
