@@ -24,15 +24,28 @@
 # Test out all the functionality with just one point to make sure
 # everything lines up.
 
+######################################################################
+# Debugging
+######################################################################
+
 . debug.bash
 
+######################################################################
+# Local tuning
+######################################################################
 
 export PATH=${PATH}:.
 cells=50
-draw=10000
+if [ -z "$DENSITY_DRAW" ]; then
+    # Keep a low number so debugging goes quickly
+    declare -ir draw=25000
+else
+    declare -ir draw=$DENSITY_DRAW
+fi
+DebugEcho $TRACE $LINENO "draw = $draw"
 declare -r w=0.5
 declare -r boundaries="-x -${w} -X ${w} -y -${w} -Y ${w} -z -${w} -Z ${w}"
-#declare -r debug_level=2
+#declare -r debugLevel=2
 
 if [ -e Makefile ]; then
     make targets-no-test
@@ -50,7 +63,7 @@ if [ ! -e one-boot.xyz ]; then
 fi
 
 echo Densifying
-args="  --bpv=16 -w ${cells} -t ${cells} -d ${cells} --verbosity=$debug_level"
+args="  --bpv=16 -w ${cells} -t ${cells} -d ${cells} --verbosity=$debugLevel"
 
 if [ ! -e one-all.vol ]; then
     xyzdensity one-boot.xyz.vmax --out=one-vmax.vol -p 1 $args $boundaries
@@ -87,9 +100,9 @@ xyz_iv --box=0.005 -p --color="1 0 0" --out=one.xyz.vmin.iv -v 3 one.xyz.vmin
 xyz_iv --box=0.005 -p --color="1 1 0" --out=one.xyz.vint.iv -v 3 one.xyz.vint
 xyz_iv --box=0.005 -p --color="0 0 1" --out=one.xyz.vmax.iv -v 3 one.xyz.vmax
 
-#debug_level=1
+#debugLevel=1
 echo "TYPE  VOL_FILE     XYZ_FILE     x         y           z     counts FracTotal FracCDF"
 echo "------------------------------------------------------------------------------------"
-echo -n "VMIN: " && xyzvol_cmp -v $debug_level -d one-vmin.vol one.xyz.vmin --out=-
-echo -n "VINT: " && xyzvol_cmp -v $debug_level -d one-vint.vol one.xyz.vint --out=-
-echo -n "VMAX: " && xyzvol_cmp -v $debug_level -d one-vmax.vol one.xyz.vmax --out=-
+echo -n "VMIN: " && xyzvol_cmp -v $debugLevel -d one-vmin.vol one.xyz.vmin --out=-
+echo -n "VINT: " && xyzvol_cmp -v $debugLevel -d one-vint.vol one.xyz.vint --out=-
+echo -n "VMAX: " && xyzvol_cmp -v $debugLevel -d one-vmax.vol one.xyz.vmax --out=-
