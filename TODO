@@ -1,2 +1,4 @@
 
 * Allow tracking of sample names from .s file through to .cmp
+* simpleview - manipulation of lights
+* simpleview - control background color
