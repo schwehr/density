@@ -85,8 +85,15 @@ public:
 private:
   /// Look for a color model = string and set the type
   bool checkColorModel(const string &str);
-  bool insertCmapEntry(const float v1, const float r1, const float g1, const float b1, const float a1,
+  bool insertCmapEntryRGBA(const float v1, const float r1, const float g1, const float b1, const float a1,
 		       const float v2, const float r2, const float g2, const float b2, const float a2);
+
+  bool handleA_Line(const string &bufStr);
+  bool handleLA_Line(const string &bufStr);
+  bool handleRGBA_Line(const string &bufStr);
+  bool handleHSVA_Line(const string &bufStr);
+
+
   vector<float> r,g,b,a;
   ColorModel colorModel;
 };
@@ -133,29 +140,48 @@ ColorPallet::ColorPallet(const string &filename, bool &ok) {
     if ('#'==buf[0]) continue; // comment
     const string bufStr(buf);
     if (checkColorModel(bufStr)) continue; // Check for COLOR_MODEL = 
-    
-    float v1,r1,g1,b1,a1,  v2,r2,g2,b2,a2;
-    istringstream istr(buf);
-    istr >> v1>>r1>>g1>>b1 >>a1 >>v2>>r2>>g2>>b2>>a2;
-    if (istr.fail()) {
-      cerr << "Read failed for:" << bufStr << endl;
-      continue;
+    //
+    // Handle each color model separately.
+    // Okay to use multiple color models in a file
+    //
+    switch (colorModel) {
+    case ALPHA:      handleA_Line   (bufStr); break;
+    case LUM_ALPHA:  handleLA_Line  (bufStr); break;
+    case RGBA:       handleRGBA_Line(bufStr); break;
+    case HSVA:       handleHSVA_Line(bufStr); break;
+    default:
+      ok=false; cerr << "ERROR: Unknown color model for line:" << endl << "\t"<<bufStr<<endl;
     }
-
-    if ( (HSVA!=colorModel) && !( (0.<=v1 && v1 <= 1.) 
-	    && (0.<=r1 && r1 <= 1.) && (0.<=g1 && g1 <= 1.) && (0.<=b1 && b1 <= 1.) && (0.<=a1 && a1 <= 1.)
-	    && (0.<=v2 && v2 <= 1.) 
-	    && (0.<=r2 && r2 <= 1.) && (0.<=g2 && g2 <= 1.) && (0.<=b2 && b2 <= 1.) && (0.<=a2 && a2 <= 1.)
-	    ))
-      {
-	cerr << "WARNING: all values must be between 0.0 and 1.0" << endl << "\t" << bufStr << endl;
-	ok=false;
-	continue;
-      }
-    // FIX: check the istr for an error
-    if (!insertCmapEntry(v1,r1,g1,b1,a1, v2,r2,g2,b2,a2)) ok=false;
   }
 } // ColorPallet(filename) constructor
+
+bool ColorPallet::handleA_Line(const string &bufStr) {cout << bufStr; return (false);} // handleA_Line
+bool ColorPallet::handleLA_Line(const string &bufStr) {cout << bufStr; return (false);} // handleLA_Line
+bool ColorPallet::handleHSVA_Line(const string &bufStr) {cout << bufStr; return (false);} // handleHSVA_Line
+
+bool ColorPallet::handleRGBA_Line(const string &bufStr) {
+  float v1,r1,g1,b1,a1,  v2,r2,g2,b2,a2;
+  istringstream istr(bufStr.c_str());
+  istr >> v1>>r1>>g1>>b1 >>a1 >>v2>>r2>>g2>>b2>>a2;
+  if (istr.fail()) {
+    cerr << "Read failed for:" << bufStr << endl;
+    return(false);
+  }
+
+  if ( (HSVA!=colorModel) && !( (0.<=v1 && v1 <= 1.) 
+				&& (0.<=r1 && r1 <= 1.) && (0.<=g1 && g1 <= 1.) && (0.<=b1 && b1 <= 1.) && (0.<=a1 && a1 <= 1.)
+				&& (0.<=v2 && v2 <= 1.) 
+				&& (0.<=r2 && r2 <= 1.) && (0.<=g2 && g2 <= 1.) && (0.<=b2 && b2 <= 1.) && (0.<=a2 && a2 <= 1.)
+				))
+    {
+      cerr << "WARNING: all values must be between 0.0 and 1.0" << endl << "\t" << bufStr << endl;
+      return (false);
+    }
+
+  if (!insertCmapEntryRGBA(v1,r1,g1,b1,a1, v2,r2,g2,b2,a2)) return(false);
+  return (true);
+} // handleRGBA_Line
+
 
 bool ColorPallet::checkColorModel(const string &str) {
   DebugPrintf(VERBOSE+1,("checkColorModel(%s)\n",str.c_str()));
@@ -168,8 +194,8 @@ bool ColorPallet::checkColorModel(const string &str) {
   return (false);
 }
 
-bool ColorPallet::insertCmapEntry(const float v1, const float r1, const float g1, const float b1, const float a1,
-				  const float v2, const float r2, const float g2, const float b2, const float a2)
+bool ColorPallet::insertCmapEntryRGBA(const float v1, const float r1, const float g1, const float b1, const float a1,
+				      const float v2, const float r2, const float g2, const float b2, const float a2)
 {
   // FIX: explain better what's wrong
   if (v1>v2) {cerr <<"Bad cmap entry. 0" << endl; return(false);}
