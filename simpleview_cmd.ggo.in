@@ -30,7 +30,7 @@ option "verbosity" v "Set the verbosity level (0=quiet 10=verbose 20=bombastic)"
 option "width" W "Width of rendered frames in pixels" int default="800" no
 option "height" H "Height of rendered frames in pixels" int default="600" no
 
-option "basename" b "Basename to use when creating output files" string default="moose_poop-"
+option "basename" b "Basename to use when creating output files" string default="simpleview-frame-"
 
 option "keys" k "Dump the hot keys list that work inside the viewer" no
 
