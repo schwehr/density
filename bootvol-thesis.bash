@@ -40,7 +40,7 @@
 export PATH=${PATH}:.:..
 declare -ir cells=100
 if [ -z "$DENSITY_DRAW" ]; then
-    declare -ir draw=25000
+    declare -ir draw=50000
 else
     declare -ir draw=$DENSITY_DRAW
 fi
@@ -65,7 +65,7 @@ fi
 #
 # Bootstrap each of the groups to produce Vmin (V3), Vint(V2), Vmax(V1) volumes
 #
-if [ 0 == 1 ]; then
+if [ 1 == 1 ]; then
     for group in "${groups[@]}"; do
 
 	DebugEcho $TERSE $LINENO "Processing $group"
@@ -127,7 +127,7 @@ fi
 # Now we need to make a compatability matrix.
 
 # convert them all to xyz files
-if [ 0 == 1 ]; then
+if [ 1 == 1 ]; then
     for group in "${groups[@]}"; do
 	s_eigs < $group.s > $group.eigs
 	eigs2xyz.py $group.eigs > $group.xyz
