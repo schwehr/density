@@ -75,7 +75,7 @@ int main (const int argc, char *argv[]) {
   DebugPrintf(TRACE,("Debug level = %d",debug_level));
 #endif
 
-  for (int i=0;i<a.inputs_num;i++) {
+  for (size_t i=0;i<a.inputs_num;i++) {
     cout << i << " " << a.inputs[i] << endl;
     const string filename(a.inputs[i]);
     bool r;
