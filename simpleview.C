@@ -18,14 +18,45 @@
 
 */
 
+/// \file 
+/// \brief Basic viewer for OpenInventor/Coin and Voleon data.
+/// Supports any file format that Coin/Voleon support.
+
+/***************************************************************************
+ * INCLUDES
+ ***************************************************************************/
+
+// c includes
+#include <cstdio>
+#include <cassert>
+
 // C++ includes
 #include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
 
-// Inventor and Voleon Includes
+// Inventor/Coin
 #include <Inventor/Qt/SoQt.h>
 #include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
 #include <Inventor/nodes/SoSeparator.h>
 
+#include <Inventor/events/SoMouseButtonEvent.h>
+#include <Inventor/events/SoLocation2Event.h>
+#include <Inventor/events/SoKeyboardEvent.h>
+
+#include <Inventor/nodes/SoEventCallback.h>
+
+#include <Inventor/nodes/SoNode.h>
+#include <Inventor/nodes/SoCamera.h>
+#include <Inventor/nodes/SoSeparator.h>
+#include <Inventor/nodes/SoSwitch.h>
+
+#include <Inventor/draggers/SoTranslate1Dragger.h>
+#include <Inventor/draggers/SoSpotLightDragger.h>
+
+
+// Voleon Includes
 #include <VolumeViz/nodes/SoVolumeRendering.h>
 
 // local includes
@@ -43,6 +74,58 @@ int debug_level=0;
 
 /// Let the debugger find out which version is being used.
 static const UNUSED char* RCSid ="$Id$";
+
+/***************************************************************************
+ * KEYBOARD STUFF
+ ***************************************************************************/
+
+class SceneInfo {
+public:
+  SceneInfo();
+  SoCamera *camera;
+  SoSeparator *root;
+
+  vector<SoSpotLightDragger *> draggerVec; // All of the draggers that have been added.
+  //SoSeparator *draggerSep;
+  SoSwitch *draggerSwitch;
+
+  gengetopt_args_info *a; ///< a for args.  These are the command line arguments
+
+  bool animating;  // set to true to start animation;
+};
+
+/// Make a SceneInfo object with all pointers set to zero and not animating
+SceneInfo::SceneInfo() {
+  camera = 0; root = 0; draggerSwitch = 0; draggerSwitch = 0; a = 0;
+  animating=false;
+}
+
+
+/// \brief Gets called whenever the user presses a key in interactive mode
+/// \param data This will be the SceneInfo structure.
+void
+keyPressCallback(void *data, SoEventCallback *cb) {
+  assert(data); assert(cb);
+
+  SceneInfo *si = (SceneInfo *)data;
+
+  assert (si);
+  assert (si->camera);
+  assert (si->root);
+
+  const SoKeyboardEvent *keyEvent = (const SoKeyboardEvent *)cb->getEvent();
+
+  cerr << "Keypressed: " << keyEvent->getPrintableCharacter() << endl;
+
+  if (SO_KEY_PRESS_EVENT(keyEvent, D)) {
+    DebugPrintf(TRACE,("Keyhit: D"));
+    cerr << "d" << endl;
+    return;
+  }
+
+
+} // keyPressCallback
+
 
 /***************************************************************************
  * MAIN
@@ -90,6 +173,20 @@ int main(int argc, char *argv[])
   }
   myViewer->setSceneGraph( root );
   myViewer->show();
+
+  SceneInfo *si = new SceneInfo;
+  si->root=root;
+  si->a=&a;
+  si->camera = myViewer->getCamera();
+
+  {
+    // Set up callback
+    SoEventCallback 	*keyEventHandler = new SoEventCallback;
+    assert (keyEventHandler);
+    keyEventHandler->addEventCallback(SoKeyboardEvent::getClassTypeId(), keyPressCallback, si);
+    root->addChild(keyEventHandler);
+  }
+
 
   SoQt::show(myWindow);
   SoQt::mainLoop();
