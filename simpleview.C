@@ -745,51 +745,40 @@ keyPressCallback(void *data, SoEventCallback *cb) {
 /// \brief Handle details of moving the camera between waypoints
 /// \param data SceneInfo data structure
 /// \param sensor The timer that went off
+///
+/// \bug The first frame rendered to disk is not right.  So for now ignore frame 0000
 void timerSensorCallback(void *data, SoSensor *sensor) {
   assert(data);
   assert(sensor);
   SceneInfo *si = (SceneInfo *)data;
-  static bool initialized=false;
 
-  if (!si->animating) {
-    initialized=false;
-    return;  // not turned on right now
-  }
-  if (si->draggerVec.size()<2) { cout << "nothing to animate!" << endl;   return;  }
+  if (!si->animating) {return;}  // not turned on right now
+  if (si->draggerVec.size()<2) { si->animating=false;  cout << "nothing to animate!" << endl;   return;  }
 
-  // Now lets animate things!
-
-  //static float percent=10.;  - now cur_percent
-  //static size_t cur=0; - now cur_mark
-
-  // handle setup.
-#if 0
-  if (!initialized) {
-    initialized=true;
-    cout << "Initialization for animation." << endl;
-    percent = 0.;
-    cur = 0;
-  }
-#endif
-
+  //
+  // Check to see if we have to switch nodes or loop back to the beginning
+  //
   if (si->cur_percent >= 1.0) {
+    // FIX: do we include the beginning way point or not
+    // -1 gives beginning  -2 give last waypoint as the end
+    if (si->a->noloop_flag && (si->draggerVec.size()-1)==si->cur_mark) {
+      cout << "Animation finished.  Use 'b' to go back to the beginning." << endl;
+      si->animating=false;
+      return;
+    }
     si->cur_percent=0.;
     si->cur_mark++;
+    if (si->draggerVec.size()==si->cur_mark) { si->cur_mark=0; } // back to the beginning
     cout << "Switching to mark #" << si->cur_mark << endl;
-    if (si->draggerVec.size()==si->cur_mark) {
-      si->cur_mark=0;
-    }
   }
 
   //
   // Calc the camera position and set it!
   //
-  //cout << "using: " << cur << " " << cur+1 << endl;
   SoSpotLightDragger *d1 = si->draggerVec[si->cur_mark];
   SoSpotLightDragger *d2;
-  if (si->cur_mark==si->draggerVec.size()-1) {
-    d2 = si->draggerVec[0]; // Loop back to the first mark
-  } else d2 = si->draggerVec[si->cur_mark+1];
+  if (si->cur_mark==si->draggerVec.size()-1) { d2 = si->draggerVec[0]; } // Loop back to the first mark
+  else d2 = si->draggerVec[si->cur_mark+1];
 
   SbVec3f pos1 = d1->translation.getValue();
   SbVec3f pos2 = d2->translation.getValue();
