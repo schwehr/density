@@ -332,7 +332,7 @@ void Density::getCellCenter(const size_t cellNum, float &x, float &y, float &z) 
 }
 
 // Old crufty inflexible version of write
-bool Density::writeVolScale(const string &filename) {
+bool Density::writeVolScale(const string &filename) const {
   FILE *o=fopen(filename.c_str(),"wb");
   if (!o) {perror("failed to open output file");cerr << "   " << filename << endl;return(false);}
 
@@ -352,7 +352,7 @@ bool Density::writeVolScale(const string &filename) {
 
 
 
-size_t Density::scaleValue(const size_t value, const PackType p, const size_t bitsPerVoxel) {
+size_t Density::scaleValue(const size_t value, const PackType p, const size_t bitsPerVoxel) const {
   size_t maxVox;
   switch (bitsPerVoxel) {
   case  8: maxVox=std::numeric_limits<uint8_t >::max(); break;
@@ -379,13 +379,12 @@ size_t Density::scaleValue(const size_t value, const PackType p, const size_t bi
 
 bool Density::writeVol(const std::string &filename,
 		       const size_t bitsPerVoxel,const PackType p
-		       /*const float rotX, const float rotY,const float rotZ*/) // const
+		       /*const float rotX, const float rotY,const float rotZ*/)  const
 {
   const float rotX=0., rotY=0., rotZ=0.;
   bool ok=true;
   //float scales[3] ={1.,1.,1.}; // FIX: remove setting
   float scales[3];
-  //cout << "FIX: Figure scales based on xR, yR, and yZ" << endl;
 
   {
     const float dxR = xR[1] - xR[0]; // Distance in space (not voxel cell)
@@ -451,7 +450,7 @@ bool Density::writeVol(const std::string &filename,
 		       const size_t bitsPerVoxel,const PackType p,
 		       const float scaleX, const float scaleY, const float scaleZ,
 		       const float rotX, const float rotY,const float rotZ
-		       ) // const
+		       ) const
 {
   bool ok=true;
 
@@ -506,8 +505,10 @@ unsigned char Density::scaleCount(const size_t i, const size_t min, const size_t
   return (r);
 }
 
+//#include <algorithm>
 // Yes const... doesn't change the data
-void Density::computeMinMax() {
+void Density::computeMinMax() const {
+#if 0
   size_t min = std::numeric_limits<size_t>::max();
   size_t max = std::numeric_limits<size_t>::min();
   for (size_t i=0;i<counts.size();i++) {
@@ -518,14 +519,17 @@ void Density::computeMinMax() {
   }
   minCache = min;
   maxCache = max;
+#endif
+  minCache = *min_element(counts.begin(),counts.end());
+  maxCache = *max_element(counts.begin(),counts.end());
   stale=false;
 }
 
-size_t Density::getMaxCount(){
+size_t Density::getMaxCount() const {
   if (stale) computeMinMax();
   return(maxCache);
 }
-size_t Density::getMinCount(){
+size_t Density::getMinCount() const {
   if (stale) computeMinMax();
   return(minCache);
 }
