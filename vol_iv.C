@@ -88,7 +88,7 @@ getPredefCmap (const int given, const char *cstr, bool &ok) {
 /// \param cmaptype_given Bool of if the user specified anything
 /// \param cmaptype_arg What the user tried to tell us
 /// \param ok \a false something cookoo happened... very likely with user typos
-/// \return SoTransferFunction::ColorMapType of ALPHA, LUB_ALPHA, or RGBA
+/// \return SoTransferFunction::ColorMapType of ALPHA, LUM_ALPHA, or RGBA
 SoTransferFunction::ColorMapType
 getCmapType(const int cmaptype_given, const char *cmaptype_arg, bool &ok) {
   DebugPrintf(TRACE,("getCmapType: %d\n",int(cmaptype_given)));
