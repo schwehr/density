@@ -91,9 +91,6 @@ int main (int argc, char *argv[]) {
   if (a.xmin_given ||a.xmax_given ||  a.ymin_given ||a.ymax_given ||  a.zmin_given ||a.zmax_given)
     d.rescale(a.xmin_arg,a.xmax_arg,a.ymin_arg,a.ymax_arg,a.zmin_arg,a.zmax_arg);
 
-  ifstream in(a.inxyz_arg,ios::in);
-  if (!in.is_open()) {cerr<<"Failed to open "<<a.inxyz_arg<<endl;return(EXIT_FAILURE);}
-
   vector<float> cdf;
   if (!d.buildCDF(cdf)) {
     cerr << "ERROR: cdf failed to build" << endl;
@@ -106,19 +103,29 @@ int main (int argc, char *argv[]) {
   }
 #endif
 
-  char buf[1024];
-  while (in.getline(buf,1024)) {
-    if ('#'==buf[0]) continue; // Comment
-    istringstream istr(buf);
-    float x,y,z;
+
+  //ifstream in(a.inxyz_arg,ios::in);
+  //if (!in.is_open()) {cerr<<"Failed to open "<<a.inxyz_arg<<endl;return(EXIT_FAILURE);}
+  bool ok=true;
+  for (size_t filenum=0;filenum < a.inputs_num; filenum++) {
+    DebugPrintf(TRACE,("testing file: %s",a.inputs[filenum]));
+    ifstream in(a.inputs[filenum],ios::in);
+    string filename(a.inputs[filenum]);
+    if (!in.is_open()) {cerr<<"Failed to open "<<a.inputs[filenum]<<endl;ok=false;continue;}
+
+    char buf[1024];
+    while (in.getline(buf,1024)) {
+      if ('#'==buf[0]) continue; // Comment
+      istringstream istr(buf);
+      float x,y,z;
     
-    istr >> x >> y >> z;
-    const size_t cellIndex = d.getCell(x,y,z);
-    const size_t count = d.getCellCount(cellIndex);
-    cout << x << " " << y << " " << z << "    "
-	 << count << " " << float(count)/d.getCountInside() << " " << cdf[count] << endl;
+      istr >> x >> y >> z;
+      const size_t cellIndex = d.getCell(x,y,z);
+      const size_t count = d.getCellCount(cellIndex);
+      cout << densityFileName << " " << filename << " " << x << " " << y << " " << z << "    "
+	   << count << " " << float(count)/d.getCountInside() << " " << cdf[count] << endl;
 
-  }
-
-  return (EXIT_SUCCESS);
+    }
+  } // for filenum
+  return (ok?EXIT_SUCCESS:EXIT_FAILURE);
 }
