@@ -77,6 +77,7 @@ public:
   ColorPallet(const string &filename, bool &ok);
   /// offset must be between 0 and 255
   bool getRGBA(const size_t offset, float &r, float &g, float &b, float &a) const;
+  bool setRGBA(const size_t offset, const float r, const float g, const float b, const float a);
 
   enum ColorModel { UNKNOWN_CLR_MODEL, ALPHA, LUM_ALPHA, RGBA, HSVA };
   void setColorModel (const ColorModel cm) {colorModel=cm;}
@@ -90,9 +91,20 @@ private:
   ColorModel colorModel;
 };
 
+bool ColorPallet::setRGBA(const size_t offset, const float _r, const float _g, const float _b, const float _a) {
+  if (256<=offset) return(false);
+  assert (HSVA==colorModel || RGBA==colorModel); // FIX: cope with other 2
+  r[offset] = _r;
+  g[offset] = _g;
+  b[offset] = _b;
+  a[offset] = _a;
+  assert (0<=_r && _r<=1.0);  assert (0<=_g && _g<=1.0);  assert (0<=_b && _b<=1.0);  assert (0<=_a && _a<=1.0);
+  return(true);
+}
+
 bool ColorPallet::getRGBA(const size_t offset, float &_r, float &_g, float &_b, float &_a) const {
   if (256<=offset) return(false);
-  // FIX: Warn if not HSVA or RGBA
+  assert (HSVA==colorModel || RGBA==colorModel); // FIX: cope with other 2
   _r = r[offset];
   _g = g[offset];
   _b = b[offset];
@@ -132,6 +144,16 @@ ColorPallet::ColorPallet(const string &filename, bool &ok) {
       cerr << "Read failed for:" << bufStr << endl;
       continue;
     }
+    if ( (HSVA!=colorModel) && !( (0.<=v1 && v1 <= 1.) 
+	    && (0.<=r1 && r1 <= 1.) && (0.<=g1 && g1 <= 1.) && (0.<=b1 && b1 <= 1.) && (0.<=a1 && a1 <= 1.)
+	    && (0.<=v2 && v2 <= 1.) 
+	    && (0.<=r2 && r2 <= 1.) && (0.<=g2 && g2 <= 1.) && (0.<=b2 && b2 <= 1.) && (0.<=a2 && a2 <= 1.)
+	    ))
+      {
+	cerr << "WARNING: all values must be between 0.0 and 1.0" << endl << "\t" << bufStr << endl;
+	ok=false;
+	continue;
+      }
     // FIX: check the istr for an error
     if (!insertCmapEntry(v1,r1,g1,b1,a1, v2,r2,g2,b2,a2)) ok=false;
   }
@@ -210,15 +232,29 @@ int main (int argc, char *argv[]) {
   // GET TO WORK YOU SLACKER
   //////////////////////////////////////////////////////////////////////
 
+  ofstream o(a.out_arg,ios::out);
+  if (!o.is_open()) {cerr << "Failed to open output file: " << a.out_arg << endl; return (EXIT_FAILURE);}
+
   if (a.cpt_given) {
     bool r;
     ColorPallet cpt(string(a.cpt_arg),r);
-    if (!r) ok=false;
+    if (!r) {ok=false; cerr << "NOT writing output file do to bad color pallet" << endl;}
     else {
+      if (a.zero_given) {
+	for (size_t i=0;i<size_t(a.zero_given);i++) {
+	  if (!(0<=a.zero_arg[i] && a.zero_arg[i]<=255)) {
+	    cerr << "WARNING: zero index must be in the range of 0..255.  You gave: " << a.zero_arg[i] << endl;
+	    continue;
+	  }
+	  cpt.setRGBA(a.zero_arg[i],0.f,0.f,0.f,0.f);
+	}
+      }
+
+
       for (size_t i=0;i<256;i++) {
 	float r,g,b,a;
 	if (cpt.getRGBA(i,r,g,b,a)) {
-	  cout << i << ": " << r << " " << g << " " << b << " " << a << endl;
+	  o << r << " " << g << " " << b << " " << a << endl;
 	} else {
 	  cerr << "Entry ERROR for color table entry: " << i << endl;
 	}
