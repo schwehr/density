@@ -1,5 +1,6 @@
 CXXFLAGS := -Wall -Wimplicit -pedantic -W -Wstrict-prototypes -Wredundant-decls
 CXXFLAGS += -I/sw/include -L/sw/lib
+FFLAGS := -g -Wall
 
 ifdef OPTIMIZE
   CXXFLAGS += -O3 -funroll-loops -fexpensive-optimizations -DNDEBUG
@@ -10,6 +11,7 @@ endif
 CFLAGS := ${CXXFLAGS} -Wimplicit-int -Wimplicit-function-declaration -Wnested-externs
 
 TARGETS:= test_SiteSigma test_s_bootstrap makeCDF histogram s_bootstrap
+#TARGETS+= AMScrunch
 targets: ${TARGETS}
 
 
