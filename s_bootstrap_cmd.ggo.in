@@ -25,9 +25,6 @@ purpose "Provide bootstrap resampling of groups of samples."
 
 option "verbosity" v "Set the verbosity level (0=quiet 10=verbose 20=bombastic)" int default="0" no
 
-
-option "in" i "Input file name\n Must be a Voleon vol file" string typestr="filename" yes multiple
-
 option "format" f "Output format.\n  s - 7 number s values (see s_eigs)\n  tpr - polar\n  xyz - cartesian" string default="xyz" no
 option "numout" n "Number of output files.\n  1 - put min, int, max in a single file\n  3 - put min, int, max each in a separate file.  Appends the number to the filename." int default="1" no
 
