@@ -36,6 +36,13 @@
 CXXFLAGS := -Wall -Wimplicit -pedantic -W -Wstrict-prototypes -Wredundant-decls
 CXXFLAGS += -I/sw/include -L/sw/lib
 
+
+# FIX: gcc can tell us the endian 
+#  touch foo.h && cpp -dM foo.h
+#
+#define __BIG_ENDIAN__ 1
+#define _BIG_ENDIAN 1
+
 # This is a cheap hack to prebuild endian
 ENDIAN_DUMMY:=${shell make -f Makefile.endian}
 CXXFLAGS += -D${shell ./endian}
