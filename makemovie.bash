@@ -67,6 +67,8 @@
 # makemovie.bash as3-undef-all as3-undef-vmax as3-undef-vint as3-undef-vmin as3-undef- 99
 
 
+# for one.bash
+# simpleview -i 0.1 -p 0.05 *.iv ../axes.iv -w main.wpt -n -b as3-undef-vmin -W 750 -H 750 -v 6
 
 
 #export PATH=${PATH}:.:..:../..
@@ -126,5 +128,3 @@ while [ $max != $fileNum ]; do
     rm -f ${b1}${f}.pnm ${b2}${f}.pnm ${b3}${f}.pnm ${b4}${f}.pnm left2.pnm right2.pnm
 
 done
-
-
