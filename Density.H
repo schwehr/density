@@ -30,14 +30,18 @@ public:
   /// \return Cell number or \a badValue if x,y,z is not in the volume
   size_t getCell(const float x, const float y, const float z) const;
   bool isValidCell(size_t i) const {return(i<counts.size()?true:false);}
-  size_t getCellX(const float x) const {return(size_t((x-xR[0]/dx)));}
-  size_t getCellY(const float y) const {return(size_t((y-yR[0]/dy)));}
-  size_t getCellZ(const float z) const {return(size_t((z-zR[0]/dz)));}
+  size_t getCellX(const float x) const {return(size_t((x-xR[0])/dx));}
+  size_t getCellY(const float y) const {return(size_t((y-yR[0])/dy));}
+  size_t getCellZ(const float z) const {return(size_t((z-zR[0])/dz));}
   void getCellXYZ(const size_t index, size_t &cx, size_t &cy, size_t &cz) const;
 
   void getCellCenter(const size_t cellNum, float &x, float &y, float &z) const;
 
   size_t getCellCount(size_t i) const{assert(isValidCell(i));return(counts[i]);}
+
+  float getDX() const {return(dx);}  ///< How wide is one cell
+  float getDY() const {return(dy);}  ///< How wide is one cell
+  float getDZ() const {return(dz);}  ///< How wide is one cell
 
 
   /// This is the value for an unknown or bad entry.  Should be a huge number that we would never encounter.
