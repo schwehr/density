@@ -28,12 +28,12 @@ option "verbosity" v "Set the verbosity level (0=quiet 10=verbose 20=bombastic)"
 
 option "in" i "Volume file to start with" string typestr="filename" no
 option "data" D "Use volume raw data with a new header" string typestr="filename" no
-option "nodata" n "Do not write data with a header" no
+option "nodata" n "Do not write data with the header" no
 
 option "out" o "Output file name" string typestr="filename" yes
 
-
-option "magic" m "Give a new magic number" int no
+# magic number here needs to be converted to network byte order
+option "magic" m "Give a new magic number" int default="192837465" no
 option "header_len" H "Number of bytes of header" int no
 
 option "width" w "Num voxels in the x direction" int default="10" no
