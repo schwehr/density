@@ -24,6 +24,12 @@
 #include <vector>
 #include <string>
 
+/// \file
+/// \brief Convert an xyz point set into a volume density
+///        Uses a voxel representation.  Provides the \a Density class
+
+
+
 /// \brief How to squeeze data into the output sample size
 /// If the counts are greater than the max value of the output
 /// bitsPerPixel, this is how we should handle the values.

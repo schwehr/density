@@ -18,8 +18,9 @@
 
 */
 
-/// \brief 
-///        
+/// \file
+/// \brief Use the GNU Scientific Library to calculate eigen parameters
+
 
 /***************************************************************************
  * INCLUDES

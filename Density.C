@@ -18,6 +18,7 @@
 
 */
 
+/// \file
 /// \brief Convert an xyz point set into a volume density
 ///        Uses a voxel representation
 

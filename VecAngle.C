@@ -18,8 +18,9 @@
 
 */
 
-/// \brief 
-///        
+/// \file
+/// \brief Implement vector, angle, and coordinate frame functions
+
 
 /***************************************************************************
  * INCLUDES

@@ -23,6 +23,10 @@
 
 #include <vector>
 
+/// \file
+/// \brief Header providing the CDF class (Cumulative Distribution Function)
+
+
 /// \brief create a CDF (Cumulative Distribution Function) of a set of values
 /// @param data What to make the CDF from
 /// @param value Returns the data value for this entry of the cdf.  These will be sorted from smallest to largest.

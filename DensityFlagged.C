@@ -18,6 +18,7 @@
 
 */
 
+/// \file
 /// \brief Implementation of flagged density/traversal by largest neighbor
 
 /// Similiar to the paint bucket algorithm

@@ -18,6 +18,9 @@
 
 */
 
+/// \file
+/// \brief The usual byte endian detection program
+
 #include <cstdio>
 #include <cstdlib>
 using namespace std;

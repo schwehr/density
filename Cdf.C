@@ -18,6 +18,7 @@
 
 */
 
+/// \file
 /// \brief Make a CDF from a list of values
 
 

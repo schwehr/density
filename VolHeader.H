@@ -18,6 +18,10 @@
 
 */
 
+/// \file
+/// \brief Volume header class for SimVoleon formated voxel data
+
+
 #ifndef _VOL_HEADER_H_
 #define _VOL_HEADER_H_
 

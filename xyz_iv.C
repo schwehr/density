@@ -18,7 +18,8 @@
 
 */
 
-/// \brief Display XYZ points as OpenInventor models.
+/// \file
+/// \brief Create OpenInventor models to display XYZ points.
 
 /***************************************************************************
  * INCLUDES

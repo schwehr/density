@@ -18,7 +18,8 @@
 
 */
 
-/// \brief Port of the hext site sigma stats to C++
+/// \file
+/// \brief Port of the \a Hext site sigma stats to C++
 
 #include <cmath>
 

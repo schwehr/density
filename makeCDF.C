@@ -18,6 +18,10 @@
 
 */
 
+/// \file
+/// \brief Trivial program to make cumulative distribution function plots with gnuplot
+
+
 #include <vector>
 #include <iostream>
 #include <fstream>

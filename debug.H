@@ -19,12 +19,15 @@
 */
 /// \file 
 
-/// \brief Provide help for debugging and such.  This is the land of
-/// crazy macros and stuff.  Thanks to Dan Christian and Dave
-/// Wettergreen getting me hooked on the debug level stuff.
-///
-/// I know, I am mixing both cout and printf.  It seems to work for
-/// me!
+/// \brief Provide help for debugging and such.  Provides macros for
+/// debug levels, regression testing, and suppression of warning for
+/// unused variables.
+
+//  Thanks to Dan Christian and Dave Wettergreen getting me hooked on
+// the debug level stuff.
+//
+// I know, I am mixing both cout and printf.  It seems to work for
+// me!
 
 
 #ifndef _DEBUG_H_

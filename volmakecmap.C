@@ -21,12 +21,14 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-/// \brief Help make color maps
-///
-/// Want to be able to read things similiar to GMT Color Pallet Files
-/// (cpt).  For example: /sw/share/gmt/cpt/GMT_cool.cpt.
-///
-/// You CPT files need to go from [0..1]
+/// \file
+/// \brief Command line to help make color maps
+
+//
+// Want to be able to read things similiar to GMT Color Pallet Files
+// (cpt).  For example: /sw/share/gmt/cpt/GMT_cool.cpt.
+//
+// You CPT files need to go from [0..1]
 
 /// FIX: need some pre canned color maps!  see GMT's makecpt and grd2cpt
 

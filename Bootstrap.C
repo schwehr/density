@@ -19,6 +19,11 @@
 
 */
 
+
+/// \file 
+/// \brief Implementation of resampling data points based on their known error.
+/// Can do both sample based and parametric (group) based sigmas.
+
 /***************************************************************************
  * INCLUDES
  ***************************************************************************/

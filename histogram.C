@@ -19,6 +19,9 @@
 */
 
 
+/// \file
+/// \brief Help turn 1D data stream into a stream suitable a gnuplot histogram
+
 #include <vector>
 #include <iostream>
 #include <fstream>

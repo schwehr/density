@@ -22,6 +22,10 @@
 #ifndef _SITE_SIGMA_H_
 #define _SITE_SIGMA_H_
 
+/// \file
+/// \brief Use the Hext method for site sigma (parametric)
+
+
 /// Calculate the Hext site sigma
 float SiteSigma (const std::vector<SVec> &s);
 #endif // _SITE_SIGMA_H_

@@ -18,8 +18,8 @@
 
 */
 
-/// \brief Convert an xyz point set into a volume density
-///        Uses a voxel representation
+/// \file
+/// \brief Volume Header class for SimVoleon formated voxel data
 
 
 /***************************************************************************

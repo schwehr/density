@@ -19,6 +19,11 @@
 #ifndef _BOOTSTRAP_H_
 #define _BOOTSTRAP_H_
 
+/// \file
+/// \brief Header for resampling data points based on their known error.
+/// Can do both sample based and parametric (group) based sigmas.
+
+
 #include <gsl/gsl_rng.h>
 #include <cstdio>
 

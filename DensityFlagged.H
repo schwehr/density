@@ -22,6 +22,10 @@
 
 #include <vector>
 
+/// \file
+/// \brief Grows connected collections of connected voxels
+
+
 //#include "Density.H"
 class Density;
 

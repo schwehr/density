@@ -18,6 +18,11 @@
 
 */
 
+/// \file
+/// \brief Command line program to do paleomag s data processing into xyz.
+
+
+
 /*
 
 Random: double gsl_ran_gaussian (const gsl_rng * r, double sigma)

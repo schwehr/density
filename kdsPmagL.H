@@ -23,22 +23,11 @@
 
 #include <vector>
 
+/// \file
+/// \brief provide the SVec data type.  See \a k15_s or the Tauxe book.
+
+
 /// This class is used for the 6 or 7 value s vector.  Probably a bad name.
 typedef std::vector<float> SVec; // should always size()==6
-
-/// Place this right before function or method args that may not get
-/// used in certain cases and the compiler will stop complaining
-#ifdef __GNUC__
-#define UNUSED __attribute((__unused__))
-#else
-#define UNUSED
-#endif
-
-/// Nice way to say where the test failed... takes emacs right to the problem
-#ifdef REGRESSION_TEST
-#define FAILED_HERE cout <<  __FILE__ << ":" << __LINE__ << " test failed" << endl
-#else
-#define FAILED_HERE // Empty
-#endif
 
 #endif
