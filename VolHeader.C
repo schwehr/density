@@ -133,14 +133,34 @@ VolHeader::VolHeader(const size_t _width, const size_t _height, const size_t dep
   header_length=requiredSize();//hton_uint32(sizeof(VolHeader));
   assert(52==header_length);
 
-  width=_width;
+  width =_width;
   height=_height;
   images=depth;
 
-  bits_per_voxel=hton_uint32(8);
-  index_bits=0;  // 0==hton_uint32(0) no matter what
-  scaleX=scaleY=scaleZ=(hton_float(1.f));
-  rotX=rotY=rotZ=(hton_float(1.f));
+  bits_per_voxel=8;
+  index_bits=0;
+  scaleX=scaleY=scaleZ=1.f;
+  rotX=rotY=rotZ=1.f;
+}
+
+VolHeader::VolHeader(const size_t _width, const size_t _height, const size_t depth,
+	    const size_t _bitsPerVoxel,
+	    const float _scaleX, const float _scaleY, const float _scaleZ,
+	    const float _rotX, const float _rotY, const float _rotZ)
+{
+  magic_number=hMagicNum();
+  header_length=requiredSize();
+  assert(52==header_length);
+
+  width =_width;
+  height=_height;
+  images=depth;
+
+  bits_per_voxel=_bitsPerVoxel;
+  index_bits=0; // Grrr...
+
+  scaleX=_scaleX;  scaleY=_scaleY;  scaleZ=_scaleZ;
+  rotX=_rotX;  rotY=_rotY;  rotZ=_rotZ;
 }
 
 #include <fcntl.h>   /* File control definitions */
