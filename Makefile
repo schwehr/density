@@ -40,7 +40,14 @@ TARGETS:=${BINS} ${TEST_BINS}
 
 targets: ${TARGETS} test
 
-xyzdensity: xyzdensity.C Density.o VolHeader.o
+
+xyzdensity_cmd.c: xyzdensity_cmd.h
+xyzdensity_cmd.h: xyzdensity_cmd.ggo
+	gengetopt --input=$< --file-name=${<:.ggo=}
+xyzdensity_cmd.o: xyzdensity_cmd.c xyzdensity_cmd.ggo
+	${CXX} -c $< ${CXXFLAGS}
+
+xyzdensity: xyzdensity.C Density.o VolHeader.o xyzdensity_cmd.o
 	${CXX} -o $@ $^ ${CXXFLAGS}
 
 test_Cdf: Cdf.C Cdf.H
@@ -89,3 +96,4 @@ test: ${TEST_BINS}
 	@echo 
 	@echo SUCCESS!!
 	@echo All tests passed in "${shell pwd}"
+
