@@ -37,3 +37,6 @@ option "ymax" Y "Maximum Y coordinate" float default="0.5" no
 option "zmin" z "Minimum z coordinate" float default="-0.5" no
 option "zmax" Z "Maximum Z coordinate" float default="0.5" no
 
+# This should make things go pretty slow!
+#option "rotate-fit" r "FIX: Implement this!!!\nRotate each sample to also find the best fit direction" flag off
+
