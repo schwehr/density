@@ -510,7 +510,16 @@ int main(int argc, char *argv[])
   }
   si->draggerSwitch->whichChild = SO_SWITCH_NONE; // don't show our path
 
-  // FIX: make sure we have at least 2 waypoints!
+  if (2>si->draggerVec.size()) {
+    cerr << "ERROR: you must have at least two waypoints in your .wpt file" << endl;
+    exit (EXIT_FAILURE);
+  }
+
+
+  if (a.loop_flag) {
+    cout << "Adding first waypoint to the end to form a loop" << endl;
+    si->draggerVec.push_back(si->draggerVec[0]);
+  }
 
 
   //////////////////////////////
@@ -547,20 +556,16 @@ int main(int argc, char *argv[])
 
        DebugPrintf (TRACE,("ANIMATION: Rendering frame to disk file\n"));
        size_t frame_num;
-       if (!RenderFrameToDisk (string(si->a->basename_arg),string(si->a->type_arg),
-			       si->a->width_arg, si->a->height_arg,
+       if (!RenderFrameToDisk (string(a.basename_arg),string(a.type_arg),
+			       a.width_arg, a.height_arg,
 			       si->root, frame_num)
 	   ) {
-	 cerr << "ERROR: unable to write you artistic work.  You have been sensored.  Not my fault." << endl;
+	 cerr << "ERROR: unable to write your artistic work.  You have been sensored.  Not my fault." << endl;
        }
        DebugPrintf(TRACE+1,("ANIMATION: Finished writing frame number %04d\n",int(frame_num)));
-
     }
-
   }
 
-
-  // probably can never reach here.
   return (ok?EXIT_SUCCESS:EXIT_FAILURE);
 }
 
