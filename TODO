@@ -3,3 +3,5 @@
 * simpleview - manipulation of lights
 * simpleview - control background color
 * Added acoc - Arbitrary command color
+* Turn on anti aliasing for offscreen render
+* Rotate samples about z for best fit
