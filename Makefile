@@ -77,6 +77,7 @@ GENGETOPT_BINS += xyzdensity
 GENGETOPT_BINS += xyzvol_cmp
 GENGETOPT_BINS += volinfo
 GENGETOPT_BINS += vol2vol
+GENGETOPT_BINS += volhdr_edit
 
 BINS := ${GENGETOPT_BINS}
 BINS += makeCDF
@@ -106,6 +107,15 @@ xyzdensity_cmd.o: xyzdensity_cmd.c xyzdensity_cmd.ggo
 	${CXX} -c $< ${CXXFLAGS}
 
 xyzdensity: xyzdensity.C Density.o VolHeader.o xyzdensity_cmd.o
+	${CXX} -o $@ $^ ${CXXFLAGS}
+
+volhdr_edit_cmd.c: volhdr_edit_cmd.h
+volhdr_edit_cmd.h: volhdr_edit_cmd.ggo
+	gengetopt --input=$< --file-name=${<:.ggo=}
+volhdr_edit_cmd.o: volhdr_edit_cmd.c volhdr_edit_cmd.ggo
+	${CXX} -c $< ${CXXFLAGS}
+
+volhdr_edit: volhdr_edit.C VolHeader.o volhdr_edit_cmd.o
 	${CXX} -o $@ $^ ${CXXFLAGS}
 
 
@@ -244,3 +254,4 @@ real-clean: clean
 ############################################################
 
 xyzdensity: debug.H
+VolHeader.o: VolHeader.C VolHeader.H
