@@ -63,7 +63,7 @@ static const UNUSED char* RCSid ="@(#) $Id$";
 
 int main (int argc, char *argv[]) {
   cout << "Starting " << argv[0] << endl;
-  //assert(3==argc);
+  assert(3==argc);
   const string filename(argv[1]);//("as2-slump.xyz");
   const int numCellsInt(atoi(argv[2]));
   assert (0<numCellsInt);
@@ -80,7 +80,7 @@ int main (int argc, char *argv[]) {
       d.addPoint(_x,_y,_z);
     }
   }
-  d.printCellCounts();
-
+  //d.printCellCounts();
+  d.writeVol(string("density.vol"));
   return (EXIT_SUCCESS);
 }
