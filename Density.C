@@ -218,10 +218,10 @@ bool Density::writeVol(const string &filename) {
   FILE *o=fopen(filename.c_str(),"wb");
   if (!o) {perror("failed to open output file");cerr << "   " << filename << endl;return(false);}
 
-  VolHeader hdr(getWidth(),getHeight(),getDepth());
-  assert(52==sizeof(hdr));
-  assert(sizeof(VolHeader)==sizeof(hdr));
-  if (1!=fwrite((void*)&hdr,sizeof(hdr),1,o)) {perror("header write failed");fclose(o);return(false);}
+  {
+    VolHeader hdr(getWidth(),getHeight(),getDepth());
+    hdr.write(o);
+  }
 
   const size_t min=getMinCount();
   const size_t max=getMaxCount();
@@ -234,6 +234,8 @@ bool Density::writeVol(const string &filename) {
     cout << "         writing: " << i<<"("<<counts[i]<<")  -> " << int(data)
 	 << "    (" << min <<","<<max<<")"<<endl; 
 #endif
+
+    // No endian issue with 1 byte data
     if (1!=fwrite(&data,sizeof(data),1,o)) {perror("write failed");fclose(o);return(false);}
   }
 
