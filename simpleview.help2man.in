@@ -1,0 +1,11 @@
+[AUTHOR]
+Kurt Schwehr
+
+[SEE ALSO]
+ivview, viz
+
+[DESCRIPTION]
+.PP
+
+Simpleview is an OpenInventor based scenegraph viewer.  It uses Coin
+to provide the OpenInventor API and SimVoleon to provide the volume/voxel rendering capability
