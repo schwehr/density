@@ -90,7 +90,9 @@ LoadS(const string filename,vector <SVec> &s,vector<float> &sigmas) {
   // FIX: only do {s[6],sigma} for now
   SVec tmp(6,0.);  float tmpSigma;
   while (in >> tmp[0] >> tmp[1] >> tmp[2] >> tmp[3] >> tmp[4] >> tmp[5] >> tmpSigma) {
-    s.push_back(tmp);  sigmas.push_back(tmpSigma);
+    s.push_back(tmp);  
+    //sigmas.push_back(0.); {static bool d=false;if(!d){cerr<<__FILE__<<" FIX HERE: " << __LINE__ << endl; d=true;}}
+    sigmas.push_back(tmpSigma);
   }
   // FIX: do we need to normalize so that the trace is 1?
   // Not all data will have a trace==1??
@@ -144,13 +146,15 @@ FormatEnum GetFormat(const char *format_arg) {
 
 /// \brief Actually do the boot strap
 /// \param inFiles vector of files to read in and bootstrap
-/// \param out1, out2, out3 Each of the streams to write to.  vmax, vint, vmin.  Make them all the same and set oneFile true to get one file will all 9 parameters
+/// \param out1Max, out2Int, out3Min Each of the streams to write to.  vmax,
+/// vint, vmin.  Make them all the same and set oneFile true to get
+/// one file will all 9 parameters
 /// \param numout_arg 1 if out1, out2, and out3 are all the same file, otherwise should be 3
 /// \param format How do we want the output to look.  (S, XYZ, other some other day)
 /// \param type PARAMETRIC_SITE or PARAMETRIC_SAMPLE
 /// \param draw How many sample to draw out of the magic hat
 bool DoS_Bootstrap(const vector<string> &inFiles,
-		   ofstream &out1, ofstream &out2, ofstream &out3,
+		   ofstream &out1Max, ofstream &out2Int, ofstream &out3Min,
 		   const int numout_arg, const FormatEnum format, const BootTypeEnum type,
 		   const int draw)
 {
@@ -174,7 +178,7 @@ bool DoS_Bootstrap(const vector<string> &inFiles,
   vector<float> Vmin(3,0), Vint(3,0), Vmax(3,0); // for xyz or tpr
 
   for(size_t i=0;i<inFiles.size();i++) {
-    cout << "reading file " << inFiles[i] << endl;
+    DebugPrintf (TRACE,("Reading file: %s",inFiles[i].c_str()));
     s.clear(); sigmas.clear();
     if (!LoadS(inFiles[i],s,sigmas)) {
       cerr << "ERROR - can't load datafile, skipping: " << inFiles[i] << endl;
@@ -184,9 +188,9 @@ bool DoS_Bootstrap(const vector<string> &inFiles,
     const float siteSigma = (SITE_PARAMETRIC==type)?SiteSigma(s):-666.;
 
     SVec newSample(6,0.);
-    out1 << setiosflags(ios::fixed) << setprecision(10);
-    out2 << setiosflags(ios::fixed) << setprecision(10);
-    out3 << setiosflags(ios::fixed) << setprecision(10);
+    out1Max << setiosflags(ios::fixed) << setprecision(10);
+    out2Int << setiosflags(ios::fixed) << setprecision(10);
+    out3Min << setiosflags(ios::fixed) << setprecision(10);
 
     // Draw out and bootstrap 'draw' number of samples
     for (size_t i=0;i<size_t(draw); i++) {
@@ -198,7 +202,7 @@ bool DoS_Bootstrap(const vector<string> &inFiles,
       // Now what do we do with the new sample?
       switch(format) {
       case S_FORMAT:
-	for (size_t i=0;i<newSample.size();i++) out1 << newSample[i] << " ";
+	for (size_t i=0;i<newSample.size();i++) out1Max << newSample[i] << " ";
 	break;
       //case PTR_FORMAT: break;  NOT SUPPORTED YET
       case XYZ_FORMAT:
@@ -208,11 +212,11 @@ bool DoS_Bootstrap(const vector<string> &inFiles,
 	  sengine.getXYZ(KINT, Vint);
 	  sengine.getXYZ(KMAX, Vmax);
 	  if (1==numout_arg) {
-	    for (size_t i=0;i<3;i++) out3 << Vmin[i] << " ";  // V3
-	    for (size_t i=0;i<3;i++) out2 << Vint[i] << " ";  // V2
-	    for (size_t i=0;i<3;i++) out1 << Vmax[i] << " ";  // V1
+	    for (size_t i=0;i<3;i++) out3Min << Vmin[i] << " ";  // V3
+	    for (size_t i=0;i<3;i++) out2Int << Vint[i] << " ";  // V2
+	    for (size_t i=0;i<3;i++) out1Max << Vmax[i] << " ";  // V1
 	  } else {
-	    for (size_t i=0;i<3;i++){out1<<Vmin[i]<<" "; out2<<Vint[i]<<" "; out3<<Vmax[i]<<" ";}
+	    for (size_t i=0;i<3;i++){out1Max<<Vmax[i]<<" "; out2Int<<Vint[i]<<" "; out3Min<<Vmin[i]<<" ";}
 	  }
 	} // case XYZ
 	break;
@@ -220,8 +224,8 @@ bool DoS_Bootstrap(const vector<string> &inFiles,
       }
 
       switch (numout_arg) {
-      case 1: out1 << endl; break;
-      case 3: out1 << endl; out2 << endl; out3 << endl; break;
+      case 1: out1Max << endl; break;
+      case 3: out1Max << endl; out2Int << endl; out3Min << endl; break;
       default: assert(false && "What are we gonna do now, man?!?!");
       }
     } // for draws
@@ -280,7 +284,8 @@ int main (const int argc, char *argv[]) {
 
   const BootTypeEnum type = GetParametricType(a.site_given,a.sample_given);
 #ifndef NDEBUG
-  cerr << "Bootstrap type: " << (SITE_PARAMETRIC==type?"site":"sample") << "parametric"<<endl;
+  if (debug_level > TRACE)
+    cerr << "Bootstrap type: " << (SITE_PARAMETRIC==type?"site":"sample") << " parametric"<<endl;
 #endif  
   
   if (1==a.numout_arg) {
@@ -293,16 +298,16 @@ int main (const int argc, char *argv[]) {
     } else {ok=false; cerr << "Failed to open output file" << endl;}
   } else {
     // 3 different files.
-    const string o1Name(string(a.out_arg)+string("1"));
-    const string o2Name(string(a.out_arg)+string("2"));
-    const string o3Name(string(a.out_arg)+string("3"));
+    const string o1NameMax(string(a.out_arg)+string("1.vmax"));
+    const string o2NameInt(string(a.out_arg)+string("2.vint"));
+    const string o3NameMin(string(a.out_arg)+string("3.vmin"));
 
-    ofstream o1(o1Name.c_str(),ios::out);
-    ofstream o2(o2Name.c_str(),ios::out);
-    ofstream o3(o3Name.c_str(),ios::out);
+    ofstream o1Max(o1NameMax.c_str(),ios::out);
+    ofstream o2Int(o2NameInt.c_str(),ios::out);
+    ofstream o3Min(o3NameMin.c_str(),ios::out);
 
-    if (!o1.is_open() || !o2.is_open() || !o3.is_open() ) ok=false;
-    if (ok && !DoS_Bootstrap(inFiles, o1,o2,o3, a.numout_arg, format, type, a.draw_arg)) {
+    if (!o1Max.is_open() || !o2Int.is_open() || !o3Min.is_open() ) ok=false;
+    if (ok && !DoS_Bootstrap(inFiles, o1Max,o2Int,o3Min, a.numout_arg, format, type, a.draw_arg)) {
       ok=false; cerr << "ERROR:  " << argv[0] << " failed in bootstrap routine." << endl;
     }
   }
