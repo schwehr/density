@@ -18,6 +18,9 @@ int main (int argc, char *argv[]) {
     float tmp;  while(in >> tmp) {data.push_back(tmp);}
   }
 
+  cerr << "data size: " << data.size() << endl;
+  assert (data.size()>0);
+
   sort(data.begin(),data.end());
 
   const float binSize = (*(data.end()-1) - *data.begin()) / numBins;
