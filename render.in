@@ -6,4 +6,7 @@ else
     export DYLD_LIBRARY_PATH=@FINK@/lib:$DYLD_LIBRARY_PATH
 fi
 
-./render_bin $*
+#cmd="`dirname $0`/render_bin $*"
+#$cmd
+@FINK@/bin/render $*
+
