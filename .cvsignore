@@ -12,5 +12,6 @@ foo*
 *_cmd.[ch]
 *.tar.bz2
 work
+simpleview.help2man
 simpleview makeCDF histogram s_bootstrap xyzdensity endian volinfo AMScrunch
 is_equal vol2vol vol_iv volhdr_edit volmakecmap xyz_iv xyzvol_cmp
