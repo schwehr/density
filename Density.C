@@ -74,10 +74,11 @@ static const UNUSED char* RCSid ="@(#) $Id$";
 
 Density::Density() {
   //cout << "FIX: make sure that later, things get setup ok.  Density()" << endl;
-#ifndef NDEBUG
+  //#ifndef NDEBUG
   width=height=depth=0;//badValue();
   invalidateCache();
-#endif
+  totalPointsInside=totalPointsOutside=0;
+  //#endif
 }
 
 void
@@ -104,7 +105,7 @@ Density::resize(const size_t _width, const size_t _height, const size_t _depth,
   zR[0]=minZ;zR[1]=maxZ;
   counts.resize(width*height*depth,0); // set all to zero
   //for (size_t i=0;i<counts.size();i++) counts[i]=0;
-  totalPointsInside=0;
+  totalPointsInside=totalPointsOutside=0;
  
   return;
 } // resize()
@@ -168,6 +169,8 @@ char *ReadDataUnsigned(char *data, const size_t bitsPerVoxel, size_t &val, bool 
 
 
 Density::Density(const std::string &filename, bool &ok) {
+  totalPointsInside=totalPointsOutside=0;
+
   ok=true;  // Be optimistic that we will kick butt
   bool r; // temp result code
   VolHeader v(filename,r);
@@ -211,8 +214,8 @@ Density::Density(const std::string &filename, bool &ok) {
     if (val>0) addPoints(i,val);
   }
 
-
   {int r = munmap(file,sb.st_size); if (-1==r) {perror ("munmap failed");ok=false; return;}}
+
   return; // ok is the return code
 } // Density - load from a file
 
@@ -222,6 +225,8 @@ bool
 Density::addPoint(const float x, const float y, const float z) {
   const size_t cellNum=getCell(x,y,z);
   if (cellNum==badValue()) {
+    totalPointsOutside++;
+    DebugPrintf (BOMBASTIC,("Point outside volume: %f %f %f",x,y,z));
 #ifdef REGRESSION_TEST
     cout << "         Point outside volume: " << x << " " << y << " " << z << endl;
 #endif    
