@@ -43,3 +43,4 @@ option "loop" L "loop from the last waypoint back to the first" flag off
 
 option "near" N "Near clipping plane distance" float default="1.0" no
 option "far"  F "Far  clipping plane distance" float default="10.0" no
+option "headlight" - "Add a headlight to the camera as with simpleview" flag off
