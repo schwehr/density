@@ -157,21 +157,21 @@ GetEigs(const gsl_matrix *eigenvec, const gsl_vector *eigenval, float newEigs[9]
   if (!GetEig(KMIN,eigenvec, eigenval, vec, val)) ok=false;
   xyz2tpr(vec[0],vec[1],vec[2],t,p,r);
   newEigs[0] = val; newEigs[1] = rad2deg(p); newEigs[2] = 90-rad2deg(t);
-  cout << "GetEigs1: " << vec[0]<<" "<<vec[1]<<" "<<vec[2]<<" "<<t<<" "<<p<<" "<<r << " " <<val<< endl;
+  //cout << "GetEigs1: " << vec[0]<<" "<<vec[1]<<" "<<vec[2]<<" "<<t<<" "<<p<<" "<<r << " " <<val<< endl;
 
   flip(newEigs[1],newEigs[2]);
 
   if (!GetEig(KINT,eigenvec, eigenval, vec, val)) ok=false;
   xyz2tpr(vec[0],vec[1],vec[2],t,p,r);
   newEigs[3] = val; newEigs[4] = rad2deg(p); newEigs[5] = 90-rad2deg(t);
-  cout << "GetEigs2: " << vec[0]<<" "<<vec[1]<<" "<<vec[2]<<" "<<t<<" "<<p<<" "<<r << " " <<val<< endl;
+  //cout << "GetEigs2: " << vec[0]<<" "<<vec[1]<<" "<<vec[2]<<" "<<t<<" "<<p<<" "<<r << " " <<val<< endl;
 
   flip(newEigs[4],newEigs[5]);
 
   if (!GetEig(KMAX,eigenvec, eigenval, vec, val)) ok=false;
   xyz2tpr(vec[0],vec[1],vec[2],t,p,r);
   newEigs[6] = val; newEigs[7] = rad2deg(p); newEigs[8] = 90-rad2deg(t);
-  cout << "GetEigs3: " << vec[0]<<" "<<vec[1]<<" "<<vec[2]<<" "<<t<<" "<<p<<" "<<r << " " <<val<< endl;
+  //cout << "GetEigs3: " << vec[0]<<" "<<vec[1]<<" "<<vec[2]<<" "<<t<<" "<<p<<" "<<r << " " <<val<< endl;
 
   flip(newEigs[7],newEigs[8]);
 
