@@ -86,10 +86,13 @@
 #include <Inventor/draggers/SoSpotLightDragger.h>
 
 // Voleon Includes
+#ifndef NO_VOLEON
 #include <VolumeViz/nodes/SoVolumeRendering.h>
+#endif
 
 // local includes
 #include "simpleview_cmd.h"
+#include "InventorUtilities.H"
 
 using namespace std;
 
@@ -160,281 +163,8 @@ SceneInfo::SceneInfo() {
 }
 
 
-/***************************************************************************
- * Vector Utilities
- ***************************************************************************/
 
 
-SbVec3f ToSbVec3f (const vector<float> &v) {
-  assert (3==v.size());
-  float x,y,z;
-  x=v[0]; y=v[1]; z=v[2];
-  SbVec3f s;
-  s.setValue(x,y,z);
-  return (s);
-}
-
-vector<float> ToVector (const SbVec3f &SbV) {
-  vector<float> v;
-  float x,y,z;
-  SbV.getValue(x,y,z);
-  v.push_back(x);
-  v.push_back(y);
-  v.push_back(z);
-  return (v);
-}
-
-
-SbVec3f
-InterpolateVec(const SbVec3f &v1, SbVec3f &v2,
-			     const float percent)
-{
-  return (v1+(v2-v1)*percent);
-}
-
-
-SbRotation InterpolateRotations(const SbRotation &rot1,const SbRotation &rot2,
-				const float percent)
-{
-#if 0
-  // Try 1.  camera roles
-  SbVec3f axis1; float rad1;
-  rot1.getValue(axis1,rad1);
-  SbVec3f axis2; float rad2;
-  rot2.getValue(axis2,rad2);
-  SbVec3f newAxis = InterpolateVec(axis1,axis2,percent);
-  SbRotation newRot(newAxis, rad1 + (rad2-rad1)*percent);
-#endif
-
-  float q1[4], q2[4], q3[4];
-  rot1.getValue(q1[0],q1[1],q1[2],q1[3]);
-  rot2.getValue(q2[0],q2[1],q2[2],q2[3]);
-
-  int i;
-  for (i=0;i<4;i++)
-    q3[i] = q1[i]+(q2[i]-q1[i])*percent;
-
-  SbRotation newRot(q3);
-  return (newRot);
-}
-
-
-vector<float>
-InterpolatePos(const vector<float> &v1, const vector<float> &v2,
-			     const float percent)
-{
-  assert (v1.size()==v2.size());
-  vector<float> v3;
-  size_t i;
-  for (i=0;i<v1.size();i++) {
-    const float a = v1[i];
-    const float b = v2[i];
-    const float delta = b-a;
-    const float newVal= a + delta*percent;
-    v3.push_back(newVal);
-  }
-  return (v3);
-}
-
-
-/***************************************************************************
- * Utilities
- ***************************************************************************/
-
-
-/// \brief Given a draggers set the camera view from it
-///
-/// This is the simpler case where we do not have to interpolate
-/// between to draggers
-void SetCameraFromDragger(SoCamera *c,SoSpotLightDragger *d) {
-  assert (d); assert(c);
-  SbVec3f pos=d->translation.getValue();
-  c->position = pos;
-  SbRotation rot = d->rotation.getValue();
-  c->orientation = rot;
-}
-
-
-
-/// \brief Ship off a picture to disk
-/// \param basename start the file name with this
-/// \param filetype the extension for the image format: jpg, png, etc...
-/// \param width,height The size of the rendered frame
-/// \param root Top of the scene graph to render
-/// \param frame_num return the frame number that we wrote
-/// \return \a false if we flailed trying to get a pretty picture to disk
-///
-/// \bug FIX: could optimize by keeping one renderer in memory
-bool RenderFrameToDisk (const string &basename,const string &filetype,
-			const int width, const int height,
-			SoNode *root, size_t &frame_num, const SbColor &background)
-{
-  assert (root);
-  DebugPrintf(VERBOSE,("w,h=%d,%d\n",width,height));
-  SbViewportRegion viewport(width,height);
-  SoOffscreenRenderer *renderer = new SoOffscreenRenderer(viewport);
-
-  //renderer->setBackgroundColor (background);
-
-#ifndef NDEBUG
-  SbVec2s maxRes = renderer->getMaximumResolution();
-  DebugPrintf(VERBOSE,("maxRes: %d %d\n",maxRes[0], maxRes[1]));
-#endif    
-
-  SbBool ok = renderer->render(root);
-  if (!ok) {  cerr << "Unable to render!" << endl;  delete(renderer); return(false);   }
-
-  static int count=0;
-  char countBuf[12];
-  frame_num = size_t(count);  snprintf(countBuf,12,"%04d",count++);
-  const string filename =
-    string(basename)
-    + string(countBuf)
-    + string(".")
-    + filetype;
-  SbName filetype_sb(filetype.c_str());
-  DebugPrintf (VERBOSE,("rendering offscreen - writeToFile:  %s  %s\n",filename.c_str(), filetype_sb.getString()));
-  ok = renderer->writeToFile(filename.c_str(), filetype_sb);
-  if (!ok) {cerr << "Failed to render" << endl; }
-  delete (renderer);
-  return (ok);
-}
-
-
-/// \brief Handle the --list command line option.  Spits out the list
-/// of filetypes that work for rendering to files
-void ListWriteFileTypes() {
-  if (!SoDB::isInitialized()) SoDB::init();
-
-  SbViewportRegion *viewport= new SbViewportRegion();
-  SoOffscreenRenderer *r = new SoOffscreenRenderer(*viewport);
-  const int numFileTypes = r->getNumWriteFiletypes();
-  if (0==numFileTypes) {
-    cout << "Only SGI RGB and Postscript are supported\n" << endl;
-    delete r;
-    delete viewport;
-    return;
-  }
-  cout << "Number of file type drivers: " << numFileTypes << endl;
-  size_t count=1;
-  for (int i=0;i<numFileTypes;i++) {
-    SbPList extlist;
-    SbString fullname, descr;
-    r->getWriteFiletypeInfo(i,extlist,fullname,descr);
-    //cout << i<< ": " <<fullname.getString() << " - " << descr.getString() << endl;
-    for (int ext=0;ext<extlist.getLength(); ext++) {
-      cout << "   " << count++ << ": " << (const char *)extlist[ext] << endl;
-    }
-  }
-  delete r;
-  delete viewport;
-
-} // ListWriteFileTypes
-
-/// \brief Check with coin/simage to see if the image extension works
-/// \param type String of the file extension.  For example \a rgb, \a png, \a jpg
-/// \return \a false if something went really bad with the lookup.
-bool CheckTypeValid(const string &type) {
-  if (!SoDB::isInitialized()) SoDB::init();
-
-  SbViewportRegion *viewport= new SbViewportRegion();
-  SoOffscreenRenderer *r = new SoOffscreenRenderer(*viewport);
-  SbName name(type.c_str());
-
-  SbBool ok=r->isWriteSupported(name);
-
-  delete r;
-  delete viewport;
-  return (ok);
-}
-
-/// \brief Load dragger/way points from a disk file
-/// \param filename Ascii file to load from
-/// \param root Where in the scene graph location to add the draggers  (should be draggerSwitch
-/// \param draggerVec A vector in which to keep the way points handy
-/// \return \a false if trouble loading the draggers/waypoints
-bool
-LoadSpotLightDraggers (const string filename, SoSeparator *root, vector<SoSpotLightDragger *> &draggerVec)
-{
-  bool ok=true;
-  assert(root);
-  DebugPrintf(TRACE,("LoadSpotLightDraggers %s %d\n",filename.c_str(),int(draggerVec.size())));
-
-  ifstream in(filename.c_str(),ios::in);
-  if (!in.is_open()){cerr<<"ERROR opening "<<filename<<endl; return(false);}
-  const size_t bufSize=256;
-  char buf[bufSize];
-#ifndef NDEBUG
-  memset(buf,0,bufSize);
-#endif
-  while (in.getline(buf,bufSize)) {
-    if ('#'==buf[0]) continue;
-    istringstream istr(buf);
-    float a1,a2,a3,r_angle,x,y,z,angle;
-    istr >> a1 >> a2 >> a3 >> r_angle >> x >> y >> z >> angle;
-
-    SoSpotLightDragger *wpt = new SoSpotLightDragger;
-    draggerVec.push_back(wpt);
-    {
-      SbRotation rot(SbVec3f(a1,a2,a3),r_angle);
-      
-      SbVec3f pos(x,y,z);
-      wpt->translation.setValue(pos);
-      wpt->rotation.setValue(rot);
-      wpt->angle=angle;
-    }
-    {
-      static int num=0;  char buf[128];
-      snprintf(buf, 128,"_%d",num++); // name can't start with a number
-      wpt->setName (buf);
-    }
-    SoSeparator *s = new SoSeparator;
-    s->addChild(wpt);
-    root->addChild(s); // draggerSwitch
-  }	
-
-  return (ok);
-} // LoadSpotLightDraggers	
-
-
-
-/// \brief Save an ascii file of all the draggers for editing and reloading
-/// \param filename file to write to
-/// \param draggerVec pointers to all the SoSpotLightDragger way points
-/// \return \a false if had trouble writing the file
-bool
-SaveSpotLightDraggersAscii (const string &filename, vector<SoSpotLightDragger *> &draggerVec) {
-  bool ok=true;
-  DebugPrintf(TRACE,("SaveSpotLightDraggers %s %d\n",filename.c_str(),int(draggerVec.size())));
-
-  if(0==draggerVec.size()){cerr<<"WARNING: skipping save.  There are 0 waypoints"<<endl;return(false);}
-
-  ofstream o(filename.c_str(),ios::out);
-  if (!o.is_open()) {cerr<<"ERROR: unable to open waypoint file: "<<filename<<endl; return (false);}
-
-  o << "#waypoints" << endl
-    << "# rotaxis1 rotaxis2 rotaxis3 rotAngle x y z cutoffangle" << endl
-    << "# written by: " << RCSid << endl;
-
-  for (size_t i=0;i<draggerVec.size();i++) {
-    SoSpotLightDragger *d = draggerVec[i];
-    assert (d);
-    SbVec3f axis; float r_angle;
-    float a1,a2,a3;
-    d->rotation.getValue(axis,r_angle);
-    axis.getValue(a1,a2,a3);
-    SbVec3f xyz(d->translation.getValue());
-    float x, y, z;
-    xyz.getValue(x,y,z);
-    const float angle = d->angle.getValue(); // FIX: do not currently use angle for anything
-    o << a1 << "\t"<< a2 << "\t"<< a3 
-      << "\t" << r_angle
-      << "\t" << x << "\t" << y << "\t" << z
-      << "\t" << angle << endl;
-  }
-
-  return (ok);
-} // SaveSpotLightDraggersAscii
 
 #if 0
 /// \brief Save an ascii file of all the draggers for editing and reloading
@@ -462,22 +192,6 @@ SaveSpotLightDraggersIV(const string &filename, SoSwitch *sw) {
 } // SaveSpotLightDraggersIV
 #endif
 
-/// \brief Write a scene graph to disk as ascii
-/// \param filename File to write ascii IV file to
-/// \param root Starting point of the scene graph to same
-/// \return \a false if we were not able to open the file.
-bool
-WriteSceneGraph (const string &filename, SoNode *root) {
-  SoOutput o;
-  if (!o.openFile(filename.c_str())) {
-    cerr<<"ERROR: unable to open file to dump iv to: " << filename << endl;
-    return(false);
-  }
-
-  SoWriteAction wa(&o);
-  wa.apply(root); // Error checking?
-  return (true);
-}
 
 
 /***************************************************************************
@@ -888,6 +602,8 @@ int main(int argc, char *argv[])
   DebugPrintf(TRACE,("Debug level = %d\n",debug_level));
 #endif
 
+  if (!CheckLibraryPath()) { cerr << "Bailing.  Library path check failed." << endl;  return(EXIT_FAILURE);}
+
 
   if (a.list_given) { ListWriteFileTypes();  return (EXIT_SUCCESS); }
   if (a.keys_given) { PrintKeyboardShorts();  return (EXIT_SUCCESS); }
@@ -904,7 +620,9 @@ int main(int argc, char *argv[])
   //
   QWidget* myWindow = SoQt::init(argv[0]);
   if ( myWindow==NULL ) return (EXIT_FAILURE);
+#ifndef NO_VOLEON
   SoVolumeRendering::init();
+#endif
 
   if (a.type_given)
     if (!CheckTypeValid(string(a.type_arg)))
