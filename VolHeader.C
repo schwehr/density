@@ -187,7 +187,6 @@ VolHeader::VolHeader(const size_t _width, const size_t _height, const size_t dep
   index_bits=0; // Grrr... what is this?
 
   scaleX=_scaleX;  scaleY=_scaleY;  scaleZ=_scaleZ;
-  cout << "const scales: " << scaleX << " " << scaleY << " " << scaleZ << endl;
   rotX=_rotX;  rotY=_rotY;  rotZ=_rotZ;
 }
 
