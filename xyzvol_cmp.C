@@ -58,9 +58,29 @@ int debug_level;
 /// Let the debugger find out which version is being used.
 static const UNUSED char* RCSid ="@(#) $Id$";
 
-//######################################################################
-// MAIN
-//######################################################################
+/***************************************************************************
+ * HELPERS
+ ***************************************************************************/
+
+
+// Get back the max value and the position.
+float findmax(vector<size_t> &d, size_t &position) {
+  //float _max=-HUGE;
+  size_t _max = 0;
+  position = numeric_limits<size_t>::max();
+  size_t i;
+  for (i=0;i<d.size();i++) {
+    if (d[i]>_max) {
+      _max = d[i];
+      position = i;
+    }
+  }
+  return (_max);
+}
+
+/***************************************************************************
+ * MAIN
+ ***************************************************************************/
 
 int main (int argc, char *argv[]) {
   gengetopt_args_info a;
@@ -146,29 +166,43 @@ int main (int argc, char *argv[]) {
 	const size_t count = d.getCellCount(cellIndex);
 	if (use_cout)
 	  cout << densityFileName << " " << filename << " " << x << "\t" << y << "\t" << z << "\t  "
-	       << count << "\t" << float(count)/d.getCountInside() << "\t" << cdf[count] << endl;
+	       << count << "\t" << float(count)/d.getCountInside() << "\t" << cdf[count];
 	else
 	  out << densityFileName << " " << filename << " " << x << "\t" << y << "\t" << z << "\t  "
-	      << count << "\t" << float(count)/d.getCountInside() << "\t" << cdf[count] << endl;
+	      << count << "\t" << float(count)/d.getCountInside() << "\t" << cdf[count];
       }
 
       if (a.rotate_fit_given) {
-	DebugPrintf(VERBOSE+1,("Starting rotation compare\n"));
-	vector<size_t> countCircle(360,0);
+	const size_t steps=500;	// FIX: need a better way to figure out the best rotational step
 
+	DebugPrintf(VERBOSE+1,("Starting rotation compare\n"));
+	vector<size_t> countCircle;
+	vector<float> countAngle;
+
+	size_t lastCell=numeric_limits<size_t>::max();
 	float _x,_y;
-	for (size_t i=0;i<countCircle.size();i++) {
-	  const float angle=i * 2*M_PI/countCircle.size();
+	for (size_t i=0;i<steps;i++) {
+	  const float angle=i * 2*M_PI/steps;
 	  rotateXY(x,y,angle,_x,_y);
 	  const size_t cellIndex = d.getCell(_x,_y,z);
-	  countCircle[i] = d.getCellCount(cellIndex);
+	  if (cellIndex != lastCell) {
+	    countCircle.push_back(d.getCellCount(cellIndex));
+	    countAngle.push_back(angle);
+	    //countCircle[i] = d.getCellCount(cellIndex);
+	    lastCell=cellIndex;
+	    cout << i << ": " << angle << " " << countCircle[countCircle.size()-1] << endl;
+	  }
+	} // for steps
 
-	  cout << angle << " " << countCircle[i] << endl;
-	}
+	size_t pos;
+	findmax(countCircle, pos);
+	cout << "MAX is at " << pos << ": " << countCircle[pos] << " " << countAngle[pos] << endl;
+	out << "\trotmax:\t" << countCircle[pos] << "\t" << countAngle[pos] << endl;
+      } // rotate_fit_given
+      out << endl;
+    } // While new samples in the input file
 
-      }
 
-    }
   } // for filenum
   return (ok?EXIT_SUCCESS:EXIT_FAILURE);
 }
