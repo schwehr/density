@@ -1,0 +1,4 @@
+# -*- Makefile -*-
+CXXFLAGS := -Wall -Wimplicit -pedantic -W -Wstrict-prototypes -Wredundant-decls
+CXXFLAGS += -g
+targets: endian
