@@ -16,6 +16,14 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+----------------------------------------------------------------------
 
-Working on implementing a bootstrap based on Lisa's pmag 1.7 code.
-Sept 2004
+This is a package designed for my PhD thesis to do volumetric
+inspections of eigen vectors and values using voxel representations.
+xyzdensity and volinfo are useful even if you are doing totally
+different volumetric problems.
+
+-kurt
+kurt at cs stanford edu
+kdschwehr at ucsd edu
+http://schwehr.org
