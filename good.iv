@@ -1,4 +1,7 @@
 #Inventor V2.1 ascii
+
+# $Revision$  $Author$  $Date$
+
 Separator {
     Separator {
 	LightModel {model BASE_COLOR }

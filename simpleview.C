@@ -1,55 +1,60 @@
+// $Revision$  $Author$  $Date$
+/*
+    Copyright (C) 2004  Kurt Schwehr
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+*/
+
 #include <Inventor/Qt/SoQt.h>
 #include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
-#include <Inventor/nodes/SoCube.h>
-#include <Inventor/nodes/SoDirectionalLight.h>
-#include <Inventor/nodes/SoDrawStyle.h>
-#include <Inventor/nodes/SoPickStyle.h>
-#include <Inventor/nodes/SoLightModel.h>
-#include <Inventor/nodes/SoPerspectiveCamera.h>
 #include <Inventor/nodes/SoSeparator.h>
-#include <Inventor/nodes/SoSwitch.h>
-#include <Inventor/nodes/SoTransformSeparator.h>
-#include <Inventor/nodes/SoScale.h>
-#include <Inventor/nodes/SoEventCallback.h>
-#include <Inventor/nodes/SoTranslation.h>
-#include <Inventor/sensors/SoTimerSensor.h>
-#include <Inventor/errors/SoDebugError.h>
-#include <Inventor/manips/SoClipPlaneManip.h>
-#include <Inventor/events/SoKeyboardEvent.h>
 
-#include <VolumeViz/nodes/SoTransferFunction.h>
-#include <VolumeViz/nodes/SoVolumeData.h>
-#include <VolumeViz/nodes/SoVolumeRender.h>
 #include <VolumeViz/nodes/SoVolumeRendering.h>
-#include <VolumeViz/readers/SoVRVolFileReader.h>
+
+
+#include <iostream>
+using namespace std;
 
 int
 main( int narg, char* argv[] )
 {
     QWidget* myWindow = SoQt::init(argv[0]);
     SoVolumeRendering::init();
-    if ( myWindow==NULL ) return 0;
-    if ( narg != 2 )
-    {
-        printf("Syntax:\noifileviewer <filename>\n\n");
-        return 0;
+    if ( myWindow==NULL ) return (EXIT_FAILURE);
+    if ( narg != 2 ) {
+      cerr << " USAGE: " << argv[0]<< " <filename>" << endl <<endl;
+      return (EXIT_FAILURE);
     }
 
-    SoInput mySceneInput;
-    if ( !mySceneInput.openFile( argv[1] ))
-        return 0;
+    SoQtExaminerViewer* myViewer = new SoQtExaminerViewer(myWindow);
+    {
+      SoInput mySceneInput;
+      if ( !mySceneInput.openFile( argv[1] ))  return (EXIT_FAILURE);
 
-    SoSeparator* myGraph = SoDB::readAll(&mySceneInput);
-    if ( !myGraph ) return 0;
-    mySceneInput.closeFile();
-
-    SoQtExaminerViewer* myViewer= new SoQtExaminerViewer(myWindow);
-    myViewer->setSceneGraph( myGraph );
-    myViewer->show();
-
+      SoSeparator* myGraph = SoDB::readAll(&mySceneInput);
+      if ( !myGraph ) return (EXIT_FAILURE);
+      mySceneInput.closeFile();
+      
+      myViewer->setSceneGraph( myGraph );
+      myViewer->show();
+    }
     SoQt::show(myWindow);
     SoQt::mainLoop();
 
-    return 0;
+    // probably can never reach here.
+    return (EXIT_FAILURE);
 }
 

@@ -95,6 +95,7 @@ endian: endian.C
 
 clean:
 	rm -f blah* foo* *~ ${TARGETS} *.o *.xyz *.eigs *.cdf [0-9]x[0-9]*test?.vol
+	rm -f *_cmd.[ch]
 
 Density.o: endian
 

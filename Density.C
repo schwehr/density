@@ -1,4 +1,22 @@
 // $Revision$  $Author$  $Date$
+/*
+    Copyright (C) 2004  Kurt Schwehr
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+*/
 
 /// \brief Convert an xyz point set into a volume density
 ///        Uses a voxel representation
@@ -65,7 +83,7 @@ static const UNUSED char* RCSid ="@(#) $Id$";
 
 
 Density::Density() {
-  cout << "FIX: make sure that later, things get setup ok.  Density()" << endl;
+  //cout << "FIX: make sure that later, things get setup ok.  Density()" << endl;
 }
 
 void
@@ -166,7 +184,7 @@ Density::Density(const std::string &filename, bool &ok) {
     {FAILED_HERE;cerr << "ERROR: File size invalid!!"<<endl;ok=false;return;}
 
 
-  cout << "FIX: use the scale to set the x,y, and z ranges" << endl;
+  //cout << "FIX: use the scale to set the x,y, and z ranges" << endl;
   resize(v.getWidth(),v.getHeight(),v.getImages(), -0.5,0.5, -0.5,0.5, -0.5,0.5);
 
   int fd = open (filename.c_str(), O_RDONLY, 0);
@@ -302,34 +320,26 @@ void Density::getCellCenter(const size_t cellNum, float &x, float &y, float &z) 
   z = zR[0] + (cz+0.5) * dz;
 }
 
+// Old crufty inflexible version of write
 bool Density::writeVolScale(const string &filename) const {
   FILE *o=fopen(filename.c_str(),"wb");
   if (!o) {perror("failed to open output file");cerr << "   " << filename << endl;return(false);}
 
-  {
-    VolHeader hdr(getWidth(),getHeight(),getDepth());
-    hdr.write(o);
-  }
+  {  VolHeader hdr(getWidth(),getHeight(),getDepth());  hdr.write(o);  }
 
   const size_t min=getMinCount();
   const size_t max=getMaxCount();
-
   // http://doc.coin3d.org/SIMVoleon/classSoVolumeData.html#a1
   for (size_t i=0;i<counts.size();i++) {
-    // FIX: how do we fit the data?
     const unsigned char data=scaleCount(i,min,max);
-#ifdef REGRESSION_TEST
-    cout << "         writing: " << i<<"("<<counts[i]<<")  -> " << int(data)
-	 << "    (" << min <<","<<max<<")"<<endl; 
-#endif
-
     // No endian issue with 1 byte data
     if (1!=fwrite(&data,sizeof(data),1,o)) {perror("write failed");fclose(o);return(false);}
   }
-
   if (0!=fclose(o)) {perror("close failed... bizarre");return(false);}
   return (true);
 } // writeVolScale
+
+
 
 size_t Density::scaleValue(const size_t value, const PackType p, const size_t bitsPerVoxel) const {
   size_t maxVox;
@@ -339,7 +349,6 @@ size_t Density::scaleValue(const size_t value, const PackType p, const size_t bi
   case 32: maxVox=std::numeric_limits<uint32_t>::max(); break;
   default: assert(false && "Time to go clean the cat box");
   }
-
   switch (p) {
   case PACK_SCALE:
     {
@@ -354,7 +363,6 @@ size_t Density::scaleValue(const size_t value, const PackType p, const size_t bi
   default:
     assert(false && "Olivia's favorite food is scrambled eggs.  This program is scambled.");
   }
-
   return (badValue());
 }
 
@@ -363,8 +371,20 @@ bool Density::writeVol(const std::string &filename,
 		       const float rotX, const float rotY,const float rotZ) const
 {
   bool ok=true;
-  float scales[3] ={1.,1.,1.}; // FIX: remove setting
-  cout << "FIX: Figure scales based on xR, yR, and yZ" << endl;
+  //float scales[3] ={1.,1.,1.}; // FIX: remove setting
+  float scales[3];
+  //cout << "FIX: Figure scales based on xR, yR, and yZ" << endl;
+
+  {
+    const float dxR = xR[1] - xR[0]; // Distance in space (not voxel cell)
+    scales[0] = float(dxR/width);
+
+    const float dyR = yR[1] - yR[0]; // Distance in space (not voxel cell)
+    scales[1] = float(dyR/width);
+
+    const float dzR = zR[1] - zR[0]; // Distance in space (not voxel cell)
+    scales[2] = float(dzR/width);
+  }
 
   FILE *o=fopen(filename.c_str(),"wb");
   if (!o) {perror("unable to open file to write volumne"); return(false);}

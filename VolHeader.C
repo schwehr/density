@@ -1,4 +1,22 @@
 // $Revision$  $Author$  $Date$
+/*
+    Copyright (C) 2004  Kurt Schwehr
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+*/
 
 /// \brief Convert an xyz point set into a volume density
 ///        Uses a voxel representation
@@ -7,6 +25,16 @@
 /***************************************************************************
  * INCLUDES
  ***************************************************************************/
+
+#include <fcntl.h>   /* File control definitions */
+#include <errno.h>   /* Error number definitions */
+#include <termios.h> /* POSIX terminal control definitions */
+#include <term.h>
+#include <sys/select.h>
+#include <unistd.h>  // Select 
+#include <sys/mman.h>	// mmap
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include <cassert>
 
@@ -103,7 +131,6 @@ hton_uint32(const uint32_t value)
 #else
 #  error UNKNOWN ENDIAN TYPE!
 #endif
-  // Cool idea:  assert(0 && "message to go with an assert");
 } 
 
 float
@@ -129,8 +156,8 @@ hton_float(const float value)
 
 VolHeader::VolHeader(const size_t _width, const size_t _height, const size_t depth)
 {
-  magic_number=hMagicNum(); //hton_uint32(0x0b7e7759);
-  header_length=requiredSize();//hton_uint32(sizeof(VolHeader));
+  magic_number=hMagicNum();
+  header_length=requiredSize();
   assert(52==header_length);
 
   width =_width;
@@ -157,22 +184,12 @@ VolHeader::VolHeader(const size_t _width, const size_t _height, const size_t dep
   images=depth;
 
   bits_per_voxel=_bitsPerVoxel;
-  index_bits=0; // Grrr...
+  index_bits=0; // Grrr... what is this?
 
   scaleX=_scaleX;  scaleY=_scaleY;  scaleZ=_scaleZ;
   cout << "const scales: " << scaleX << " " << scaleY << " " << scaleZ << endl;
   rotX=_rotX;  rotY=_rotY;  rotZ=_rotZ;
 }
-
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
-#include <term.h>
-#include <sys/select.h>
-#include <unistd.h>  // Select 
-#include <sys/mman.h>	// mmap
-#include <sys/types.h>
-#include <sys/stat.h>
 
 // It is not okay to talk to a this class if it returns false
 VolHeader::VolHeader(const std::string filename, bool &ok) {

@@ -1,6 +1,24 @@
-// Kurt Schwehr - Sept 2004
+// $Revision$  $Author$  $Date$
+/*
+    Copyright (C) 2004  Kurt Schwehr
 
- 
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+*/
+
+/// \brief Port of the hext site sigma stats to C++
 
 #include <cmath>
 
@@ -12,13 +30,10 @@
 
 using namespace std;
 
-//typedef vector<float> SVec ;
-
 // Return site sigma using Hext method based on Tauxe s_hext.f
 // For boot strapping with Parametric SITE mode
 float SiteSigma (const vector<SVec> &s) {
   assert(0<s.size());
-  //cout << "size: " << s.size() << endl;
   if (s.size()<2) { cerr << "Too small to bootstrap...  here comes a NaN" << endl;}
 
   float s0=0;
@@ -44,6 +59,10 @@ float SiteSigma (const vector<SVec> &s) {
   return sigma;
 }
 
+//////////////////////////////////////////////////////////////////////
+// TESTING
+//////////////////////////////////////////////////////////////////////
+
 #ifdef REGRESSION_TEST
 #include <iomanip>
 #include <fstream>
@@ -63,9 +82,6 @@ bool testFile (const string &filename, const float expected_sigma)
   float tmpSigma;
   vector <SVec> s;
   while (in >> tmp[0] >> tmp[1] >> tmp[2] >> tmp[3] >> tmp[4] >> tmp[5] >> tmpSigma) {
-    //{static int i=0; cout << i++ << ": ";}
-    //for (size_t i=0;i<6;i++) cout << tmp[i] << " ";
-    //cout << endl; // cout << sigma << endl;
     s.push_back(tmp);
   }
   const float sigma = SiteSigma(s);
