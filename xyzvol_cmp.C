@@ -104,14 +104,15 @@ int main (int argc, char *argv[]) {
 #endif
 
 
-  //ifstream in(a.inxyz_arg,ios::in);
-  //if (!in.is_open()) {cerr<<"Failed to open "<<a.inxyz_arg<<endl;return(EXIT_FAILURE);}
   bool ok=true;
   for (size_t filenum=0;filenum < a.inputs_num; filenum++) {
     DebugPrintf(TRACE,("testing file: %s",a.inputs[filenum]));
     ifstream in(a.inputs[filenum],ios::in);
     string filename(a.inputs[filenum]);
     if (!in.is_open()) {cerr<<"Failed to open "<<a.inputs[filenum]<<endl;ok=false;continue;}
+
+    cout.setf(ios::right,ios::adjustfield);
+    cout << setiosflags(ios::fixed) << setprecision(6) << setw(12);
 
     char buf[1024];
     while (in.getline(buf,1024)) {
@@ -122,8 +123,8 @@ int main (int argc, char *argv[]) {
       istr >> x >> y >> z;
       const size_t cellIndex = d.getCell(x,y,z);
       const size_t count = d.getCellCount(cellIndex);
-      cout << densityFileName << " " << filename << " " << x << " " << y << " " << z << "    "
-	   << count << " " << float(count)/d.getCountInside() << " " << cdf[count] << endl;
+      cout << densityFileName << " " << filename << " " << x << "\t" << y << "\t" << z << "\t  "
+	   << count << "\t" << float(count)/d.getCountInside() << "\t" << cdf[count] << endl;
 
     }
   } // for filenum
