@@ -98,6 +98,51 @@ bool FileCopy (FILE *in, FILE *out, const size_t len) {
   return (true);
 }
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
+/// \brief Add a file on to the end of an existing FILE that we have open
+/// \param out FILE that has been opened with fopen (filename,"wb")
+/// \param filename Name of the file to tack on the end of out
+/// \return \a false if something bad happened
+bool AppendFile(FILE *out, const string filename) {
+  FILE *in = fopen(filename.c_str(),"rb");
+  if (!in) {perror("failed to open file");cerr<<"   "<<filename<<endl;exit(EXIT_FAILURE);}
+
+  struct stat sb;
+  {
+    int r = stat (filename.c_str(), &sb);
+    if (0 != r) {perror("stat to get file size FAILED");return(false);}
+  }
+  const size_t len=sb.st_size;  
+  const size_t blockSize=1024;
+  
+  size_t cur;
+  char buf[blockSize];
+  for (cur=0; (cur/blockSize) < (len/blockSize); cur+=blockSize) {
+    if (blockSize != fread(buf,sizeof(char),blockSize,in)) { 
+      perror ("Failed read data block\n"); return (false);
+    }
+
+    DebugPrintf(BOMBASTIC,("writing block: cur=%d\n",int(cur)));
+    if (blockSize != fwrite (buf,sizeof(char),blockSize,out)) {
+      perror ("Failed to copy data block\n"); return (false);
+    }
+  }
+  const size_t remain=len-cur;
+  if ( 0 < remain ) {
+    if (remain != fread(buf,sizeof(char),remain,in)) { 
+      perror ("Failed read data block\n"); return (false);
+    }
+
+    DebugPrintf(BOMBASTIC,("wt last block: cur=%d remain=%d\n",int(cur),int(remain)));
+    if (remain!=fwrite(buf,sizeof(char),remain,out)) {
+      perror ("Failed to copy tail data block"); return (false);
+    }
+  }
+  return (true);
+}
+
 //######################################################################
 // MAIN
 //######################################################################
@@ -120,6 +165,7 @@ int main (int argc, char *argv[]) {
   debug_level = a.verbosity_arg;
   DebugPrintf(TRACE,("Debug level = %d\n",debug_level));
 #endif
+
 
   if (a.in_given) {
     //
@@ -158,21 +204,46 @@ int main (int argc, char *argv[]) {
       perror ("Unable to seek to the data"); exit(EXIT_FAILURE);
     }
 
-    if (!a.nodata_given) {
+    if (!a.nodata_given && !a.data_given) {
       if (!FileCopy (orig, o, hdrOrig.getDataSize())) {
 	ok=false; cerr << "ERROR: Unable to copy data from src to dest" << endl;
       }
     }
 
+    if (a.data_given) {
+      if (!AppendFile(o,string(a.data_arg)))
+	{cerr << "ERROR: Append of data file failed" <<endl; ok=false;}
+    }
+
     if (0!=fclose(orig)) {perror("Failed to close src "); ok=false;}
     if (0!=fclose(o))    {perror("Failed to close dest"); ok=false;}
 
+
+    
   } else {
     //
     // Start from scratch
     //
-    cerr << "FIX: does not handle not reading starting header from file.  Must use -i"<< endl;
-    return (EXIT_FAILURE);
+    FILE *o = fopen(a.out_arg,"wb");
+    if (!o) {perror("failed to open output file");cerr << "   " <<a.out_arg<< endl;exit(EXIT_FAILURE);}
+
+    VolHeader hdr(a.width_arg,a.tall_arg,a.depth_arg,
+		  a.bpv_arg,
+		  a.xscale_arg,a.yscale_arg,a.zscale_arg,
+		  a.xrot_arg,a.yrot_arg,a.zrot_arg);
+
+    if (a.magic_given) hdr.setMagicNumber(a.magic_arg);
+    if (a.header_len_given) hdr.setHeaderLength(a.header_len_arg);
+    if (a.index_bits_given) hdr.setIndexBits(a.index_bits_arg);
+
+    // FIX: need better error checking
+    if(0==hdr.write(o)) {cerr << "ERROR: header write failed" <<endl; ok=false;}
+
+    if (a.data_given) {
+      if (!AppendFile(o,string(a.data_arg)))
+	{cerr << "ERROR: Append of data file failed" <<endl; ok=false;}
+    }
+
   }
 
 
