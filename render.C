@@ -108,6 +108,8 @@ static const UNUSED char* RCSid ="$Id$";
  * SCENEINFO - the big global variable
  ***************************************************************************/
 
+//#include <Inventor/nodes/SoDirectionalLight.h>
+
 class SceneInfo {
 public:
   SceneInfo();
@@ -116,6 +118,8 @@ public:
 
   vector<SoSpotLightDragger *> draggerVec; ///< All of the draggers that have been added.
   SoSwitch *draggerSwitch; ///< On/off of the separators.  May add code to show one at a time
+  //SoDirectionalLight *headlight;
+  SoPointLight *headlight; ///< if this is not NULL, then move with camera
 
   gengetopt_args_info *a; ///< a for args.  These are the command line arguments
 
@@ -133,6 +137,7 @@ SceneInfo::SceneInfo() {
   magicNumber = nominalMagicNumber();
   camera = 0; root = 0; draggerSwitch = 0; draggerSwitch = 0;
   a = 0;
+  headlight=0;
 }
 
 /***************************************************************************
@@ -200,7 +205,7 @@ bool WaypointRenderFrameToDisk (const SoSpotLightDragger *d1, const SoSpotLightD
 				const float cur_percent, SoCamera *camera, 
 				const string &basename, const string &typeStr,
 				const int width, const int height,
-				SoNode *root, size_t &frame_num
+				SoNode *root, size_t &frame_num, SoPointLight *headlight
 				) 
 {
   assert(d1);      assert(d2);
@@ -221,6 +226,8 @@ bool WaypointRenderFrameToDisk (const SoSpotLightDragger *d1, const SoSpotLightD
   SbRotation rot2 = d2->rotation.getValue();
   SbRotation newRot = SbRotation::slerp (rot1, rot2, cur_percent);
   camera->orientation = newRot;
+
+  if (headlight) {  headlight->location = pos3;  }
 
 #ifndef NDEBUG
   if (debug_level >= VERBOSE) Print(camera);   // Show some camera locations!
@@ -296,6 +303,12 @@ int main(int argc, char *argv[])
     si->camera-> farDistance=a.far_arg;
   }
 
+  if (a.headlight_flag) {
+    //si->headlight = new SoDirectionalLight;
+    si->headlight = new SoPointLight;
+    si->root->addChild(si->headlight);
+  }
+
   // FIX: do something better with the lights
   // TOP light
   { SoPointLight *pl = new SoPointLight; si->root->addChild(pl); pl->location = SbVec3f(0.0f,0.0f,50.0f); }
@@ -367,7 +380,8 @@ int main(int argc, char *argv[])
       const bool r = WaypointRenderFrameToDisk (d1,d2, cur_percent, si->camera, 
 						basenameStr, typeStr,
 						a.width_arg, a.height_arg,
-						si->root, frame_num
+						si->root, frame_num,
+						si->headlight
 						);
       if (!r) {
 	cerr << "ERROR: failed to write a frame.  I give up." << endl;
@@ -385,7 +399,8 @@ int main(int argc, char *argv[])
 					      0., si->camera, 
 					      basenameStr, typeStr,
 					      a.width_arg, a.height_arg,
-					      si->root, frame_num
+					      si->root, frame_num,
+					      si->headlight
 					      );
     if (!r) {
       cerr << "ERROR: failed to write a frame.  I give up." << endl;
