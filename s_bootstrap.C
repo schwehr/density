@@ -103,13 +103,10 @@ enum FormatEnum {BAD_FORMAT, XYZ_FORMAT,TPR_FORMAT,S_FORMAT};
 #include "s_bootstrap_cmd.h" // Command line args
 #include "Eigs.H" // Let's us convert to other coords
 
-bool GetFiles(char **in_arg,vector<string> &inFiles) {
+bool GetFiles(const size_t numArg, char **in_arg,vector<string> &inFiles) {
   assert(in_arg);
   assert(*in_arg); // Must be at least 1 file in!
-  // can not have more than 64000 input files
-  for (size_t i=0;i<64000 && in_arg[i];i++) {
-    inFiles.push_back(string(in_arg[i]));
-  }
+  for (size_t i=0; i<numArg;i++) inFiles.push_back(string(in_arg[i]));
   return (true);
 }	
 
@@ -244,7 +241,8 @@ int main (const int argc, char *argv[]) {
 #endif
 
   vector<string> inFiles;
-  if (!GetFiles(a.in_arg,inFiles)) {cerr << "Doh!  What happened?" << endl; return(EXIT_FAILURE);}
+  if (0==a.inputs_num) {cerr << "ERROR: must specify at least one input file" << endl; return(EXIT_FAILURE);}
+  if (!GetFiles(a.inputs_num,a.inputs,inFiles)) {cerr << "Doh!  What happened?" << endl; return(EXIT_FAILURE);}
 
   if (1!=a.numout_arg && 3!=a.numout_arg) {
     cerr << "ERROR: numout must be either 1 or 3" << endl
