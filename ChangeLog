@@ -1,4 +1,14 @@
-2004-10-11  Kurt Schwehr  <schwehr@catbox>
+2004-10-15  Kurt Schwehr  <schwehr@catbox>
+
+	* version: Released 0.8
+	Added regression.bash and is_equal.c for testing
+	Fixed swap error in s_bootstrap between vmin and vmax
+	   New output naming convention
+	simpleview now can really load more than one iv file
+	Having troubles with optional arguments in gengetopt
+	volmakecmap has initial HSV support.  May work right?
+
+2004-10-14  Kurt Schwehr  <schwehr@catbox>
 
 	* version: Released 0.7
 	Changed project name to density
