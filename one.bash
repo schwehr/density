@@ -51,21 +51,28 @@ if [ -e Makefile ]; then
     make targets-no-test
 fi
 
-head -1 as2-slump.s > one.s
+if [ ! -e as2-slump.s ]; then
+    echo "ERROR: as2-slump.s does not exist"
+    exit $EXIT_FAILURE
+fi
+
+# FIX: just for demo perposes
+#head -1 as2-slump.s > one.s
 
 echo Processing one.s
-if [ ! -e one-boot.xyz ]; then 
+#if [ ! -e one-boot.xyz ]; then 
+    # SITE parametric just for demo purposes
     s_bootstrap one.s -f xyz  -n 1 --out one-boot.xyz -p --draw ${draw}
     s_bootstrap one.s -f xyz  -n 3 --out one.xyz. -p --draw ${draw}
     mv one.xyz.1.vmax one-boot.xyz.vmax
     mv one.xyz.2.vint one-boot.xyz.vint
     mv one.xyz.3.vmin one-boot.xyz.vmin
-fi
+#fi
 
 echo Densifying
-args="  --bpv=16 -w ${cells} -t ${cells} -d ${cells} --verbosity=$debugLevel"
+args=" --bpv=16 -w ${cells} -t ${cells} -d ${cells} --verbosity=$debugLevel"
 
-if [ ! -e one-all.vol ]; then
+#if [ ! -e one-all.vol ]; then
     xyzdensity one-boot.xyz.vmax --out=one-vmax.vol -p 1 $args $boundaries
     xyzdensity one-boot.xyz.vint --out=one-vint.vol -p 1 $args $boundaries
     xyzdensity one-boot.xyz.vmin --out=one-vmin.vol -p 1 $args $boundaries
@@ -74,11 +81,11 @@ if [ ! -e one-all.vol ]; then
 	one-boot.xyz.vmax \
 	one-boot.xyz.vint \
 	one-boot.xyz.vmin 
-fi
+#fi
 
-if [ ! -e one.cmap ]; then
-    volmakecmap --cpt=rgba.cpt -o one.cmap --zero=0
-fi
+#if [ ! -e one.cmap ]; then
+    volmakecmap --cpt=rgba.cpt -o one.cmap --zero=0 -v $debugLevel
+#fi
 
 # Make the bounding box at 1.05 to be just outside of the volume
 # --box=1.05
@@ -97,9 +104,11 @@ awk '{print $1,$2,$3}' one.xyz > one.xyz.vmin
 awk '{print $4,$5,$6}' one.xyz > one.xyz.vint
 awk '{print $7,$8,$9}' one.xyz > one.xyz.vmax
 
-xyz_iv --box=0.005 -p --color="1 0 0" --out=one.xyz.vmin.iv -v 3 one.xyz.vmin
-xyz_iv --box=0.005 -p --color="1 1 0" --out=one.xyz.vint.iv -v 3 one.xyz.vint
-xyz_iv --box=0.005 -p --color="0 0 1" --out=one.xyz.vmax.iv -v 3 one.xyz.vmax
+#box="--box=0.005"
+box="--box=0.015"
+xyz_iv $box -p --color="1 0 0" --out=one.xyz.vmin.iv -v 3 one.xyz.vmin
+xyz_iv $box -p --color="1 1 0" --out=one.xyz.vint.iv -v 3 one.xyz.vint
+xyz_iv $box -p --color="0 0 1" --out=one.xyz.vmax.iv -v 3 one.xyz.vmax
 
 #debugLevel=1
 echo "TYPE  VOL_FILE     XYZ_FILE     x         y           z     counts FracTotal FracCDF"
