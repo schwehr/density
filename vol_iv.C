@@ -234,6 +234,11 @@ int main (int argc, char *argv[]) {
   o << "#Inventor V2.1 ascii" << endl << endl
     << "# Voleon IV wrapper file by: $Id$ " << endl;
 
+  o << "# cmdline: ";
+  for (int i=0;i < argc;i++) o << argv[i] << " ";
+  o << endl << endl;
+
+
   {
     o << "Separator { " << endl;
 
