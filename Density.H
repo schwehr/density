@@ -35,7 +35,11 @@ public:
 	  const float minZ, const float maxZ
 	  );
 
-  /// Load a vol file from disk
+  /// \brief Load a vol file from disk
+  /// \param filename File to load from
+  /// \param ok Set to \a true if the file was read ok
+  ///
+  /// Do not use the Density structure ok was \a false.
   Density(const std::string &filename, bool &ok);
 
   /// \brief Change the volumes size.  Dumps all counts. Does not shrink memory footprint if smaller
@@ -55,6 +59,8 @@ public:
   /// Add a point into the voxel structure.  Figures out which cell for you
   /// \return \a true if inside the bounding box, \a false if outside and unrecorded
   bool addPoint(const float x, const float y, const float z);
+  /// Add points to a cell at \a index
+  void addPoints(const size_t index,const size_t count) {assert(isValidCell(index)); counts[index]+=count;}
   /// Print to stdout the cell number and the count
   void printCellCounts() const;
   size_t getWidth()  const {return (width);} ///< num of cells wide
@@ -91,7 +97,7 @@ public:
   float getDY() const {return(dy);}  ///< How heigh is one cell
   float getDZ() const {return(dz);}  ///< How deep is one cell
 
-  /// Write out a vol formatted file for SIM Voleon
+  /// \brief Write out a vol formatted file for SIM Voleon in uchar format
   /// \return \a true on success or \a false if there was an error
   bool writeVol(const std::string &filename);
 
