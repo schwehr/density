@@ -1,0 +1,46 @@
+# -*- shell-script -*-
+
+######################################################################
+#  Copyright (C) 2004  Kurt Schwehr
+#
+#     This program is free software; you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation; either version 2 of the License, or
+#     (at your option) any later version.
+
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+
+#     You should have received a copy of the GNU General Public License
+#     along with this program; if not, write to the Free Software
+#     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+######################################################################
+#
+# See also: http://www.gnu.org/software/gengetopt/gengetopt.html
+#
+
+package "spin_gnuplot"
+version "@VERSION@"
+purpose "Generate a gnuplot file for animation"
+
+option "verbosity" v "Set the verbosity level (0=quiet 10=verbose 20=bombastic)" int default="0" no
+
+option "out" o "Write the binned counts to this file" string typestr="filename" yes
+
+option "preamble" p "File of gnu plot commands to place in front of the plotting (title, range, etc)" string typestr="filename" no
+
+
+# F and I are mutually exclusive, but must have one of them
+option "FileInput" F "plot command is from a file" string typestr="filename" no
+option "StringInput" I "String to pass to splot or plot"  string typestr="plot-args" no
+
+option "dimensions" d "2 is a 2D plot, 3 is a 3D splot" int default="2"
+option "format" f "Output format (pdf,png,jpg,gif) for gnuplot output terminal" string default="png" no
+
+option "xmin" x "Starting rotation in degrees" float default="0.0" no
+option "xmax" X "Far rotation in degrees" float default="0.0" no
+
+option "zmin" z "Starting rotation in degrees" float default="0.0" no
+option "zmax" Z "Far rotation in degrees" float default="0.0" no
