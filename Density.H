@@ -139,8 +139,26 @@ public:
   /// \return \a true if success or \a false if there was some trouble
   /// Uses the x,y, and z ranges to set the Scale[XYZ] fields of the header
   /// \bug What does index_bits do?
-  bool writeVol(const std::string &filename,const size_t bitsPerPixel,const PackType p,
-		const float RotX=0., const float RotY=0.,const float RotZ=0.);// const;
+  bool writeVol(const std::string &filename,const size_t bitsPerPixel,const PackType p);// const;
+
+  /// \brief Write out a Voleon style voxel 3D cell file.
+  /// \return \a true if success or \a false if there was some trouble
+  /// The user/caller defines the scale... since I don't understand scaling.
+  /// \bug What does index_bits do?
+  /// @param filename File to write out to
+  /// @param bitsPerVoxel Can be 8, 16, or 32
+  /// @param p PackType 0=SCALE, 1=CLIP, 2=WRAP
+  /// @param scaleX Scale the x axis by using the vol header
+  /// @param scaleY Scale the y axis by using the vol header
+  /// @param scaleZ Scale the z axis by using the vol header
+  /// @param rotX Rotate around x axis using the vol header
+  /// @param rotY Rotate around y axis using the vol header
+  /// @param rotZ Rotate around z axis using the vol header
+  bool writeVol(const std::string &filename,
+		       const size_t bitsPerVoxel,const PackType p,
+		       const float scaleX, const float scaleY, const float scaleZ,
+		       const float rotX=0.f, const float rotY=0.f,const float rotZ=0.f
+		       ); // const
 
 
   /// This is the value for an unknown or bad entry.  Should be a huge number that we would never encounter.
