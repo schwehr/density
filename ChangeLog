@@ -1,3 +1,10 @@
+2004-10-16  Kurt Schwehr  <schwehr@catbox>
+
+	* version: Released 0.9
+	Now using man2html for web man pages
+	bootvol-thesis cleanup & now with emacs compiler error C-x `
+	Small amount of general cleanup
+
 2004-10-15  Kurt Schwehr  <schwehr@catbox>
 
 	* version: Released 0.8
