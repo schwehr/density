@@ -70,7 +70,7 @@ BootstrapParametricSample(const vector<SVec> &s, const vector<float> &sigmas,
   assert (0<=sigmas[sampleNum] && sigmas[sampleNum] <= 1.0); // FIX: Make this just a warning?
 
   for (size_t i=0;i<6;i++) {
-    const float delta = sigmas[sampleNum] * gsl_ran_gaussian (r, 1.0);
+    const float delta = gsl_ran_gaussian (r, sigmas[sampleNum]);
     newSample[i] = s[sampleNum][i] + delta;
   }
 
@@ -81,12 +81,6 @@ BootstrapParametricSample(const vector<SVec> &s, const vector<float> &sigmas,
   }
   return (sampleNum);
 }
-
-// FIX: should this be exposed or static?
-//float Trace(const SVec &s) {
-//  assert (3<s.size());
-//  return (s[0]+s[1]+s[2]);
-//}
 
 
 // returns the sample index that was picked for this iteration
@@ -102,7 +96,7 @@ BootstrapParametricSite(const vector<SVec> &s, const float sigma, //const vector
   const SVec sample=s[sampleNum];
 
   for (size_t i=0;i<6;i++) {
-    const float delta = sigma * gsl_ran_gaussian (r, 1.0);
+    const float delta = gsl_ran_gaussian (r, sigma);
     newSample[i] = sample[i] + delta;
   }
 
