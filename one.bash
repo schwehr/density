@@ -38,10 +38,11 @@ make targets-no-test
 head -1 as2-slump.s > one.s
 
 echo Processing one.s
+s_bootstrap one.s -f xyz  -n 1 --out one-boot.xyz -p --draw ${draw}
 s_bootstrap one.s -f xyz  -n 3 --out one.xyz. -p --draw ${draw}
-mv one.xyz.1 one-boot.xyz.vmax
-mv one.xyz.2 one-boot.xyz.vint
-mv one.xyz.3 one-boot.xyz.vmin
+mv one.xyz.1.vmax one-boot.xyz.vmax
+mv one.xyz.2.vint one-boot.xyz.vint
+mv one.xyz.3.vmin one-boot.xyz.vmin
 echo Densifying
 args="  --bpv=16 -w ${cells} -t ${cells} -d ${cells} --verbosity=$debug_level"
 xyzdensity one-boot.xyz.vmax --out=one-vmax.vol -p 1 $args $boundaries
