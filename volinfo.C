@@ -105,7 +105,7 @@ int main (const int argc, char *argv[]) {
       Density d(filename,r);
       if (!r) {ok=false; cerr << "Failed to read file: " << filename << endl; continue;}
       cout << "minVal = " << d.getMinCount() << endl
-	   << "minVal = " << d.getMaxCount() << endl;
+	   << "maxVal = " << d.getMaxCount() << endl;
     }
   } // for a.in_given
 
