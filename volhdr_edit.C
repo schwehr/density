@@ -166,19 +166,20 @@ int main (int argc, char *argv[]) {
   DebugPrintf(TRACE,("Debug level = %d\n",debug_level));
 #endif
 
-
-  if (a.in_given) {
+  if (1<a.inputs_num) {
+    cerr << "ERROR: Must specify either 0 or 1 inputfile.  You gave 2 or more!" << endl;
+  } else if (1==a.inputs_num) {
     //
     // Use the input file as a template
     //
     bool r;
     DebugPrintf(TRACE,("Loading file\n"));
-    VolHeader hdr(string(a.in_arg),r);
-    if (!r) {cerr << "Unable to open file." <<endl<<"   "<<a.in_arg<<endl; return (EXIT_FAILURE); }
-    VolHeader hdrOrig(string(a.in_arg),r);
-    if (!r) {cerr << "Unable to open file." <<endl<<"   "<<a.in_arg<<endl; return (EXIT_FAILURE); }
-    FILE *orig = fopen(a.in_arg,"rb");
-    if (!orig) {perror("failed to open file");cerr<<"   "<<a.in_arg<<endl;exit(EXIT_FAILURE);}
+    VolHeader hdr(string(a.inputs[0]),r);
+    if (!r) {cerr << "Unable to open file." <<endl<<"   "<<a.inputs[0]<<endl; return (EXIT_FAILURE); }
+    VolHeader hdrOrig(string(a.inputs[0]),r);
+    if (!r) {cerr << "Unable to open file." <<endl<<"   "<<a.inputs[0]<<endl; return (EXIT_FAILURE); }
+    FILE *orig = fopen(a.inputs[0],"rb");
+    if (!orig) {perror("failed to open file");cerr<<"   "<<a.inputs[0]<<endl;exit(EXIT_FAILURE);}
 
     if (a.magic_given) hdr.setMagicNumber(a.magic_arg);
     if (a.header_len_given) hdr.setHeaderLength(a.header_len_arg);
