@@ -41,10 +41,11 @@
 #include <vector>
 #include <string>
 
+//
 // Inventor/Coin
+//
 #include <Inventor/Qt/SoQt.h>
 #include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
-#include <Inventor/nodes/SoSeparator.h>
 
 #include <Inventor/events/SoMouseButtonEvent.h>
 #include <Inventor/events/SoLocation2Event.h>
@@ -57,6 +58,8 @@
 #include <Inventor/nodes/SoPerspectiveCamera.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoSwitch.h>
+#include <Inventor/nodes/SoPointLight.h>
+#include <Inventor/nodes/SoSeparator.h>
 
 #include <Inventor/draggers/SoTranslate1Dragger.h>
 #include <Inventor/draggers/SoSpotLightDragger.h>
@@ -233,12 +236,8 @@ int main(int argc, char *argv[])
 {
   bool ok=true;
 
-  gengetopt_args_info a;
-  if (0!=cmdline_parser(argc,argv,&a)) {
-    cerr << "FIX: should never get here" << endl;
-    cerr << "Early exit" << endl;
-    return (EXIT_FAILURE);
-  }
+  gengetopt_args_info a;  // a == args
+  if (0!=cmdline_parser(argc,argv,&a)){cerr<<"MELT DOWN: should never get here"<<endl;return (EXIT_FAILURE);}
 
 #ifdef NDEBUG
   if (a.verbosity_given) {
@@ -273,9 +272,16 @@ int main(int argc, char *argv[])
   si->root->ref();
 
   {
+    // Need a camera in the scene for the SoOffscreenRender to work
     si->camera = new SoPerspectiveCamera;
     si->root->addChild(si->camera);
   }
+
+  // TOP light
+  { SoPointLight *pl = new SoPointLight; si->root->addChild(pl); pl->location = SbVec3f(0.0f,0.0f,50.0f); }
+  // BOT light
+  { SoPointLight *pl = new SoPointLight; si->root->addChild(pl); pl->location = SbVec3f(0.0f,0.0f,-50.0f); }
+
 
 
   SoQtExaminerViewer* myViewer = new SoQtExaminerViewer(myWindow);
