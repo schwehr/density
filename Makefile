@@ -23,6 +23,9 @@
 #
 #  Suggested to install Lisa Tauxe's pmag (>=1.8).  Sorry, it is not in fink yet.
 
+# If you do not have bash in /bin, go get your admin to install it!!!!
+SHELL=/bin/bash
+
 help:
 	@echo
 	@echo " USAGE:"
@@ -184,6 +187,7 @@ simpleview.help2man: simpleview simpleview.help2man.in
 	/bin/cp simpleview.help2man.in simpleview.help2man
 	@echo Generating file format text
 	./simpleview -l >> simpleview.help2man
+	@echo FIX: need to cleanup the tables following two tables >> simpleview.help2man
 	@echo Generating keyboard shortcut text
 	./simpleview -k >> simpleview.help2man
 
@@ -320,6 +324,15 @@ get-cvs-voleon:
 get-cvs-soxt:
 	-mkdir tmp
 	cd tmp && export CVSROOT=${CVSROOT_SIM} && cvs -z3 get SoXt
+
+# Arbitrary color for programs
+install-acoc:
+	@if [ ! -e ~/.acoc.conf ]; then echo "Installing...";/bin/cp .acoc.conf ~/; \
+	else echo "Already there.  Not copying."; fi
+install-acoc-force:
+	@echo Copying acoc.conf into your home directory.  WILL OVERWRITE
+	/bin/cp .acoc.conf ~/
+
 
 
 ############################################################
