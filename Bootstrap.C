@@ -57,9 +57,8 @@ BootstrapParametricSample(const vector<SVec> &s, const vector<float> &sigmas,
     newSample[i] = s[sampleNum][i] + delta;
   }
 
-  // FIX: keep or not for normalize?
+  // Must normalize
   {
-    static bool done=false;if(!done){cerr<<"normalize"<<endl;done=true;}
     const float trace=newSample[0]+newSample[1]+newSample[2];
     for (size_t i=0;i<6;i++) newSample[i]/=trace;
   }
