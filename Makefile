@@ -66,8 +66,10 @@ CXXFLAGS += -Wno-long-double  -Wno-long-long
 
 ifdef OPTIMIZE
   CXXFLAGS += -O3 -funroll-loops -fexpensive-optimizations -DNDEBUG
-  CXXFLAGS += -ffast-math -mtune=G4 -mcpu=G4 -mpowerpc
+  CXXFLAGS += -ffast-math -mpowerpc
   CXXFLAGS += -DQT_NO_DEBUG
+# Don't want to exclude those with G3 cpus.
+# CXXFLAGS += -mtune=G4 -mcpu=G4
 # Fast is specific for G4 and G5 cpus, here only for the G4
 #  CXXFLAGS += -mcpu=7450 -fast
 #  Programs crashing with -fast
@@ -124,14 +126,18 @@ TARGETS := ${BINS} ${TEST_BINS}
 targets-no-test: ${BINS}
 targets: ${TARGETS} test
 
-
-density.info: density.info.in
-	make tar
-	perl -pe "s/\@VERSION\@/`cat VERSION`/g" density.info.in > d.tmp
-
 # e.g. make simpleview FINK='/sw'
 FINK:=/sw
 FINK_SAFE:=${subst /,\\/,${FINK}}
+
+density.info: density.info.in Makefile
+	make tar
+	perl -pe "s/\@VERSION\@/`cat VERSION`/g" density.info.in > d.tmp
+	perl -pe "s/\@MD5\@/`md5sum ${TARNAME}.tar.bz2 | cut -d' ' -f1`/g" d.tmp > density.info
+	rm -f d.tmp
+	mkdir -p ${FINK}/fink/10.3/local/main/finkinfo/graphics
+	cp density.info ${FINK}/fink/10.3/local/main/finkinfo/graphics
+	sudo cp ${TARNAME}.tar.bz2 ${FINK}/src
 
 ######################################################################
 # GENGETOPT programs to build
@@ -146,7 +152,7 @@ histogram: histogram_cmd.o histogram.C
 	${CXX} -o $@ $^  ${CXXFLAGS}
 
 # Handle need for simage in DYLD_LIBRARY_PATH on osx
-render: render.in
+render: render.in render_bin
 	perl -pe "s/\@FINK\@/${FINK_SAFE}/g" $< > $@
 	chmod +x $@
 
@@ -157,7 +163,7 @@ s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o s_bootstrap_cmd.o Eigs.o VecA
 	${CXX} -o $@ $^ ${CXXFLAGS} -Wno-long-double -lgsl -lgslcblas
 
 # Handle need for simage in DYLD_LIBRARY_PATH on osx
-simpleview: simpleview.in
+simpleview: simpleview.in simpleview_bin
 	perl -pe "s/\@FINK\@/${FINK_SAFE}/g" $< > $@
 	chmod +x $@
 
@@ -281,21 +287,26 @@ VERSION := ${shell cat VERSION}
 NAME := density
 TARNAME := ${NAME}-${VERSION}
 #tar: ${GEN_CFILES} ${GENGETOPT_BINS} test
-tar: ${GEN_CFILES} ${BINS} test
+tar: ${GEN_CFILES} ${BINS}
 	rm -rf ${TARNAME} ${TARNAME}.tar ${TARNAME}.tar.bz2
 	mkdir ${TARNAME}
 	@echo
-	cp *.{C,H,ggo.in,c,h,help2man,help2man.in,bash} ${TARNAME}/
+	cp *.{C,H,in,c,h,help2man,bash} ${TARNAME}/
 	@echo
 	cp AUTHOR ChangeLog Doxyfile INSTALL LICENSE.GPL HEADER.html ${TARNAME}/
 	cp Makefile Makefile.endian README.txt TODO VERSION axes.iv ${TARNAME}/
 	@echo Copying example data for one.bash and bootvolume-thesis.bash
 	@echo Leaving out rosenbaum-ams-stripped.dat until published
-	cp sample.wpt as1-crypt.s as2-slump.s as3-undef.s ${TARNAME}/
+	cp sample.wpt *.cpt rosenbaum-ams-stripped.dat as1-crypt.s as2-slump.s as3-undef.s ${TARNAME}/
+	cp .acoc.conf ${TARNAME}/acoc.conf
 	@echo
 	tar cf ${TARNAME}.tar ${TARNAME}
 	bzip2 -9 ${TARNAME}.tar
 	rm -rf ${TARNAME}
+
+release: tar density.info install-web
+	scp ChangeLog HEADER.html density.info ${TARNAME}.tar.bz2 kds.ucsd.edu:www/software/density
+
 
 coffee:
 	@echo Go make your own!
