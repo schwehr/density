@@ -41,7 +41,7 @@ private:
 ///        Points loose their actual xyz when added to the grid
 ///
 /*! What do we can this space representation?
-    - \a bvd - ???? volume distribution
+    - \a bvd - Blob of a Volume Distribution/Density
     - \a 3Dpdf - probability density functione
     - \a vdf - Volume Density Function
 */
@@ -88,7 +88,6 @@ public:
   bool addPoint(const float x, const float y, const float z);
   /// Print to stdout the cell number and the count
   void printCellCounts() const;
-
   size_t getWidth()  const {return (width);} ///< num of cells wide
   size_t getHeight() const {return (height);} ///< num of cells tall
   size_t getDepth()  const {return (depth);} ///< num of cell front to back
