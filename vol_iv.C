@@ -96,9 +96,36 @@ int main (int argc, char *argv[]) {
     return (EXIT_FAILURE);
   }
 
-  o << "Inventor V2.1 ascii" << endl
+  o << "#Inventor V2.1 ascii" << endl << endl
     << "# Voleon IV wrapper file by: $Id$ " << endl;
-  
+
+  {
+    o << "Separator { " << endl;
+
+
+    o << "\tSoVolumeData {" << endl
+      << "\t\tfileName \"" << a.inputs[0] << "\"" << endl
+      << "\t}" <<endl
+      ;
+
+    o << "\tSoTransferFunction {" << endl
+      << "\t\tpredefColorMap TEMPERATURE" << endl
+      << "\t}" << endl;
+
+    o << "\tSoVolumeRender {" << endl;
+    //o << "    fields [ SFEnum interpolation, SFEnum composition, SFBool lighting, SFVec3f lightDirection, SFFloat lightIntensity, SFEnum numSlicesControl, SFInt32 numSlices, SFBool viewAlignedSlices ]" << endl;
+    o << "\t\tinterpolation LINEAR" << endl;
+    //o << "    #composition SUM_INTENSITY" << endl;
+    //o << "    #composition MAX_INTENSITY" << endl;
+    //o << "    numSlicesControl ALL" << endl;
+    //o << "    numSlices 40" << endl;
+    //o << "" << endl;
+    o << "\t}" << endl;
+
+    o << "} # End of safety separator" << endl;
+  }
+  o << "# END OF VOLUME WRAPPER FILE" << endl;
+
 
   return (ok?EXIT_SUCCESS:EXIT_FAILURE);
 }
