@@ -107,8 +107,13 @@ public:
   size_t getHeight() const {return (height);} ///< num of cells tall
   size_t getDepth()  const {return (depth);} ///< num of cell front to back
   size_t getSize() const {return (counts.size());} ///< How many voxels in this density space?
+
   /// How many points so far have been added that actually fall in the voxels' volumes
   size_t getCountInside() const {return(totalPointsInside);}
+  /// \brief How many points failed to get added with addPoint().
+  ///
+  /// This will be zero for volumes loaded from files.
+  size_t getCountOutside() const {return(totalPointsOutside);}
 
   /// \brief Which cell number a point in space goes to.
   /// \return Cell number or \a badValue if x,y,z is not in the volume
@@ -216,6 +221,6 @@ private:
 
   std::vector<size_t> counts; ///< number of points in each voxel
   size_t totalPointsInside; ///< Does not include points that were outside!
-  
+  size_t totalPointsOutside; ///< How many points have failed to add since they were outside the volume
 };
 #endif // _DENSITY_H_
