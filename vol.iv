@@ -2,26 +2,27 @@
 
 Separator {
   BaseColor {rgb [ 1 0.0 0] }
-  Coordinate3 { point [ 0 0 0, 13.2 0 0 ] }
+  Coordinate3 { point [ 0 0 0, .333 0 0 ] }
   IndexedLineSet {coordIndex [0,1]}
-  Separator {Translation { translation 13.2 0 0 } SoSphere { radius 0.51 }  }
-  Separator {Translation { translation 15 0 0  }Scale {scaleFactor .2 .2 .2} Text3 {string "X/East"} }
+  Separator {Translation { translation .333 0 0 } SoSphere { radius 0.01 }  }
+  Separator {Translation { translation .5 0 0  }Scale {scaleFactor .01 .01 .01} Text3 {string "X/East"} }
 
   BaseColor {rgb [ 0 1 0] }
-  Coordinate3 { point [ 0 0 0, 0 13.2 0 ] }
+  Coordinate3 { point [ 0 0 0, 0 .333 0 ] }
   IndexedLineSet {coordIndex [0,1]}
-  Separator {Translation { translation  0 13.2 0 } SoSphere { radius 0.51 }  }
-  Separator {Translation { translation 0 15 0  }Scale {scaleFactor .2 .2 .2} Text3 {string "Y/North"} }
+  Separator {Translation { translation  0 .333 0 } SoSphere { radius 0.01 }  }
+  Separator {Translation { translation 0 .5 0  }Scale {scaleFactor .01 .01 .01} Text3 {string "Y/North"} }
 
   BaseColor {rgb [ 0 0 1] }
-  Coordinate3 { point [ 0 0 0, 0 0 -13.2] }
+  Coordinate3 { point [ 0 0 0, 0 0 -.333] }
   IndexedLineSet {coordIndex [0,1]}
-  Separator {Translation { translation 0 0 -13.2 } SoSphere { radius 0.51 }  }
-  Separator {Translation { translation 0 0 -15 }Scale {scaleFactor .2 .2 .2} Text3 {string "-Z/down"} }
+  Separator {Translation { translation 0 0 -.333 } SoSphere { radius 0.01 }  }
+  Separator {Translation { translation 0 0 -.5 }Scale {scaleFactor .01 .01 .01} Text3 {string "-Z/down"} }
 }
 
 Separator {
 
+    Scale {scaleFactor 0.05 0.05 0.05}
 
 SoVolumeData {
     fields [ SFString fileName, SFEnum storageHint, SFBool
