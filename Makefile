@@ -29,11 +29,12 @@ BINS += simpleview
 #BINS+= AMScrunch
 
 # TESTING TARGETS:
-TEST_BINS+= test_s_bootstrap
-TEST_BINS+= test_SiteSigma
-TEST_BINS+= test_VolHeader
-TEST_BINS+= test_Density
-TEST_BINS+= test_DensityFlagged
+TEST_BINS += test_s_bootstrap
+TEST_BINS += test_SiteSigma
+TEST_BINS += test_VolHeader
+TEST_BINS += test_Density
+TEST_BINS += test_DensityFlagged
+TEST_BINS += test_Cdf
 
 TARGETS:=${BINS} ${TEST_BINS}
 
@@ -41,6 +42,9 @@ targets: ${TARGETS} test
 
 xyzdensity: xyzdensity.C Density.o VolHeader.o
 	${CXX} -o $@ $^ ${CXXFLAGS}
+
+test_Cdf: Cdf.C Cdf.H
+	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS}
 
 test_VolHeader: VolHeader.C VolHeader.H
 	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS}
@@ -64,7 +68,7 @@ endian: endian.C
 	${CXX} -g -Wall $< -o $@
 
 clean:
-	rm -f blah* foo* *~ ${TARGETS} *.o
+	rm -f blah* foo* *~ ${TARGETS} *.o *.xyz *.eigs *.cdf [0-9]x[0-9]*test?.vol
 
 Density.o: endian
 
