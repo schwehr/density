@@ -53,68 +53,93 @@ FailIfNotThere()
 # Make sure we have a sane environment
 #
 FailIfNotThere $LINENO sample.wpt
-#if [ ! -e sample.wpt ]; then
-#    echo "ERROR: need to run get a copy of the waypoint flight path - sample.wpt"
-#    exit $EXIT_FAILURE
-#fi
-
 FailIfNotThere $LINENO g1-fluidized-all.iv
-#if [ ! -e as1-crypt-all.iv ]; then
-#    echo "ERROR: need to run bootvol-thesis.bash.  as1-crypt-all.iv does not exist"
-#    exit $EXIT_FAILURE
-#fi
 
 # 0..99 frames
 declare -ir maxFrames=100
-
-# image size
-declare -i s=200
-
+#declare -ir maxFrames=5
 
 
 #
 # Make all the frames
 #
 declare -ir size=200
-declare -r render_args="axes.iv     -p 0.05  -w sample.wpt -L -W $size -H $size -v 6"
+declare -r render_args="axes.iv     -p 0.05  -w sample.wpt -L -W $size -H $size -v $debugLevel"
+#declare -r render_args="axes.iv     -p 0.5  -w sample.wpt -L -W $size -H $size -v $debugLevel"
 
 
 declare -ar ol_groups=( g1-fluidized g2-undeformed g3-sheared g4-little-def g5-intermediate )
 
-for group in "${ol_groups[@]}"; do
-    echo #
-    #declare iv=k$group.iv
-    FailIfNotThere $LINENO $iv
-    echo render -b ${group}-all $iv $render_args
-done
+echo ${ol_groups[@]}
 
-echo "early exit" && exit $EXIT_SUCCESS
+if [ 1 == 1 ]; then 
+    for group in "${ol_groups[@]}"; do
+	DebugEcho $TERSE $LINENO "Rendering group $group"
 
-#convert -modulate 210 -size 350x350 -resize 350x350 tmp.pnm small3/$file
+	FailIfNotThere $LINENO ${group}-all.iv
+	render -b ${group}-all- ${group}-all.iv $render_args
 
-while [ $maxFrames != $fileNum ]; do
-    f=`printf "%04d" $fileNum`
-    echo $f
+	FailIfNotThere $LINENO ${group}-vmax-8.iv
+        render -b ${group}-vmax- ${group}-vmax-8.iv $render_args
 
-    if [ 1 == 1 ]; then 
-	pngtopnm ${b1}${f}.png > ${b1}${f}.pnm
-	pngtopnm ${b2}${f}.png > ${b2}${f}.pnm
-	pngtopnm ${b3}${f}.png > ${b3}${f}.pnm
-	pngtopnm ${b4}${f}.png > ${b4}${f}.pnm
-    else
-	pngtopnm ${b1}${f}.png | pnmscale -xysize $s $s > ${b1}${f}.pnm
-	pngtopnm ${b2}${f}.png | pnmscale -xysize $s $s > ${b2}${f}.pnm
-	pngtopnm ${b3}${f}.png | pnmscale -xysize $s $s > ${b3}${f}.pnm
-	pngtopnm ${b4}${f}.png | pnmscale -xysize $s $s > ${b4}${f}.pnm
-    fi
+	FailIfNotThere $LINENO ${group}-vint-8.iv
+        render -b ${group}-vint- ${group}-vint-8.iv $render_args
 
-    # FIX: can this be done without writing tmp files?
-    pnmcat -lr ${b1}${f}.pnm ${b2}${f}.pnm > left2.pnm
-    pnmcat -lr ${b3}${f}.pnm ${b4}${f}.pnm > right2.pnm
-    pnmcat -lr left2.pnm right2.pnm | pnmtopng > ${outbase}${f}.png
+	FailIfNotThere $LINENO ${group}-vmin-8.iv
+        render -b ${group}-vmin- ${group}-vmin-8.iv $render_args
+    done
+fi
 
-    fileNum=$[fileNum+1]
+if [ 0 == 1 ]; then 
+    DebugEcho $TERSE $LINENO "Brightening all images"
+    for file in g*.png; do
+	convert -modulate 210 $file tmp-$file
+	/bin/mv -f tmp-$file $file
+    done
+fi
 
-    rm -f ${b1}${f}.pnm ${b2}${f}.pnm ${b3}${f}.pnm ${b4}${f}.pnm left2.pnm right2.pnm
+#
+# Group all rendered frames for one step into one big movie frame
+# 
 
-done
+if [ 0 == 1 ]; then 
+    for group in "${ol_groups[@]}"; do
+	declare -i fileNum=0
+	DebugEcho $TERSE $LINENO "Assemble frames for group: $group"
+	while [ $maxFrames != $fileNum ]; do
+	    f=`printf "%04d" $fileNum`
+	    echo $f
+	    pngtopnm ${group}-all-${f}.png > all.pnm
+	    pngtopnm ${group}-vmax-${f}.png > vmax.pnm
+	    pngtopnm ${group}-vint-${f}.png > vint.pnm
+	    pngtopnm ${group}-vmin-${f}.png > vmin.pnm
+
+	    pnmcat -lr  all.pnm vmax.pnm > l
+	    pnmcat -lr vint.pnm vmin.pnm > r
+	    pnmcat -lr l r | pnmtopng > ${group}-$f.png
+
+	    fileNum=$[fileNum+1]
+	    rm -f all.pnm vmax.pnm vint.pnm vmin.pnm l r
+	done
+    done
+fi
+
+
+if [ 1 == 1 ]; then 
+    declare -i fileNum=0
+    while [ $maxFrames != $fileNum ]; do
+	f=`printf "%04d" $fileNum`
+	DebugEcho $TERSE $LINENO "Assemble composites to a superframe for $f"
+	for group in "${ol_groups[@]}"; do
+	    pngtopnm ${group}-${f}.png > ${group}.pnm
+	done
+	pnmcat -tb g1-fluidized.pnm g2-undeformed.pnm > t1
+	pnmcat -tb g3-sheared.pnm   g4-little-def.pnm > t2
+	pnmcat -tb t1 t2 > t3
+	pnmcat -tb t3 g5-intermediate.pnm | pnmtopng > ol-$f.png
+	rm -f t{1,2,3}  g1-fluidized.pnm g2-undeformed.pnm g3-sheared.pnm  g4-little-def.pnm g5-intermediate.pnm
+	fileNum=$[fileNum+1]
+    done
+fi
+
+
