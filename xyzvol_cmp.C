@@ -52,9 +52,7 @@ using namespace std;
  ***************************************************************************/
 
 #include "debug.H" // provides FAILED_HERE, UNUSED, DebugPrintf
-#ifndef NDEBUG
 int debug_level;
-#endif
 
 /// Let the debugger find out which version is being used.
 static const UNUSED char* RCSid ="@(#) $Id$";
@@ -71,14 +69,16 @@ int main (int argc, char *argv[]) {
     return (EXIT_FAILURE);
   }
 
-#ifdef NDEBUG
-  if (a.verbosity_given) {
-    cerr << "Verbosity is totally ignored for optimized code.  Continuing in silent mode" << endl;
-  }
-#else // debugging
   debug_level = a.verbosity_arg;
-  DebugPrintf(TRACE,("Debug level = %d",debug_level));
-#endif
+  DebugPrintf(TERSE,("Starting %s\n",argv[0]));
+  DebugPrintf(TRACE,("Debug level = %d\n",debug_level));
+#ifndef NDEBUG
+  if (debug_level>=VERBOSE) {
+    cout << "Command line: ";
+    for (int i=0;i<argc;i++) cout << argv[i] << " ";
+    cout << endl;
+  }
+#endif  
 
   bool r;
   string densityFileName(a.density_arg);
@@ -103,16 +103,29 @@ int main (int argc, char *argv[]) {
   }
 #endif
 
-
   bool ok=true;
+
+  ofstream out;
+  const bool use_cout = ('-' == a.out_arg[0]);
+  if (use_cout) {
+    DebugPrintf (VERBOSE,("Setting output to stdout"));
+    //out = cout;
+  } else {
+    out.open(a.out_arg,ios::out);
+    if (!out.is_open()) {
+      cerr << "ERROR: Unable to open output file." << endl;
+      return(EXIT_FAILURE);
+    }
+  }
+
   for (size_t filenum=0;filenum < a.inputs_num; filenum++) {
-    DebugPrintf(TRACE,("testing file: %s",a.inputs[filenum]));
+    DebugPrintf(TRACE,("testing file: %s\n",a.inputs[filenum]));
     ifstream in(a.inputs[filenum],ios::in);
     string filename(a.inputs[filenum]);
     if (!in.is_open()) {cerr<<"Failed to open "<<a.inputs[filenum]<<endl;ok=false;continue;}
 
-    cout.setf(ios::right,ios::adjustfield);
-    cout << setiosflags(ios::fixed) << setprecision(6) << setw(12);
+    out.setf(ios::right,ios::adjustfield);
+    out << setiosflags(ios::fixed) << setprecision(6) << setw(12);
 
     char buf[1024];
     while (in.getline(buf,1024)) {
@@ -123,8 +136,12 @@ int main (int argc, char *argv[]) {
       istr >> x >> y >> z;
       const size_t cellIndex = d.getCell(x,y,z);
       const size_t count = d.getCellCount(cellIndex);
-      cout << densityFileName << " " << filename << " " << x << "\t" << y << "\t" << z << "\t  "
-	   << count << "\t" << float(count)/d.getCountInside() << "\t" << cdf[count] << endl;
+      if (use_cout)
+	cout << densityFileName << " " << filename << " " << x << "\t" << y << "\t" << z << "\t  "
+	     << count << "\t" << float(count)/d.getCountInside() << "\t" << cdf[count] << endl;
+      else
+	  out << densityFileName << " " << filename << " " << x << "\t" << y << "\t" << z << "\t  "
+	      << count << "\t" << float(count)/d.getCountInside() << "\t" << cdf[count] << endl;
 
     }
   } // for filenum
