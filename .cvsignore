@@ -1,7 +1,7 @@
 *.xyz
 *.eigs
 Voleon
-Away
+Away Work pmag
 test*.vol
 *-test?.vol
 simpleview makeCDF histogram s_bootstrap xyzdensity endian volinfo AMScrunch
