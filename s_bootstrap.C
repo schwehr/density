@@ -91,7 +91,6 @@ LoadS(const string filename,vector <SVec> &s,vector<float> &sigmas) {
   SVec tmp(6,0.);  float tmpSigma;
   while (in >> tmp[0] >> tmp[1] >> tmp[2] >> tmp[3] >> tmp[4] >> tmp[5] >> tmpSigma) {
     s.push_back(tmp);  
-    //sigmas.push_back(0.); {static bool d=false;if(!d){cerr<<__FILE__<<" FIX HERE: " << __LINE__ << endl; d=true;}}
     sigmas.push_back(tmpSigma);
   }
   // FIX: do we need to normalize so that the trace is 1?
