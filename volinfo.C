@@ -101,7 +101,6 @@ int main (const int argc, char *argv[]) {
 	 << "rotZ   = " << v.getRotZ() << endl
       ;
 
-    cout << "range given " << a.range_given << endl; cout.flush();
     if (0!=a.range_given) {
       Density d(filename,r);
       if (!r) {ok=false; cerr << "Failed to read file: " << filename << endl; continue;}
