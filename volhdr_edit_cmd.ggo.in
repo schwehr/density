@@ -21,7 +21,7 @@
 
 
 package "volhdr_edit"
-version "0.1"
+version "@VERSION@"
 purpose "Muck with the header of a volume file.  Does not change the data field.  \nWARNING: The results are not guaranteed to be a valid volume file"
 
 option "verbosity" v "Set the verbosity level (0=quiet 10=verbose 20=bombastic)" int default="0" no

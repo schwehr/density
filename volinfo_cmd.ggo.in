@@ -19,7 +19,7 @@
 
 
 package "volinfo"
-version "0.1"
+version "@VERSION@"
 
 purpose "Inspect the header of a vol/voxel file"
 

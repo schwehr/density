@@ -22,7 +22,7 @@
 #
 
 package "histogram"
-version "0.1"
+version "@VERSION@"
 purpose "Bin data for plotting histograms"
 
 #option "verbosity" v "Set the verbosity level (0=quiet 10=verbose 20=bombastic)" int default="0" no

@@ -22,7 +22,7 @@
 #
 
 package "render"
-version "0.1"
+version "@VERSION@"
 purpose "Coin/SimVoleon offscreen rendering to disk"
 
 option "verbosity" v "Set the verbosity level (0=quiet 10=verbose 20=bombastic)" int default="0" no

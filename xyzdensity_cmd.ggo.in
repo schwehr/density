@@ -21,7 +21,7 @@
 
 
 package "xyzdensity"
-version "0.1"
+version "@VERSION@"
 purpose "Provide an easy way to construct 3D volume/voxel (.vol) files\n  from ascii xyz data"
 
 option "verbosity" v "Set the verbosity level (0=quiet 10=verbose 20=bombastic)" int default="0" no

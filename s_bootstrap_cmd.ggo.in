@@ -19,7 +19,7 @@
 
 
 package "s_bootstrap"
-version "0.1"
+version "@VERSION@"
 
 purpose "Provide bootstrap resampling of groups of samples."
 

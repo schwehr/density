@@ -22,7 +22,7 @@
 #
 
 package "volmakecpt"
-version "0.1"
+version "@VERSION@"
 purpose "Make color maps/color transfer functions for SimVoleon OpenInventor files."
 
 option "verbosity" v "Set the verbosity level (0=quiet 10=verbose 20=bombastic)" int default="0" no
