@@ -50,9 +50,9 @@ using namespace std;
  ***************************************************************************/
 
 #include "debug.H" // provides FAILED_HERE, UNUSED, DebugPrintf
-#ifndef NDEBUG
-int debug_level;
-#endif
+//#ifndef NDEBUG
+int debug_level;  // Now used even in optimized mode
+//#endif
 
 /// Let the debugger find out which version is being used.
 static const UNUSED char* RCSid ="@(#) $Id$";
@@ -70,7 +70,12 @@ bool LoadData(const string &filename, Density &d) {
   }
 
   float _x,_y,_z;
-  while (in >> _x >> _y >> _z) d.addPoint(_x,_y,_z);
+  size_t count=0;
+  while (in >> _x >> _y >> _z) {
+    if      (10<=debug_level) { if (0==count%100000 ) cout << count << endl; count ++; }
+    else if ( 4<=debug_level) { if (0==count%1000000) cout << count << endl; count ++;}
+    d.addPoint(_x,_y,_z);
+  }
 
   return(true);
 }
@@ -88,14 +93,14 @@ int main (int argc, char *argv[]) {
     return (EXIT_FAILURE);
   }
 
-#ifdef NDEBUG
-  if (a.verbosity_given) {
-    cerr << "Verbosity is totally ignored for optimized code.  Continuing in silent mode" << endl;
-  }
-#else // debugging
+  //#ifdef NDEBUG
+  //if (a.verbosity_given) {
+  //cerr << "Verbosity is totally ignored for optimized code.  Continuing in silent mode" << endl;
+  //}
+  //#else // debugging
   debug_level = a.verbosity_arg;
   DebugPrintf(TRACE,("Debug level = %d\n",debug_level));
-#endif
+  //#endif
   
   if (0!=a.pack_arg && 1!=a.pack_arg && 2!=a.pack_arg) {
     cerr << endl 
