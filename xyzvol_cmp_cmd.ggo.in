@@ -24,6 +24,8 @@ package "xyzvol_cmp_cmd.ggo"
 version "0.1"
 purpose "Compare xyz values to a volume density... blobby volume density.\n  Only takes the first 3 values on each line and ignores the rest of the line.\n  Output is\n\n    x y z count %%_or_total_counts %%_cdf"
 
+option "verbosity" v "Set the verbosity level (0=quiet 10=verbose 20=bombastic)" int default="0" no
+
 option "density" d "Density volume file.  .vol format" string typestr="filename" yes
 option "inxyz" i "Ascii x y z file.  One data item per line.  Space or tab delimited" string typestr="filename" yes
 

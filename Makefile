@@ -32,6 +32,7 @@ help:
 	@echo "  make docs        - Generate doxygen docs"
 	@echo "  make man         - Generate section 1 man pages"
 	@echo "  make tar         - Build a distribution"
+	@echo "  make check       - Search for all known code issuse (FIX tags)"
 	@echo
 	@echo "  Add 'OPTIMIZE=1' - Build with optimizations enabled and then test"
 
@@ -74,12 +75,13 @@ CFLAGS := ${CXXFLAGS} -Wimplicit-int -Wimplicit-function-declaration -Wnested-ex
 GENGETOPT_BINS := s_bootstrap
 GENGETOPT_BINS += xyzdensity
 GENGETOPT_BINS += xyzvol_cmp
+GENGETOPT_BINS += volinfo
+GENGETOPT_BINS += vol2vol
 
 BINS := ${GENGETOPT_BINS}
 BINS += makeCDF
 BINS += histogram
 BINS += endian
-BINS += volinfo
 BINS += simpleview
 #BINS+= AMScrunch
 
@@ -150,11 +152,6 @@ s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o s_bootstrap_cmd.o Eigs.o
 endian: endian.C
 	${CXX} -g -Wall $< -o $@
 
-clean:
-	rm -f blah* foo* *~ ${TARGETS} *.o *.xyz *.eigs *.cdf [0-9]x[0-9]*test?.vol
-	rm -f *_cmd.[ch]
-	rm -f .*~
-
 Density.o: endian
 
 simpleview: simpleview.C
@@ -168,6 +165,17 @@ volinfo_cmd.o: volinfo_cmd.c volinfo_cmd.ggo
 
 volinfo: volinfo.C VolHeader.o volinfo_cmd.o Density.o
 	${CXX} -o $@ $^  ${CXXFLAGS}
+
+
+vol2vol_cmd.c: vol2vol_cmd.h
+vol2vol_cmd.h: vol2vol_cmd.ggo
+	gengetopt --input=$< --file-name=${<:.ggo=}
+vol2vol_cmd.o: vol2vol_cmd.c vol2vol_cmd.ggo
+	${CXX} -c $< ${CXXFLAGS}
+
+vol2vol: vol2vol.C VolHeader.o vol2vol_cmd.o Density.o
+	${CXX} -o $@ $^  ${CXXFLAGS}
+
 
 test: ${TEST_BINS}
 	@for file in ${TEST_BINS}; do \
@@ -195,14 +203,44 @@ man: ${GENGETOPT_BINS}
 VERSION := ${shell cat VERSION}
 NAME := density
 TARNAME := ${NAME}-${VERSION}
-tar: xyzdensity_cmd.h volinfo_cmd.h s_bootstrap_cmd.h xyzvol_cmp_cmd.h
+tar: ${GENGETOPT_BINS}
 	rm -rf ${TARNAME}
 	mkdir ${TARNAME}
 	@echo
-	cp *.{C,H,ggo,c,h} ${TARNAME}/
+	cp *.{C,H,ggo,c,h,help2man} ${TARNAME}/
 	@echo
 	cp AUTHOR Makefile Doxyfile LICENSE.LGPL README.txt VERSION demos.bash good.iv ${TARNAME}/
 	@echo
 	tar cf ${TARNAME}.tar ${TARNAME}
 	bzip2 -9 ${TARNAME}.tar
 	rm -rf ${TARNAME}
+
+
+coffee:
+	@echo Get your own.
+
+# Credit to Dan Goldman my programming partner for compilers many years ago
+check:
+	@echo
+	@echo "**************************************"
+	@echo "* Known issues currently in the code *"
+	@echo "**************************************"
+	@echo
+	@grep -n FIX *.{C,H,ggo,help2man} Makefile | grep -v grep
+
+clean:
+	rm -f blah* foo* *~ ${TARGETS} *.o *.xyz *.eigs *.cdf [0-9]x[0-9]*test?.vol
+	rm -f *_cmd.[ch]
+	rm -f .*~
+	rm -f as*.xyz* as*.vol
+	rm -f ${BINS}
+
+real-clean: clean
+	rm -rf doc
+
+
+############################################################
+# Dependencies - FIX: do a real depend with gcc/g++
+############################################################
+
+xyzdensity: debug.H

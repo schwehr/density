@@ -21,6 +21,11 @@
 package "s_bootstrap"
 version "0.1"
 
+purpose "Provide bootstrap resampling of groups of samples."
+
+option "verbosity" v "Set the verbosity level (0=quiet 10=verbose 20=bombastic)" int default="0" no
+
+
 option "in" i "Input file name\n Must be a Voleon vol file" string typestr="filename" yes multiple
 
 option "format" f "Output format.\n  s - 7 number s values (see s_eigs)\n  tpr - polar\n  xyz - cartesian" string default="xyz" no

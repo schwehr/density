@@ -37,10 +37,6 @@ int main (int argc, char *argv[]) {
   }
 
   sort(data.begin(),data.end());
-#if 0
-  for(vector<float>::iterator i=data.begin();i!=data.end();i++) 
-    cout << *i << endl;
-#endif
 
   for (size_t i=0;i<data.size();i++) {
     cout << data[i] << " " << i/float(data.size()) << endl;

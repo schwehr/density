@@ -21,5 +21,10 @@
 package "volinfo"
 version "0.1"
 
+purpose "Inspect the header of a vol/voxel file"
+
+option "verbosity" v "Set the verbosity level (0=quiet 10=verbose 20=bombastic)" int default="0" no
+
+
 option "in" i "Input file name\n Must be a Voleon vol file" string typestr="filename" yes multiple
 option "range" r "Show the range of data.  May take a long time." no

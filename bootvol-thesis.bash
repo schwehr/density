@@ -25,4 +25,30 @@
 # visualization of it.  Hopefully later, I will get to processing the
 # Owens Lake data.
 
+make s_bootstrap xyzdensity xyzvol_cmp
+
+export PATH=${PATH}:.
+cells=10
+draw=100
+declare -ar groups=( as1-crypt as2-slump as3-undef )
+
+#
+# Bootstrap each of the groups to produce Vmin (V3), Vint(V2), Vmax(V1) volumes
+#
+if [ 1 == 1 ]; then
+    for group in "${groups[@]}"; do
+	echo Processing $group
+	s_bootstrap --in=${group}.s -f xyz  -n 3 --out ${group}.xyz. -p --draw ${draw}
+	mv ${group}.xyz.1 ${group}-boot.xyz.vmax
+	mv ${group}.xyz.2 ${group}-boot.xyz.vint
+	mv ${group}.xyz.3 ${group}-boot.xyz.vmin
+	echo Densifying
+	args="  --bpv=16 -w ${cells} -t ${cells} -d ${cells}"
+	xyzdensity --in=${group}-boot.xyz.vmax --out=${group}-vmax.vol -p 1 $args
+	xyzdensity --in=${group}-boot.xyz.vint --out=${group}-vint.vol -p 1 $args
+	xyzdensity --in=${group}-boot.xyz.vmin --out=${group}-vmin.vol -p 1 $args
+
+    #volinfo -r -i ${group}-vmax.vol
+    done
+fi
 

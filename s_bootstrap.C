@@ -49,6 +49,28 @@ algorithm which requires two calls to the random number generator r.
 
 using namespace std;
 
+
+/***************************************************************************
+ * LOCAL MACROS and DEFINES
+ ***************************************************************************/
+
+#include "debug.H" // provides FAILED_HERE, UNUSED, DebugPrintf
+#ifndef NDEBUG
+int debug_level;
+#endif
+
+/***************************************************************************
+ * GLOBALS
+ ***************************************************************************/
+
+/// Let the debugger find out which version is being used.
+static const UNUSED char* RCSid ="@(#) $Id$";
+
+/***************************************************************************
+ * LOCAL FUNCTIONS
+ ***************************************************************************/
+
+
 // return true if all went well.
 // false if trouble of any kind
 
@@ -199,9 +221,8 @@ bool DoS_Bootstrap(const vector<string> &inFiles,
 }
 
 //////////////////////////////////////////////////////////////////////
-// NEW UI -- USING gengetopt
+// MAIN
 //////////////////////////////////////////////////////////////////////
-
 
 int main (const int argc, char *argv[]) {
   bool ok=true;
@@ -213,6 +234,15 @@ int main (const int argc, char *argv[]) {
     return (EXIT_FAILURE);
   }
 
+#ifdef NDEBUG
+  if (a.verbosity_given) {
+    cerr << "Verbosity is totally ignored for optimized code.  Continuing in silent mode" << endl;
+  }
+#else // debugging
+  debug_level = a.verbosity_arg;
+  DebugPrintf(TRACE,("Debug level = %d",debug_level));
+#endif
+
   vector<string> inFiles;
   if (!GetFiles(a.in_arg,inFiles)) {cerr << "Doh!  What happened?" << endl; return(EXIT_FAILURE);}
 
@@ -222,8 +252,8 @@ int main (const int argc, char *argv[]) {
     return(EXIT_FAILURE);
   }
 
-  cout << "format: " << a.format_arg << endl;
   const FormatEnum format = GetFormat(a.format_arg);
+  DebugPrintf(VERBOSE,("format: %s (%d)",a.format_arg,int(format)));
 
   // Can't have S_FORMAT and 3 outfiles.  Does not make sense!!!
   if (3==a.numout_arg && S_FORMAT==format) {

@@ -22,7 +22,9 @@
 
 package "vol2vol"
 version "0.1"
-purpose "Change "
+purpose "Change volume files from one type to another (e.g. 16 bit -> 8 bit)"
+
+option "verbosity" v "Set the verbosity level (0=quiet 10=verbose 20=bombastic)" int default="0" no
 
 option "in" i "Input file name\n (must be unsigned ascii x,y,z triples)" string typestr="filename" yes
 option "out" o "Output file name" string typestr="filename" yes

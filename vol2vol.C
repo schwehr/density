@@ -45,33 +45,13 @@
 using namespace std;
 
 /***************************************************************************
- * LOCAL MACROS and DEFINES
+ * MACROS, DEFINES, GLOBALS
  ***************************************************************************/
 
-#ifdef __GNUC__
-#define UNUSED __attribute((__unused__))
-#else
-/*! \def UNUSED
-  \brief GNU CC attribute to denote unused paramters in function calls.
-  The attribute remove compiler warning for unused arguments and variable.  Only works
-  for GNU compilers such as gcc and g++.
-*/
-#define UNUSED
+#include "debug.H" // provides FAILED_HERE, UNUSED, DebugPrintf
+#ifndef NDEBUG
+int debug_level;
 #endif
-
-#ifdef REGRESSION_TEST
-#define FAILED_HERE cout <<  __FILE__ << ":" << __LINE__ << " test failed" << endl
-#else
-/*! \def FAILED_HERE
-  \brief Used FAILED_HERE; to emit a string that looks like a compiler warning
-  Use this to allow emacs to jump to this source line with C-x `
-*/
-#define FAILED_HERE // Empty
-#endif
-
-/***************************************************************************
- * GLOBALS
- ***************************************************************************/
 
 /// Let the debugger find out which version is being used.
 static const UNUSED char* RCSid ="@(#) $Id$";
@@ -89,6 +69,15 @@ int main (int argc, char *argv[]) {
     cerr << "Early exit" << endl;
     return (EXIT_FAILURE);
   }
+
+#ifdef NDEBUG
+  if (a.verbosity_given) {
+    cerr << "Verbosity is totally ignored for optimized code.  Continuing in silent mode" << endl;
+  }
+#else // debugging
+  debug_level = a.verbosity_arg;
+  DebugPrintf(TRACE,("Debug level = %d",debug_level));
+#endif
 
   
   if (0!=a.pack_arg && 1!=a.pack_arg && 2!=a.pack_arg) {

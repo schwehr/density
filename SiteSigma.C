@@ -30,6 +30,21 @@
 
 using namespace std;
 
+/***************************************************************************
+ * MACROS, DEFINES, GLOBALS
+ ***************************************************************************/
+
+#include "debug.H" // provides FAILED_HERE, UNUSED, DebugPrintf
+
+/// Let the debugger find out which version is being used.
+static const UNUSED char* RCSid ="@(#) $Id$";
+
+
+/***************************************************************************
+ * FUNCTIONS
+ ***************************************************************************/
+
+
 // Return site sigma using Hext method based on Tauxe s_hext.f
 // For boot strapping with Parametric SITE mode
 float SiteSigma (const vector<SVec> &s) {
@@ -66,7 +81,6 @@ float SiteSigma (const vector<SVec> &s) {
 #ifdef REGRESSION_TEST
 #include <iomanip>
 #include <fstream>
-
 
 static bool
 isEqual (const float a, const float b, const float del) {

@@ -34,6 +34,19 @@
 
 using namespace std;
 
+/***************************************************************************
+ * MACROS, DEFINES, GLOBALS
+ ***************************************************************************/
+
+#include "debug.H" // provides FAILED_HERE, UNUSED, DebugPrintf
+
+/// Let the debugger find out which version is being used.
+static const UNUSED char* RCSid ="@(#) $Id$";
+
+/***************************************************************************
+ * FUNCTIONS
+ ***************************************************************************/
+
 void Print(const SVec &sv) {
   assert(6==sv.size());
   for(size_t i=0;i<sv.size();i++) cout << sv[i] << " ";
@@ -69,11 +82,11 @@ BootstrapParametricSample(const vector<SVec> &s, const vector<float> &sigmas,
   return (sampleNum);
 }
 
-
-float Trace(const SVec &s) {
-  assert (3<s.size());
-  return (s[0]+s[1]+s[2]);
-}
+// FIX: should this be exposed or static?
+//float Trace(const SVec &s) {
+//  assert (3<s.size());
+//  return (s[0]+s[1]+s[2]);
+//}
 
 
 // returns the sample index that was picked for this iteration
