@@ -60,8 +60,7 @@ static const UNUSED char* RCSid ="$Id$";
 /// \brief load ascii whitespace delimited text xyz into vectors.
 /// \return \a true if all went well.  \a false if trouble of any kind
 /// \param filename File to open and read data from
-/// \param s Return vector of data.  The \a s diagonalized matrix parameters.  See s_eigs
-/// \param sigmas Return vector of simgma errors
+/// \param x,y,z Return the xyz coordinates of each point
 ///
 /// Unlike Lisa's code, this one does NOT alter the sigmas on loading
 /// which is what the adread subroutine did.`
@@ -88,8 +87,11 @@ bool Color(ofstream &o, const string &color_str) {
   return (true);
 }
 
+/// \brief Write out a small box at each point
+/// \param o Write the Inventor model info to this stream
+/// \param x,y,z Float vectors with the point data
 /// \param w Width, Height and Depth for the cube
-
+/// \return \a false if there was trouble
 bool Boxes(ofstream &o, 
 	 const vector<float> &x, const vector<float> &y, const vector<float> &z,
 	 const float w)
@@ -103,7 +105,11 @@ bool Boxes(ofstream &o,
   return (true);
 }
 
+/// \brief Write out a small sphere at each point
+/// \param o Write the Inventor model info to this stream
+/// \param x,y,z Float vectors with the point data
 /// \param r Radius of the spheres
+/// \return \a false if there was trouble
 ///
 /// You may want to add an SoComplexity node in front of the spheres. If rendering is
 /// too slow.

@@ -74,12 +74,20 @@ static const UNUSED char* RCSid ="$Id$";
 class ColorPallet {
 public:
   //ColorPallet();
-  /// \parameter ok \a true if load went ok
+  /// \brief Create a new color pallet table
+  /// \param filename File to load a GMT style cpt from
+  /// \param ok \a true if load went ok
   ColorPallet(const string &filename, bool &ok);
 
   /// \brief Retrief the RGB value for a cell level
   /// \param offset must be between 0 and 255
+  /// \param r,g,b,a Return the red, green, blue, and alpha value for offset.  Values are [0..1]
+  /// \return \a false if there was trouble.  For example a bad offset
   bool getRGBA(const size_t offset, float &r, float &g, float &b, float &a) const;
+  /// \brief Set the RGB value for a cell level
+  /// \param offset must be between 0 and 255
+  /// \param r,g,b,a 0..1 values for red, green, blue, and alpha value for offset
+  /// \return \a false if there was trouble.  For example a bad offset
   bool setRGBA(const size_t offset, const float r, const float g, const float b, const float a);
 
   enum ColorModel { UNKNOWN_CLR_MODEL, ALPHA, LUM_ALPHA, RGBA, HSVA };
