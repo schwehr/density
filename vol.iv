@@ -1,0 +1,54 @@
+#Inventor V2.1 ascii
+
+Separator {
+  BaseColor {rgb [ 1 0.0 0] }
+  Coordinate3 { point [ 0 0 0, 13.2 0 0 ] }
+  IndexedLineSet {coordIndex [0,1]}
+  Separator {Translation { translation 13.2 0 0 } SoSphere { radius 0.51 }  }
+  Separator {Translation { translation 15 0 0  }Scale {scaleFactor .2 .2 .2} Text3 {string "X/East"} }
+
+  BaseColor {rgb [ 0 1 0] }
+  Coordinate3 { point [ 0 0 0, 0 13.2 0 ] }
+  IndexedLineSet {coordIndex [0,1]}
+  Separator {Translation { translation  0 13.2 0 } SoSphere { radius 0.51 }  }
+  Separator {Translation { translation 0 15 0  }Scale {scaleFactor .2 .2 .2} Text3 {string "Y/North"} }
+
+  BaseColor {rgb [ 0 0 1] }
+  Coordinate3 { point [ 0 0 0, 0 0 -13.2] }
+  IndexedLineSet {coordIndex [0,1]}
+  Separator {Translation { translation 0 0 -13.2 } SoSphere { radius 0.51 }  }
+  Separator {Translation { translation 0 0 -15 }Scale {scaleFactor .2 .2 .2} Text3 {string "-Z/down"} }
+}
+
+Separator {
+
+
+SoVolumeData {
+    fields [ SFString fileName, SFEnum storageHint, SFBool
+	     usePalettedTexture, SFBool useCompressedTexture, SFVec3f volumeboxmin,
+	     SFVec3f volumeboxmax ]
+    fileName "myfile.vol"
+}
+
+SoTransferFunction {
+    predefColorMap GRAY
+    #predefColorMap SEISMIC
+    colorMapType ALPHA
+    #colorMapType LUM_ALPHA
+    #colorMapType RGBA
+}
+
+#SoTransferFunction {
+#    fields [ SFInt32 shift, SFInt32 offset, SFEnum predefColorMap, SFEnum colorMapType, MFFloat colorMap ]
+    #predefColorMap TEMPERATURE
+    #predefColorMap GREY
+    #predefColorMap PHYSICS
+#    colorMapType ALPHA
+#}
+
+SoVolumeRender {
+    fields [ SFEnum interpolation, SFEnum composition, SFBool lighting,
+	     SFVec3f lightDirection, SFFloat lightIntensity, SFEnum numSlicesControl,
+	     SFInt32 numSlices, SFBool viewAlignedSlices ]
+}
+}
