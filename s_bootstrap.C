@@ -46,6 +46,7 @@ algorithm which requires two calls to the random number generator r.
 #include "kdsPmagL.H" // L is for local
 #include "SiteSigma.H"
 #include "Bootstrap.H"
+#include "VecAngle.H" // ldi2xyz() and xyz2tpr()
 
 using namespace std;
 
@@ -325,10 +326,6 @@ int main (const int argc, char *argv[]) {
 //////////////////////////////////////////////////////////////////////
 
 #ifdef REGRESSION_TEST
-static bool
-isEqual (const float a, const float b, const float del) {
-  return ( ( a<b+del && a > b-del) ? true : false );
-}
 
 bool Test1 (void) {
   vector<SVec> s;
