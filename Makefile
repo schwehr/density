@@ -11,8 +11,14 @@ FFLAGS := -g -Wall
 
 ifdef OPTIMIZE
   CXXFLAGS += -O3 -funroll-loops -fexpensive-optimizations -DNDEBUG
+  CXXFLAGS += -ffast-math -mtune=G4 -mcpu=G4 -mpowerpc
+
+# Fast is specific for G4 and G5 cpus, here only for the G4
+#  CXXFLAGS += -mcpu=7450 -fast
+#  Programs crashing with -fast
 else
-  CXXFLAGS += -g
+  CXXFLAGS += -g3 -O0
+  CXXFLAGS += -D_GLIBCXX_DEBUG
 endif
 
 CFLAGS := ${CXXFLAGS} -Wimplicit-int -Wimplicit-function-declaration -Wnested-externs
