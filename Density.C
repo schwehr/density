@@ -59,6 +59,72 @@ static const UNUSED char* RCSid ="@(#) $Id$";
 
 
 //####################################################################
+// VOLHEADER METHODS
+//####################################################################
+
+/// \brief Convert host byte order to network byte order (Big Endian)
+uint32_t  
+hton_uint32(const uint32_t value)
+{
+#ifdef BIGENDIAN
+  return(value);  // NOP!  Woo hoo!
+#elif LITTLEENDIAN
+  cout << "FIX WARNING: LITTLEENDIAN is not yet tested!" << endl;
+  uint32_t tmp;
+  const char *t1=(char *) &value;
+  char *t2=(char *) &tmp;
+  t2[0]=t1[3];
+  t2[1]=t1[2];
+  t2[2]=t1[1];
+  t2[3]=t1[0];
+  return(tmp);
+#elif
+#  error UNKNOWN ENDIAN TYPE!
+#endif
+  // Cool idea:  assert(0 && "message to go with an assert");
+} 
+
+static float
+hton_float(const float value)
+{
+#ifdef BIGENDIAN
+  return(value);  // NOP!  Woo hoo!
+#elif LITTLEENDIAN
+  cout << "FIX WARNING: LITTLEENDIAN is not yet tested!" << endl;
+  float tmp;
+  const char *t1=(char *) &value;
+  char *t2=(char *) &tmp;
+  t2[0]=t1[3];
+  t2[1]=t1[2];
+  t2[2]=t1[1];
+  t2[3]=t1[0];
+  return(tmp);
+#elif
+#  error UNKNOWN ENDIAN TYPE!
+#endif
+}
+
+
+VolHeader::VolHeader(const size_t _width, const size_t _height, const size_t depth)
+{
+  magic_number=hton_uint32(0x0b7e7759);
+  header_length=hton_uint32(sizeof(VolHeader));
+  assert(52==header_length);
+
+  width=hton_uint32(uint32_t(_width));
+  height=hton_uint32(uint32_t(_height));
+  images=hton_uint32(uint32_t(depth));
+
+  bits_per_voxel=hton_uint32(8);
+  index_bits=0;  // 0==hton_uint32(0) no matter what
+  scaleX=scaleY=scaleZ=(hton_float(1.f));
+  rotX=rotY=rotZ=(hton_float(1.f));
+}
+
+
+
+
+//####################################################################
 // DENSITY METHODS
 //####################################################################
 
@@ -91,7 +157,12 @@ Density::Density(const size_t _width, const size_t _height, const size_t _depth,
 bool
 Density::addPoint(const float x, const float y, const float z) {
   const size_t cellNum=getCell(x,y,z);
-  if (cellNum==badValue()) return (false); // Outside!!
+  if (cellNum==badValue()) {
+#ifdef REGRESSION_TEST
+    cout << "         Point outside volume: " << x << " " << y << " " << z << endl;
+#endif    
+    return (false); // Outside!!
+  }
   assert (cellNum<counts.size());
   counts[cellNum]++;
   totalPointsInside++;
@@ -162,6 +233,51 @@ void Density::getCellCenter(const size_t cellNum, float &x, float &y, float &z) 
   y = yR[0] + (cy+0.5) * dy;
   z = zR[0] + (cz+0.5) * dz;
 }
+
+bool Density::writeVol(const string &filename) {
+  FILE *o=fopen(filename.c_str(),"wb");
+  if (!o) {perror("failed to open output file");cerr << "   " << filename << endl;return(false);}
+
+  VolHeader hdr(getWidth(),getHeight(),getDepth());
+  assert(52==sizeof(hdr));
+  assert(sizeof(VolHeader)==sizeof(hdr));
+  if (1!=fwrite((void*)&hdr,sizeof(hdr),1,o)) {perror("header write failed");fclose(o);return(false);}
+
+  const size_t min=getMinCount();
+  const size_t max=getMaxCount();
+
+  // http://doc.coin3d.org/SIMVoleon/classSoVolumeData.html#a1
+  for (size_t i=0;i<counts.size();i++) {
+    // FIX: how do we fit the data?
+    const unsigned char data=scaleCount(i,min,max);
+#ifdef REGRESSION_TEST
+    cout << "         writing: " << i<<"("<<counts[i]<<")  -> " << int(data)
+	 << "    (" << min <<","<<max<<")"<<endl; 
+#endif
+    if (1!=fwrite(&data,sizeof(data),1,o)) {perror("write failed");fclose(o);return(false);}
+  }
+
+  if (0!=fclose(o)) {perror("close failed... bizarre");return(false);}
+  return (true);
+}
+
+unsigned char Density::scaleCount(const size_t i, const size_t min, const size_t max) const {
+  const float _0to1 = float(counts[i]-min)/(max-min);
+  const unsigned char r = (unsigned char)(_0to1 * std::numeric_limits<unsigned char>::max());
+  return (r);
+}
+
+size_t Density::getMaxCount() const {
+  size_t max = std::numeric_limits<size_t>::min();
+  for (size_t i=0;i<counts.size();i++) if (counts[i]>max) max=counts[i];
+  return (max);
+}
+size_t Density::getMinCount() const {
+  size_t min = std::numeric_limits<size_t>::max();
+  for (size_t i=0;i<counts.size();i++) if (counts[i]<min) min=counts[i];
+  return(min);
+}
+
 
 //####################################################################
 // TEST CODE
@@ -247,14 +363,44 @@ bool test2() {
 } // test2
 
 
+
+bool test3() {
+  cout << "      test3" << endl;
+
+  Density d(2,2,2,  0.,2.,  0.,2.,  0.,2.);
+  d.addPoint(0.1,0.1,0.1);  d.addPoint(0.1,0.1,0.1);
+  d.addPoint(1.5,0.1,0.1);  d.addPoint(0.1,1.5,0.1);
+  for (size_t i=0;i<10;i++) d.addPoint(1.5,1.5,1.5);
+
+  if (!d.writeVol(string("test3.vol"))) {FAILED_HERE;return(false);}
+
+  return(true);
+}
+
 int main (UNUSED int argc, char *argv[]) {
   // Put test code here
   bool ok=true;
 
-  cout << "      Size of Density Class (in bytes): " << sizeof(Density) << endl;
+  cout << "      Size of Density   (in bytes): " << sizeof(Density) << endl;
+  cout << "      Size of VolHeader (in bytes): " << sizeof(VolHeader) << endl;
+
+  if (52 != sizeof(VolHeader)) {FAILED_HERE;ok=false;}
+
+  cout << "      Size of float: " << sizeof(1.f) << endl;
+  cout << "      Size of double: " << sizeof(1.) << endl;
+  if (4 != sizeof(1.f)) {FAILED_HERE;ok=false;}
+  if (8 != sizeof(1.)) {FAILED_HERE;ok=false;}
+
+#ifdef BIGENDIAN
+  if (0x00010203!=hton_uint32(0x00010203)) {FAILED_HERE;ok=false;}
+#endif
+
+  if (4!=sizeof(float)) {FAILED_HERE;ok=false;} // Must be 4 for vol_header
+  if (4!=sizeof(uint32_t)) {FAILED_HERE;ok=false;} // Must be 4 for vol_header
 
   if (!test1()) {FAILED_HERE;ok=false;}
   if (!test2()) {FAILED_HERE;ok=false;}
+  if (!test3()) {FAILED_HERE;ok=false;} // test writing
 
   cout << "  " << argv[0] << " test:  " << (ok?"ok":"failed")<<endl;
   return (ok?EXIT_SUCCESS:EXIT_FAILURE);
