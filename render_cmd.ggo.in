@@ -40,3 +40,6 @@ option "waypoints" w "Load in waypoints from a file" string typestr="filename" y
 option "percent"  p "Fraction to move between each waypoint after each frame [0..1].  It is recommended to use an even divisor of 1.0 or your animation will jump at each waypoint" float default="0.1" no
 
 option "loop" L "loop from the last waypoint back to the first" flag off
+
+option "near" N "Near clipping plane distance" float default="1.0" no
+option "far"  F "Far  clipping plane distance" float default="10.0" no
