@@ -38,71 +38,61 @@
 # Local tuning
 ######################################################################
 
-# simpleview -i 0.1 -p 0.05 as1-crypt-all.iv ../axes.iv -w main.wpt -n -b as1-crypt-all -W 750 -H 750 -v 6
+FailIfNotThere()
+{
+    declare -ir line=$1
+    declare -r filename="$2"
+    
+    if [ ! -e $filename ]; then
+	echo "makemovie2.bash:($line): ERROR $filename does not exist.  Goodbye."
+	exit $EXIT_FAILURE
+    fi
+}
 
-# simpleview -i 0.1 -p 0.05 as1-crypt-vmax-8.iv ../axes.iv -w main.wpt -n -b as1-crypt-vmax -W 750 -H 750 -v 6
-# simpleview -i 0.1 -p 0.05 as1-crypt-vint-8.iv ../axes.iv -w main.wpt -n -b as1-crypt-vint -W 750 -H 750 -v 6
-# simpleview -i 0.1 -p 0.05 as1-crypt-vmin-8.iv ../axes.iv -w main.wpt -n -b as1-crypt-vmin -W 750 -H 750 -v 6
+#
+# Make sure we have a sane environment
+#
+FailIfNotThere $LINENO sample.wpt
+#if [ ! -e sample.wpt ]; then
+#    echo "ERROR: need to run get a copy of the waypoint flight path - sample.wpt"
+#    exit $EXIT_FAILURE
+#fi
 
-# makemovie.bash as1-crypt-all as1-crypt-vmax as1-crypt-vint as1-crypt-vmin as1-crypt- 99
+FailIfNotThere $LINENO g1-fluidized-all.iv
+#if [ ! -e as1-crypt-all.iv ]; then
+#    echo "ERROR: need to run bootvol-thesis.bash.  as1-crypt-all.iv does not exist"
+#    exit $EXIT_FAILURE
+#fi
 
-
-
-# simpleview -i 0.1 -p 0.05 as2-slump-all.iv ../axes.iv -w main.wpt -n -b as2-slump-all -W 750 -H 750 -v 6
-
-# simpleview -i 0.1 -p 0.05 as2-slump-vmax-8.iv ../axes.iv -w main.wpt -n -b as2-slump-vmax -W 750 -H 750 -v 6
-# simpleview -i 0.1 -p 0.05 as2-slump-vint-8.iv ../axes.iv -w main.wpt -n -b as2-slump-vint -W 750 -H 750 -v 6
-# simpleview -i 0.1 -p 0.05 as2-slump-vmin-8.iv ../axes.iv -w main.wpt -n -b as2-slump-vmin -W 750 -H 750 -v 6
-
-# makemovie.bash as2-slump-all as2-slump-vmax as2-slump-vint as2-slump-vmin as2-slump- 99
-
-
-
-# simpleview -i 0.1 -p 0.05 as3-undef-all.iv ../axes.iv -w main.wpt -n -b as3-undef-all -W 750 -H 750 -v 6
-
-# simpleview -i 0.1 -p 0.05 as3-undef-vmax-8.iv ../axes.iv -w main.wpt -n -b as3-undef-vmax -W 750 -H 750 -v 6
-# simpleview -i 0.1 -p 0.05 as3-undef-vint-8.iv ../axes.iv -w main.wpt -n -b as3-undef-vint -W 750 -H 750 -v 6
-# simpleview -i 0.1 -p 0.05 as3-undef-vmin-8.iv ../axes.iv -w main.wpt -n -b as3-undef-vmin -W 750 -H 750 -v 6
-
-# makemovie.bash as3-undef-all as3-undef-vmax as3-undef-vint as3-undef-vmin as3-undef- 99
-
-
-# for one.bash
-# simpleview -i 0.1 -p 0.05 *.iv ../axes.iv -w main.wpt -n -b as3-undef-vmin -W 750 -H 750 -v 6
-
-
-#export PATH=${PATH}:.:..:../..
-
-if [ -z "$6" ]; then
-    echo "ERROR must specify the prefix for all 4 frames and the max frame number"
-    echo Had too few args...
-    echo
-    echo "USAGE: $0 basename1 basename2 basename3 basename4 outbasename maxFileNum+1"
-    exit $EXIT_FAILURE
-fi
-if [ ! -z "$7" ]; then
-    echo "ERROR must specify the prefix for all 4 frames and the max frame number"
-    echo Had too many args
-    echo
-    echo "USAGE: $0 basename1 basename2 basename3 basename4 outbasename maxFileNum+1"
-    exit $EXIT_FAILURE
-fi
-
-# Base names of the png frames  1==left most  2==right most
-declare -r b1=$1
-declare -r b2=$2
-declare -r b3=$3
-declare -r b4=$4
-declare -r outbase=$5
-declare -i max=$6
-
-# Skip 0000 because it currently is fubar
-declare -i fileNum=1
+# 0..99 frames
+declare -ir maxFrames=100
 
 # image size
 declare -i s=200
 
-while [ $max != $fileNum ]; do
+
+
+#
+# Make all the frames
+#
+declare -ir size=200
+declare -r render_args="axes.iv     -p 0.05  -w sample.wpt -L -W $size -H $size -v 6"
+
+
+declare -ar ol_groups=( g1-fluidized g2-undeformed g3-sheared g4-little-def g5-intermediate )
+
+for group in "${ol_groups[@]}"; do
+    echo #
+    #declare iv=k$group.iv
+    FailIfNotThere $LINENO $iv
+    echo render -b ${group}-all $iv $render_args
+done
+
+echo "early exit" && exit $EXIT_SUCCESS
+
+#convert -modulate 210 -size 350x350 -resize 350x350 tmp.pnm small3/$file
+
+while [ $maxFrames != $fileNum ]; do
     f=`printf "%04d" $fileNum`
     echo $f
 
