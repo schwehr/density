@@ -60,6 +60,63 @@ static const UNUSED char* RCSid ="@(#) $Id$";
  * LOCAL FUNCTIONS
  ***************************************************************************/
 
+#include <VolumeViz/nodes/SoTransferFunction.h> // ColorMapType
+
+/// \brief Parse a string to find out what type of colormap.  Defaults to RGBA.
+/// \param cmaptype_given Bool of if the user specified anything
+/// \param cmaptype_arg What the user tried to tell us
+/// \param \a false something cookoo happened... very likely with user typos
+/// \return SoTransferFunction::ColorMapType of ALPHA, LUB_ALPHA, or RGBA
+
+SoTransferFunction::ColorMapType
+getCmapType(const int cmaptype_given, const char *cmaptype_arg, bool &ok) {
+  DebugPrintf(TRACE,("getCmapType: %d\n",int(cmaptype_given)));
+  ok=true;
+  if (!cmaptype_given) return (SoTransferFunction::RGBA); // FIX: should this be the default?
+  assert(cmaptype_arg);
+  string str(cmaptype_arg);
+  if (0==str.compare("ALPHA")) {DebugPrintf(VERBOSE,("ALPHA\n"));return (SoTransferFunction::ALPHA);}
+  if (0==str.compare("LUM_ALPHA")) return (SoTransferFunction::LUM_ALPHA);
+  if (0==str.compare("RGBA")) return (SoTransferFunction::RGBA);
+  cerr << "ERROR: unknown colormap type string: " << str << endl;
+  ok=false;
+  return (SoTransferFunction::RGBA);
+}
+
+/// \brief Read in a color map and check if it is ok
+/// \param o Output stream to write color map to
+/// \param filename File to read the color map in from
+/// \parapm cmaptype What type of color map do we have?  They have different number of columns
+/// \return \a false if there is trouble 
+bool WriteColorMap(ofstream &o, const string &filename, SoTransferFunction::ColorMapType cmaptype)  {
+  DebugPrintf(TRACE,("WriteColorMap: %s %d\n",filename.c_str(), int(cmaptype)));
+  ifstream in(filename.c_str(), ios::in);
+  if (!in.is_open()) {cerr<<"ERROR: unable to open color map... "<<filename<<endl;return(false); }
+
+  o << setprecision(4);
+
+  switch (cmaptype) {
+  case SoTransferFunction::ALPHA:
+    {
+      float tmp;
+      size_t count=0;
+      while(in >> tmp) {
+	if (256<=count) {cerr << "WARNING!  Too many color map entries!"<<endl; break;}
+	o << "\t\t\t"<<tmp<<","<<endl;
+	count++;
+      }
+      if (count!=256) {cerr << "WARNING! Not exactly 256 ALPHA values."<<endl;}
+    }
+    break;
+  case SoTransferFunction::LUM_ALPHA:
+    break;
+  case SoTransferFunction::RGBA:
+    break;
+  default: assert(false && "Visiting Davey Jones' locker");
+  }
+  return(true);
+}
+
 
 /***************************************************************************
  * MAIN
@@ -120,10 +177,15 @@ int main (int argc, char *argv[]) {
 
     o << "\tSoTransferFunction {" << endl;
     if(a.predefcmap_given) o << "\t\tpredefColorMap " << a.predefcmap_arg << endl;
-    if(a.cmaptype_given) o << "\t\tcolorMapType" << a.cmaptype_arg << endl;
+    if(a.cmaptype_given) o << "\t\tcolorMapType " << a.cmaptype_arg << endl;
     if(a.cmap_given) {
+      DebugPrintf(TRACE,("cmap_given\n"));
       o << "\t\tcolorMap [ ";
-      cerr << "FIX: write out a color map here" << endl;
+      bool r;
+      const SoTransferFunction::ColorMapType cmaptype = getCmapType(a.cmaptype_given, a.cmaptype_arg,r);
+      if (r && !WriteColorMap(o,string(a.cmap_arg),cmaptype)) {
+	ok=false; cerr << "ERROR: Failed to write color map" << endl;
+      }
       o << "\t\t]" << endl;
     }
     o << "\t}" << endl;
@@ -134,14 +196,6 @@ int main (int argc, char *argv[]) {
     if (a.composition_given)      o << "\t\tcompsition "       << a.composition_arg << endl;
     if (a.numslicescontrol_given) o << "\t\tnumSlicesControl " << a.numslicescontrol_arg << endl;
     if (a.numslices_given)        o << "\t\tnumSlices "        << a.numslices_arg << endl;
-
-
-    //o << "\t\tinterpolation LINEAR" << endl;
-    //o << "    #composition SUM_INTENSITY" << endl;
-    //o << "    #composition MAX_INTENSITY" << endl;
-    //o << "    numSlicesControl ALL" << endl;
-    //o << "    numSlices 40" << endl;
-    //o << "" << endl;
     o << "\t}" << endl;
 
     o << "} # End of safety separator" << endl;
