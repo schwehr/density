@@ -26,9 +26,9 @@
 # visualization of it.  Hopefully later, I will get to processing the
 # Owens Lake data.
 
-export PATH=${PATH}:.
-cells=25
-draw=1000
+export PATH=${PATH}:.:..
+cells=100
+draw=1000000
 declare -ar groups=( as1-crypt as2-slump as3-undef )
 declare -r w=0.5
 declare -r boundaries="-x -${w} -X ${w} -y -${w} -Y ${w} -z -${w} -Z ${w}"
@@ -36,7 +36,9 @@ declare -r debug_level=2
 
 echo $boundaries
 
-make s_bootstrap xyzdensity xyzvol_cmp volhdr_edit vol_iv volmakecmap
+# FIX: if exists Makefile, do this
+make targets-no-test
+#make s_bootstrap xyzdensity xyzvol_cmp volhdr_edit vol_iv volmakecmap vol2vol
 
 #
 # Bootstrap each of the groups to produce Vmin (V3), Vint(V2), Vmax(V1) volumes
@@ -53,9 +55,12 @@ if [ 1 == 1 ]; then
 	echo Densifying
 	args="  --bpv=16 -w ${cells} -t ${cells} -d ${cells} --verbosity=$debug_level"
 	xyzdensity ${group}-boot.xyz.vmax --out=${group}-vmax.vol -p 1 $args $boundaries
+	echo -n 2
 	xyzdensity ${group}-boot.xyz.vint --out=${group}-vint.vol -p 1 $args $boundaries
+	echo -n 3
 	xyzdensity ${group}-boot.xyz.vmin --out=${group}-vmin.vol -p 1 $args $boundaries
 
+	echo -n 4
 	xyzdensity --out=${group}-all-1.0.vol -p 1 -b 8 -w ${cells} -t ${cells} -d ${cells} $boundaries \
 	    ${group}-boot.xyz.vmax \
 	    ${group}-boot.xyz.vint \
@@ -73,6 +78,14 @@ if [ 1 == 1 ]; then
 	volhdr_edit ${group}-vmax.vol --out=tmp $scale && /bin/mv tmp ${group}-vmax.vol
 	volhdr_edit ${group}-vint.vol --out=tmp $scale && /bin/mv tmp ${group}-vint.vol
 	volhdr_edit ${group}-vmin.vol --out=tmp $scale && /bin/mv tmp ${group}-vmin.vol
+
+	#
+	# Make each component viewable
+	#
+
+	vol2vol -o ${group}-vmax-8.vol ${group}-vmax.vol  -p 1 --bpv=8 -j 0.5 -k 0.5 -l 0.5
+	vol2vol -o ${group}-vint-8.vol ${group}-vint.vol  -p 1 --bpv=8 -j 0.5 -k 0.5 -l 0.5
+	vol2vol -o ${group}-vmin-8.vol ${group}-vmin.vol  -p 1 --bpv=8 -j 0.5 -k 0.5 -l 0.5
 
     done
 fi
