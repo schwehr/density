@@ -136,6 +136,27 @@ SceneInfo::SceneInfo() {
 }
 
 /***************************************************************************
+ * UTILITUES
+ ***************************************************************************/
+
+void Print (const SoCamera *camera) {
+  assert (camera);
+  const SoSFVec3f *p = &camera->position;
+  SbVec3f p_sb= p->getValue();
+  float x,y,z;
+  p_sb.getValue(x,y,z);
+  const SoSFRotation *o = &camera->orientation;
+  SbRotation o_sb = o->getValue();
+  SbVec3f axis;
+  float radians;
+  o_sb.getValue(axis,radians);
+  float ax,ay,az;
+  axis.getValue(ax,ay,az);
+  cout << "Camera ->  pos: " << x << " " << y << " " << y << "   --  rot: "
+       << ax << " " << ay << " " << az << " " << radians << endl;
+}
+
+/***************************************************************************
  * TIMER FOR ANIMATION
  ***************************************************************************/
 
@@ -200,6 +221,10 @@ bool WaypointRenderFrameToDisk (const SoSpotLightDragger *d1, const SoSpotLightD
   SbRotation rot2 = d2->rotation.getValue();
   SbRotation newRot = SbRotation::slerp (rot1, rot2, cur_percent);
   camera->orientation = newRot;
+
+#ifndef NDEBUG
+  if (debug_level >= VERBOSE) Print(camera);   // Show some camera locations!
+#endif
 
   DebugPrintf (TRACE,("ANIMATION: Rendering frame to disk file\n"));
   SbColor background(0,0,0);  // FIX: do background colors!
