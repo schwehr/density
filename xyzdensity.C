@@ -94,7 +94,7 @@ int main (int argc, char *argv[]) {
   }
 #else // debugging
   debug_level = a.verbosity_arg;
-  DebugPrintf(TRACE,("Debug level = %d",debug_level));
+  DebugPrintf(TRACE,("Debug level = %d\n",debug_level));
 #endif
   
   if (0!=a.pack_arg && 1!=a.pack_arg && 2!=a.pack_arg) {
@@ -128,7 +128,6 @@ int main (int argc, char *argv[]) {
 
 
   const PackType packing=PackType(a.pack_arg);
-  const string infile (a.in_arg);
   const string outfile(a.out_arg);
 
   Density dens(a.width_arg,a.tall_arg,a.depth_arg,
@@ -137,25 +136,35 @@ int main (int argc, char *argv[]) {
 	       a.zmin_arg, a.zmax_arg
 	       );
 
-  if (!LoadData(infile,dens)) {
-    cerr << endl
-	 << "ERROR: Unable to read data from file." << endl
-	 << endl
-	 << "  Data must be ascii space separated positive tripples on each line like this" << endl
-	 << endl
-	 << "    10.2 999999.2 3200.1231235"
-	 << endl;
-  }
+  bool ok=true; // Exit status
 
+  for (size_t i=0;i<a.inputs_num;i++) {
+    DebugPrintf(TRACE,("Loading xyz file: %s\n",a.inputs[i]));
+    const string infile (a.inputs[i]);
+
+    if (!LoadData(infile,dens)) {
+      cerr << endl
+	   << "ERROR: Unable to read data from file." << endl << endl
+	   << "  Data must be ascii space separated triples on each line.  For example:" << endl
+	   << endl
+	   << "    10.2 999999.2 3200.1231235" << endl;
+      ok = false;
+    }
+  }
   // FIX: add rotation handling
+
+  DebugPrintf(TRACE,("Points added = %d    Points missed = %d\n",
+		     int(dens.getCountInside()), int(dens.getCountOutside())));
+
   bool r;
   if (a.autoscale_given) 
     r = dens.writeVol(outfile,size_t(a.bpv_arg),packing);
   else
     r = dens.writeVol(outfile,size_t(a.bpv_arg),packing,a.xscale_arg,a.yscale_arg,a.zscale_arg);
 
-  if (!r) cerr << " ERROR: Unable to correctly write out vol file" << endl;
+  if (!r) {ok=false; cerr << " ERROR: Unable to correctly write out vol file" << endl;}
 
+  DebugPrintf(TRACE,("Exit status: %s\n", (ok?"ok":"failure") ));
 
-  return (r?EXIT_SUCCESS:EXIT_FAILURE);
+  return (ok?EXIT_SUCCESS:EXIT_FAILURE);
 }
