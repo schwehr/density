@@ -1,4 +1,7 @@
 #!/bin/bash
+
+
+
 ./s_bootstrap -P as1-crypt.s 500 > as1-site-500a.s
 ./s_bootstrap -P as1-crypt.s 500 > as1-site-500b.s
 s_eigs < as1-site-500a.s > a-site.eigs
@@ -11,7 +14,6 @@ echo "      ,'site.xyz' using 4:5:6\\" >> site.gnuplot
 echo "      ,'site.xyz' using 7:8:9"   >> site.gnuplot
 
 
-
 ./s_bootstrap -p as1-crypt.s 500 > as1-sample-500a.s
 ./s_bootstrap -p as1-crypt.s 500 > as1-sample-500b.s
 s_eigs < as1-sample-500a.s > a-sample.eigs
@@ -22,3 +24,71 @@ cat ?-sample.eigs > sample.eigs
 echo "splot  'sample.xyz' \\" > sample.gnuplot
 echo "      ,'sample.xyz' using 4:5:6\\" >> sample.gnuplot
 echo "      ,'sample.xyz' using 7:8:9"   >> sample.gnuplot
+
+######################################################################
+#  SMALLER -- 100 samples
+######################################################################
+
+
+./s_bootstrap -P as1-crypt.s 100 > as1-site-100a.s
+s_eigs < as1-site-100a.s > a-site-100.eigs
+cat a-site-100.eigs > site-100.eigs
+./eigs2xyz.py site-100.eigs  > as1-crypt-site-100.xyz
+
+echo "splot  'as1-crypt-site-100.xyz' \\" > as1-crypt-site-100.gnuplot
+echo "      ,'as1-crypt-site-100.xyz' using 4:5:6\\" >> as1-crypt-site-100.gnuplot
+echo "      ,'as1-crypt-site-100.xyz' using 7:8:9"   >> as1-crypt-site-100.gnuplot
+
+
+./s_bootstrap -p as1-crypt.s 100 > as1-sample-100a.s
+s_eigs < as1-sample-100a.s > a-sample-100.eigs
+cat a-sample-100.eigs > sample-100.eigs
+./eigs2xyz.py sample-100.eigs  > as1-crypt-sample-100.xyz
+
+echo "splot  'as1-crypt-sample-100.xyz' \\" > as1-crypt-sample-100.gnuplot
+echo "      ,'as1-crypt-sample-100.xyz' using 4:5:6\\" >> as1-crypt-sample-100.gnuplot
+echo "      ,'as1-crypt-sample-100.xyz' using 7:8:9"   >> as1-crypt-sample-100.gnuplot
+
+
+############################## AS2 slump
+
+./s_bootstrap -P as2-slump.s 100 > as1-site-100a.s
+s_eigs < as1-site-100a.s > a-site-100.eigs
+cat a-site-100.eigs > site-100.eigs
+./eigs2xyz.py site-100.eigs  > as2-slump-site-100.xyz
+
+echo "splot  'as2-slump-site-100.xyz' \\" > as2-slump-site-100.gnuplot
+echo "      ,'as2-slump-site-100.xyz' using 4:5:6\\" >> as2-slump-site-100.gnuplot
+echo "      ,'as2-slump-site-100.xyz' using 7:8:9"   >> as2-slump-site-100.gnuplot
+
+
+./s_bootstrap -p as2-slump.s 100 > as1-sample-100a.s
+s_eigs < as1-sample-100a.s > a-sample-100.eigs
+cat a-sample-100.eigs > sample-100.eigs
+./eigs2xyz.py sample-100.eigs  > as2-slump-sample-100.xyz
+
+echo "splot  'as2-slump-sample-100.xyz' \\" > as2-slump-sample-100.gnuplot
+echo "      ,'as2-slump-sample-100.xyz' using 4:5:6\\" >> as2-slump-sample-100.gnuplot
+echo "      ,'as2-slump-sample-100.xyz' using 7:8:9"   >> as2-slump-sample-100.gnuplot
+
+######################################## AS3 - undef
+
+./s_bootstrap -P as3-undef.s 100 > as1-site-100a.s
+s_eigs < as1-site-100a.s > a-site-100.eigs
+cat a-site-100.eigs > site-100.eigs
+./eigs2xyz.py site-100.eigs  > as3-undef-site-100.xyz
+
+echo "splot  'as3-undef-site-100.xyz' \\" > as3-undef-site-100.gnuplot
+echo "      ,'as3-undef-site-100.xyz' using 4:5:6\\" >> as3-undef-site-100.gnuplot
+echo "      ,'as3-undef-site-100.xyz' using 7:8:9"   >> as3-undef-site-100.gnuplot
+
+
+./s_bootstrap -p as3-undef.s 100 > as1-sample-100a.s
+s_eigs < as1-sample-100a.s > a-sample-100.eigs
+cat a-sample-100.eigs > sample-100.eigs
+./eigs2xyz.py sample-100.eigs  > as3-undef-sample-100.xyz
+
+echo "splot  'as3-undef-sample-100.xyz' \\" > as3-undef-sample-100.gnuplot
+echo "      ,'as3-undef-sample-100.xyz' using 4:5:6\\" >> as3-undef-sample-100.gnuplot
+echo "      ,'as3-undef-sample-100.xyz' using 7:8:9"   >> as3-undef-sample-100.gnuplot
+
