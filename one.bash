@@ -70,6 +70,13 @@ awk '{print $1,$2,$3}' one.xyz > one.xyz.vmin
 awk '{print $4,$5,$6}' one.xyz > one.xyz.vint
 awk '{print $7,$8,$9}' one.xyz > one.xyz.vmax
 
-xyz_iv --box=0.005 -p --color="1 0 0" --out=one.xyz.vmin.iv -v 30 one.xyz.vmin
-xyz_iv --box=0.005 -p --color="1 1 0" --out=one.xyz.vint.iv -v 30 one.xyz.vint
-xyz_iv --box=0.005 -p --color="0 0 1" --out=one.xyz.vmax.iv -v 30 one.xyz.vmax
+xyz_iv --box=0.005 -p --color="1 0 0" --out=one.xyz.vmin.iv -v 3 one.xyz.vmin
+xyz_iv --box=0.005 -p --color="1 1 0" --out=one.xyz.vint.iv -v 3 one.xyz.vint
+xyz_iv --box=0.005 -p --color="0 0 1" --out=one.xyz.vmax.iv -v 3 one.xyz.vmax
+
+#debug_level=1
+echo "TYPE  VOL_FILE     XYZ_FILE     x         y           z     counts FracTotal FracCDF"
+echo "------------------------------------------------------------------------------------"
+echo -n "VMIN: " && xyzvol_cmp -v $debug_level -d one-vmin.vol one.xyz.vmin
+echo -n "VINT: " && xyzvol_cmp -v $debug_level -d one-vint.vol one.xyz.vint 
+echo -n "VMAX: " && xyzvol_cmp -v $debug_level -d one-vmax.vol one.xyz.vmax 
