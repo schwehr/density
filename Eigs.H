@@ -32,58 +32,8 @@
 /// Otherwise use Vmax, Vint, Vmin for eigen VECTORS or Tmax, Tint, Tmin for tau/eigen VALUES
 enum EigsEnum {KMAX=1, KINT=2, KMIN=3};
 
-/// \brief Converter radians to degrees
-/// \param rad Angle in radians.
-/// \return Angle in degrees
-/// 
-/// Note: does \a not force the degrees to be in [0..360]
-inline double rad2deg (const float &rad) {return(rad/M_PI * 180.);}
-/// \brief Converter degrees to radians
-/// \param deg Angle in degrees.
-/// \return Angle in radians.
-/// 
-/// Note: does \a not force the radians to be in [0..2PI]
-inline double deg2rad (const float &deg) {return(deg/180. * M_PI);}
 
 
-/// \brief put a vector in the lower hemisphere
-/// \param dec Declination from north clockwise.  angle in degrees
-/// \param dip Dip of vector.  Returns 0 is horizontal, 90 is vertical, down
-/// \bug Should this be a template?
-void flip (double &dec, double &dip); 
-/// \brief put a vector in the lower hemisphere
-/// \param dec Declination from north clockwise.  angle in degrees
-/// \param dip Dip of vector.  Returns 0 is horizontal, 90 is vertical, down
-void flip (float &dec, float &dip);
-
-
-/// \brief renormalize an angle to be in [0..2*M_PI]
-/// \param angleRad  Angle in radians.  No limit to the value
-/// \return angle in [0..2*M_PI]
-/// \bug will be slow for angles that are very far from the returned range.  1000000*M_PI would take a while
-float normRadAngle(float angleRad);
-
-/// \brief rotate an XY vector about the origin
-/// \param x1 Input x value
-/// \param y1 Input y value
-/// \param angleRad Angle in radians to rotate by.  Right handed rotation.
-/// \param x2 Output x value
-/// \param y2 Output y value
-///
-/// An example... rotateXY (1.0, 0.0, M_PI/4, x2, y2) will give:
-/// (0.0, 1.0)
-void rotateXY (const float x1, const float y1, const float angleRad, float &x2, float &y2);
-
-
-
-/// \brief convert xyz to theta (t) and phi(p) in radians.  Go polar.
-/// \param x Cartesian x coord.
-/// \param y Cartesian y coord.
-/// \param z Cartesian z coord.
-/// \param theta  Angle in radians from horizontal.  0 is vertical, PI/2 is horizontal, PI is down;
-/// \param phi    Angle in radians in the horizontal plane. 0 is +x, PI is -x, PI/2 is +y. 
-/// \param radius Distance from the origin
-void xyz2tpr (const double x, const double y, const double z, double &theta, double &phi, double &radius);
 
 /// \brief Used to pick out the index for Vmax/Tmax, Vint/Tint, Vmin/Tmin.
 /// Meant just to be a helper
@@ -112,13 +62,6 @@ bool GetEig(const EigsEnum which, const gsl_matrix *eigenvecs, const gsl_vector 
 ///
 /// Has to sort through the eigenvals to figure out the order of min, int, and max
 bool GetEigs(const gsl_matrix *eigenvec, const gsl_vector *eigenval, float newEigs[9]);
-
-/// \brief Takes a triple that comes from the output of s_eigs and gives the cartesian coordinates
-/// \param len Eigen value
-/// \param dec Declination in degrees.  0 is north (+y), 90, is east (+x), 180 is south (-y)
-/// \param inc Inclination in degrees.  0 is horizontal, while 90 is straight down.
-/// \param xyz Return values of x (East), y (North), z (Up)
-void ldi2xyz( const float len, const float dec, const float inc, std::vector<float> &xyz);
 
 
 /// \brief Engine to pass in s values and retrieve eigen parameters in different formats
@@ -196,10 +139,5 @@ private:
   //vector<float> ptr; ///< size==9, min, int, max triples
   //vector<float> eigs; ///< same format as s_eigs
 };
-
-// Calculate eigs when an S is set
-// then eigs to xyz ... see python code eigs2xyz.py
-// xyztoptr
-
 
 #endif // _EIGS_H_
