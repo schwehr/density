@@ -35,6 +35,7 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <sstream> // string stream
 
 #include <string>	// Good STL data types.
 #include <vector>
@@ -58,7 +59,7 @@ static const UNUSED char* RCSid ="@(#) $Id$";
 /***************************************************************************
  * LOCAL FUNCTIONS
  ***************************************************************************/
-
+// FIX: allow comments and use istr like LoadData4
 bool LoadData(const string &filename, Density &d) {
 
   ifstream in(filename.c_str(),ios::in);
@@ -68,11 +69,41 @@ bool LoadData(const string &filename, Density &d) {
   }
 
   float _x,_y,_z;
-  size_t count=0;
+  size_t count=0; // to give feed back on progress
   while (in >> _x >> _y >> _z) {
     if      (10<=debug_level) { if (0==count%100000  && 0!=count) cout << count << endl; count ++; }
     else if ( 4<=debug_level) { if (0==count%1000000 && 0!=count) cout << count << endl; count ++;}
     d.addPoint(_x,_y,_z);
+  }
+
+  return(true);
+}
+
+/// FIX: validate this function!
+/// \brief Load xyzc ascii data where c is the value to put in the cell
+/// \param filename File of ascii x y z c tuples
+/// \param d Density structure to fill (it is not emptied first)
+/// \return \a false if trouble
+bool LoadData4(const string &filename, Density &d) {
+
+  ifstream in(filename.c_str(),ios::in);
+  if (!in.is_open()) {
+    cerr << "ERROR: failed to open " << filename << endl;
+    return(false);
+  }
+
+  float _x,_y,_z;
+  size_t c;
+  size_t count=0; // to give feed back on progress
+  char buf[1024];
+  while (in.getline(buf,1024)) {
+    if ('#'==buf[0]) continue; // Comment
+    istringstream istr(buf);
+    istr >> _x >> _y >> _z >> c; // FIX: error checking!
+    if      (10<=debug_level) { if (0==count%100000  && 0!=count) cout << count << endl; count ++; }
+    else if ( 4<=debug_level) { if (0==count%1000000 && 0!=count) cout << count << endl; count ++;}
+    size_t index = d.getCell(_x,_y,_z);
+    d.addPoints(index,c);
   }
 
   return(true);
@@ -147,13 +178,24 @@ int main (int argc, char *argv[]) {
     DebugPrintf(TRACE,("Loading xyz file: %s\n",a.inputs[i]));
     const string infile (a.inputs[i]);
 
-    if (!LoadData(infile,dens)) {
-      cerr << endl
-	   << "ERROR: Unable to read data from file." << endl << endl
-	   << "  Data must be ascii space separated triples on each line.  For example:" << endl
-	   << endl
-	   << "    10.2 999999.2 3200.1231235" << endl;
-      ok = false;
+    if (a.xyzc_flag) {
+      if (!LoadData4(infile,dens)) {
+	cerr << endl
+	     << "ERROR: Unable to read data from file." << endl << endl
+	     << "  Data must be ascii space separated triples on each line.  For example:" << endl
+	     << endl
+	     << "    10.2 999999.2 3200.1231235" << endl;
+	ok = false;
+      }
+    } else {
+      if (!LoadData(infile,dens)) {
+	cerr << endl
+	     << "ERROR: Unable to read data from file." << endl << endl
+	     << "  Data must be ascii space separated triples on each line.  For example:" << endl
+	     << endl
+	     << "    10.2 999999.2 3200.1231235" << endl;
+	ok = false;
+    }
     }
   }
   // FIX: add rotation handling
