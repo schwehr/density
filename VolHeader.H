@@ -90,7 +90,6 @@ public:
   static uint32_t nMagicNum() {return(hton_uint32(hMagicNum()));}
 
 private:
-  // WARNING: Do NOT add or remove data members to this class!!!
   uint32_t magic_number;  ///< hton_uint32(0x0b7e7759)
   uint32_t header_length; ///< This had better be the same as sizeof(VolHeader)
   uint32_t width;         ///< Width in cells/pixels in the x direction.  How many cells wide?
