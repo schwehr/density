@@ -704,7 +704,6 @@ void timerSensorCallback(void *data, SoSensor *sensor) {
   si->camera->orientation = newRot;
 
   DebugPrintf (VERBOSE,("Mark: %d      Step:  %f\n",int(cur),percent));
-  //percent += 0.1;
   percent += si->a->percent_arg; // User configurable jump
 
   if (si->render_frames_to_disk) {
@@ -721,6 +720,30 @@ void timerSensorCallback(void *data, SoSensor *sensor) {
 
   return;
 }
+
+
+/// \brief Return a lineset that does through all the dragger waypoints
+SoSeparator *MakeSoLineSet (vector<SoSpotLightDragger *> &draggerVec) {
+  SoLineset *lines = new SoLineSet;
+  if (!lines) {cerr << "ERROR: Unable to allocate lines"<<endl;return 0;}
+  SoCoordinate3 *coords = new SoCoordinate3;
+  if (!coords) {cerr << "ERROR: Unable to allocate lines"<<endl; delete lines; return 0;}
+  SoSeparator *sep = new SoSeparator;
+  // FIX error check
+
+  sep->addChild(coords);
+  sep->addChild(lines);
+  for (size_t i=0;i<draggerVec.size();i++) {
+    SbVec3f xyz(draggerVec[i]->translation.getValue());
+    float x, y, z;
+    xyz.getValue(x,y,z);
+    coords->point.set1Value(i,x,y,z);
+  }
+  lines->numVertices.setValue(draggerVec.size());
+  
+  return(sep);
+}
+
 
 /// \brief Tell if a value is between 2 numbers, inclusive
 /// \return \a true if v1<=check<=v2  or v2<=check<=v1
