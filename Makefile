@@ -91,6 +91,7 @@ GENGETOPT_BINS := histogram
 GENGETOPT_BINS += render
 GENGETOPT_BINS += s_bootstrap
 GENGETOPT_BINS += simpleview
+#GENGETOPT_BINS += spin_gnuplot
 GENGETOPT_BINS += xyzdensity
 GENGETOPT_BINS += xyz_iv
 GENGETOPT_BINS += xyzvol_cmp
@@ -148,6 +149,9 @@ density.info: density.info.in Makefile
 
 %.c: %.ggo
 	gengetopt --input=$< --file-name=${<:.ggo=} --unamed-opts
+
+spin_gnuplot: spin_gnuplot_cmd.o spin_gnuplot.C
+	${CXX} -o $@ $^  ${CXXFLAGS}
 
 histogram: histogram_cmd.o histogram.C
 	${CXX} -o $@ $^  ${CXXFLAGS}
@@ -316,6 +320,7 @@ tar: ${GEN_CFILES} ${BINS}
 	@echo Leaving out rosenbaum-ams-stripped.dat until published
 	cp sample.wpt *.cpt rosenbaum-ams-stripped.dat as1-crypt.s as2-slump.s as3-undef.s ${TARNAME}/
 	cp .acoc.conf ${TARNAME}/acoc.conf
+	cp *.py ${TARNAME}/
 	@echo
 	tar cf ${TARNAME}.tar ${TARNAME}
 	bzip2 -9 ${TARNAME}.tar
