@@ -22,15 +22,12 @@
 */
 
 /// \file 
-/// \brief Basic viewer for OpenInventor/Coin and Voleon data.
-/// Supports any file format that Coin/Voleon support.
+
+/// \brief Non-graphical rendering engine for waypoints, iv files, and
+/// SIM Voleon models
 
 /// This describes how to do animation:
 /// file:///sw/share/Coin/html/classSoOffscreenRenderer.html
-
-/// \bug Need to breakup simpleview info support libraries that can be
-/// used to render a flight path without having SoQt/SoXt/SoWin
-
 
 /***************************************************************************
  * INCLUDES
@@ -52,16 +49,13 @@
 //
 // Inventor/Coin
 //
-// SoQt
-#include <Inventor/Qt/SoQt.h>
-#include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
-
 // Top level includes
+#include <Inventor/SoInteraction.h>
 #include <Inventor/SoOffscreenRenderer.h>
 #include <Inventor/SoOutput.h>
 
 // Sensors
-#include <Inventor/sensors/SoTimerSensor.h>
+//#include <Inventor/sensors/SoTimerSensor.h>
 
 // Actions
 #include <Inventor/actions/SoWriteAction.h>
@@ -92,7 +86,7 @@
 #include <VolumeViz/nodes/SoVolumeRendering.h>
 
 // local includes
-#include "simpleview_cmd.h"
+#include "render_cmd.h"
 
 using namespace std;
 
@@ -118,7 +112,6 @@ class SceneInfo {
 public:
   SceneInfo();
   SoCamera *camera;
-  //SoNode *root;
   SoSeparator *root;
 
   vector<SoSpotLightDragger *> draggerVec; ///< All of the draggers that have been added.
@@ -126,22 +119,14 @@ public:
 
   gengetopt_args_info *a; ///< a for args.  These are the command line arguments
 
-  bool animating;  ///< set to true to start animation;
-  bool render_frames_to_disk;  ///< true, we write out each animated frame
-  //float percent; ///< Where we are between the two current waypoints
-
-  bool connect_the_dots; ///< true if showing last path
-  SoSeparator *connect_sep;
-
   float  cur_percent; ///< how far between waypoints
   size_t cur_mark;   //< Which waypoint are we on
-
 
   /// Use magic numbers to make sure you actually get this class when you
   /// must do a cast to/from void pointer
   static uint8_t nominalMagicNumber() {return(178);}
-  //uint8_t getMagicNumber() const {return(magicNumber);}
   bool magicOk() const {return(nominalMagicNumber()==magicNumber);} ///< Test the class integrity
+
 private:
   uint8_t magicNumber; ///< Help make sure we have a valid SceneInfo structure 
 };
@@ -151,11 +136,6 @@ SceneInfo::SceneInfo() {
   magicNumber = nominalMagicNumber();
   camera = 0; root = 0; draggerSwitch = 0; draggerSwitch = 0;
   a = 0;
-  animating=render_frames_to_disk=false;
-
-  connect_the_dots=false;
-  connect_sep=0;
-
   // Animation position
   cur_percent=0; // how far between waypoints
   cur_mark=0;   // Which waypoint are we on
@@ -198,16 +178,6 @@ InterpolateVec(const SbVec3f &v1, SbVec3f &v2,
 SbRotation InterpolateRotations(const SbRotation &rot1,const SbRotation &rot2,
 				const float percent)
 {
-#if 0
-  // Try 1.  camera roles
-  SbVec3f axis1; float rad1;
-  rot1.getValue(axis1,rad1);
-  SbVec3f axis2; float rad2;
-  rot2.getValue(axis2,rad2);
-  SbVec3f newAxis = InterpolateVec(axis1,axis2,percent);
-  SbRotation newRot(newAxis, rad1 + (rad2-rad1)*percent);
-#endif
-
   float q1[4], q2[4], q3[4];
   rot1.getValue(q1[0],q1[1],q1[2],q1[3]);
   rot2.getValue(q2[0],q2[1],q2[2],q2[3]);
@@ -397,426 +367,22 @@ LoadSpotLightDraggers (const string filename, SoSeparator *root, vector<SoSpotLi
 
 
 
-/// \brief Save an ascii file of all the draggers for editing and reloading
-/// \param filename file to write to
-/// \param draggerVec pointers to all the SoSpotLightDragger way points
-/// \return \a false if had trouble writing the file
-bool
-SaveSpotLightDraggersAscii (const string &filename, vector<SoSpotLightDragger *> &draggerVec) {
-  bool ok=true;
-  DebugPrintf(TRACE,("SaveSpotLightDraggers %s %d\n",filename.c_str(),int(draggerVec.size())));
-
-  if(0==draggerVec.size()){cerr<<"WARNING: skipping save.  There are 0 waypoints"<<endl;return(false);}
-
-  ofstream o(filename.c_str(),ios::out);
-  if (!o.is_open()) {cerr<<"ERROR: unable to open waypoint file: "<<filename<<endl; return (false);}
-
-  o << "#waypoints" << endl
-    << "# rotaxis1 rotaxis2 rotaxis3 rotAngle x y z cutoffangle" << endl
-    << "# written by: " << RCSid << endl;
-
-  for (size_t i=0;i<draggerVec.size();i++) {
-    SoSpotLightDragger *d = draggerVec[i];
-    assert (d);
-    SbVec3f axis; float r_angle;
-    float a1,a2,a3;
-    d->rotation.getValue(axis,r_angle);
-    axis.getValue(a1,a2,a3);
-    SbVec3f xyz(d->translation.getValue());
-    float x, y, z;
-    xyz.getValue(x,y,z);
-    const float angle = d->angle.getValue(); // FIX: do not currently use angle for anything
-    o << a1 << "\t"<< a2 << "\t"<< a3 
-      << "\t" << r_angle
-      << "\t" << x << "\t" << y << "\t" << z
-      << "\t" << angle << endl;
-  }
-
-  return (ok);
-} // SaveSpotLightDraggersAscii
-
-#if 0
-/// \brief Save an ascii file of all the draggers for editing and reloading
-/// \param filename file to write to
-/// \param draggerVec pointers to all the SoSpotLightDragger way points
-/// \return \a false if had trouble writing the file
-///
-/// \bug FIX: am not able to load these scene graphs in without crashing coin
-bool
-SaveSpotLightDraggersIV(const string &filename, SoSwitch *sw) {
-  assert(sw);
-  if (0==sw->getNumChildren()) {cerr << "WARNING: No waypoints to write"<<endl;return(false);}
-  SoOutput o;
-  if (!o.openFile(filename.c_str())) {
-    cerr<<"ERROR: unable to open file to dump iv to: " << filename << endl;
-    return(false);
-  }
-
-  SoWriteAction wa(&o);
-  for (int i=0;i< sw->getNumChildren();i++) {
-    DebugPrintf(BOMBASTIC,("Writing switch child # %d\n",i));
-    wa.apply(sw->getChild(i));
-  }
-  return (true);
-} // SaveSpotLightDraggersIV
-#endif
-
-/// \brief Write a scene graph to disk as ascii
-/// \param filename File to write ascii IV file to
-/// \param root Starting point of the scene graph to same
-/// \return \a false if we were not able to open the file.
-bool
-WriteSceneGraph (const string &filename, SoNode *root) {
-  SoOutput o;
-  if (!o.openFile(filename.c_str())) {
-    cerr<<"ERROR: unable to open file to dump iv to: " << filename << endl;
-    return(false);
-  }
-
-  SoWriteAction wa(&o);
-  wa.apply(root); // Error checking?
-  return (true);
-}
 
 
 /***************************************************************************
  * KEYBOARD STUFF
  ***************************************************************************/
 
-/// \brief Send help on keyboard shortcuts to stdout
-void PrintKeyboardShorts() {
-  cout << endl
-       << "Keyboard shortcuts:" << endl << endl
-       << "\t a - Toggle (A)nimation -  Start/Stop" << endl
-    // FIX: implement these!
-       << "\t b - Jump to the (B)eginning of the animation sequence" << endl
-       << "\t c - (C)onnect the dots.  Put lines between the waypoints" << endl
-       << "\t d - (D)ump the current view to an image" << endl
-       << "\t f - Write scene graph to a (F)File" << endl
-       << "\t h - Print out this (H)elp list" << endl
-       << "\t i - (I)nsert a waypoint at the current camera location" << endl
-
-       << "\t n - (N)ext waypoint" << endl
-       << "\t p - (P)revious waypoint" << endl
-    
-       << "\t r - (R)Render frames as they animate" << endl
-       << "\t s - (S)how/Hide way point markers" << endl
-       << "\t w - Write the current set of (W)aypoints to a file" << endl
-       << endl
-       << "\t - - Decrease the debug level" << endl
-       << "\t + - Incease  the debug level" << endl
-       << endl
-       << "\t Do not forget to use the right mouse button or option-left mouse for more"<<endl
-       << endl;
-
-}
-
-/// \brief Gets called whenever the user presses a key in interactive mode
-/// \param data This will be the SceneInfo structure.
-/// \param cb SoKeyboardEvent that records the keypress or release
-///
-/// Make sure that this stays in sync with PrintKeyboardShorts()
-void
-keyPressCallback(void *data, SoEventCallback *cb) {
-  assert(data); assert(cb);
-
-  SceneInfo *si = (SceneInfo *)data;
-  //assert(si->getMagicNumber()==SceneInfo::nominalMagicNumber());
-  assert (si->magicOk());
-
-  assert (si);
-  assert (si->camera);
-  assert (si->root);
-
-  const SoKeyboardEvent *keyEvent = (const SoKeyboardEvent *)cb->getEvent();
-
-  //cerr << "Keypressed: " << keyEvent->getPrintableCharacter() << endl;
-  DebugPrintf(VERBOSE+4,("keyPressCallback: '%c'\n",keyEvent->getPrintableCharacter()));
-
-  //
-  // A - toggle animating
-  //
-  if (SO_KEY_PRESS_EVENT(keyEvent, A)) {
-    si->animating = (si->animating?false:true); // flip
-    cout << "toggling animation to " << (si->animating?"true":"false") << endl;
-    //cout.flush();
-    return;
-  }
-  
-  //
-  // B - Jump to the (B)eginning of the animation sequence
-  //
-  if (SO_KEY_PRESS_EVENT(keyEvent, B)) {
-    DebugPrintf(TRACE,("Keyhit: B - Jump to the (B)eginning of the animation sequence\n"));
-    si->cur_percent=0;
-    si->cur_mark=0;
-    if (si->draggerVec.size()>0) {
-      DebugPrintf(VERBOSE,("Setting the camera"));
-      SetCameraFromDragger(si->camera, si->draggerVec[si->cur_mark]);
-    } else { DebugPrintf(VERBOSE,("No draggers... not setting the camera"));}
-    return;
-  }
-
-  //
-  // C - (C)onnect the dots.  Put lines between the waypoints
-  //
-  if (SO_KEY_PRESS_EVENT(keyEvent, C)) {
-    DebugPrintf(TRACE,("Keyhit: C - Toggle connect the dots. Was %s\n",(si->connect_the_dots?"TR":"FL")));
-    si->connect_the_dots = (si->connect_the_dots?false:true); // flip
-    cout << "toggling connect_the_dots to " << (si->connect_the_dots?"true":"false") << endl;
-
-    // transition from false -> true
-    if (si->connect_the_dots) {
-      // create the chain and add it to the sep.
-      assert(0==si->connect_sep->getNumChildren ());
-      si->connect_sep->addChild(MakeSoLineSet(si->draggerVec));
-      assert(1==si->connect_sep->getNumChildren ());
-    } else {
-      // transition from true -> false
-      //assert(1==si->connect_sep->getNumChildren ());
-      if (1==si->connect_sep->getNumChildren ()) {
-	si->connect_sep->removeChild(0);
-      } else { DebugPrintf (VERBOSE,("No child to delete.  Must be first time?")); }
-      assert(0==si->connect_sep->getNumChildren ());
-    }
-    
-  }  
-
-  //
-  // D - Dump a rendering of the scene
-  //
-  if (SO_KEY_PRESS_EVENT(keyEvent, D)) {
-    DebugPrintf(TRACE,("Keyhit: D - render  %d %d\n",si->a->width_arg,si->a->height_arg));
-    size_t frame_num;
-    if (!RenderFrameToDisk (string(si->a->basename_arg),string(si->a->type_arg),
-			    si->a->width_arg, si->a->height_arg,
-			    si->root, frame_num) )
-      cerr << "ERROR: unable to write you artistic work.  You have been sensored.  Not my fault." << endl;
-
-    DebugPrintf(TRACE+1,("Finished writing frame number %04d\n",int(frame_num)));
-    return;
-  } // KEY_PRESS D - dump screen
-
-  //
-  // H - Print Help to stdout
-  //
-  if (SO_KEY_PRESS_EVENT(keyEvent, H)) { PrintKeyboardShorts(); return; }
-
-  //
-  // F - Write scene graph to a file
-  //
-  if (SO_KEY_PRESS_EVENT(keyEvent, F)) {
-    const string filename = "tmp.iv";
-    DebugPrintf(TRACE,("Keyhit: F - write scenegraph to a (F)ile: %s\n",filename.c_str()));
-    if (!WriteSceneGraph(filename, si->root)) {
-      cerr << "ERROR: Unable to write scene graph to file: " << filename << endl;
-    }
-    return;
-  }
-
-  //
-  // I - insert a waypoint marker
-  //
-  if (SO_KEY_PRESS_EVENT(keyEvent, I)) {
-    DebugPrintf(TRACE,("Keyhit: I - insert waypoint\n"));
-    SoCamera *c = si->camera;
-    float x,y,z;
-    SbVec3f pos = c->position.getValue();
-    pos.getValue (x,y,z);
-    DebugPrintf  (VERBOSE,("pos xyz: %f %f %f\n", x, y, z));
-    SbRotation rot = si->camera->orientation.getValue();
-    {
-      SbVec3f axis; float radians;
-      rot.getValue(axis,radians);
-      axis.getValue(x,y,z);
-      DebugPrintf(VERBOSE,("axis/radians: [ %f %f %f ] %f\n",x,y,z,radians));
-    }
-
-    // Add marker
-    {
-      SoSeparator *sep = new SoSeparator;
-
-      SoSpotLightDragger *mark = new SoSpotLightDragger;
-      {
-	static int waypointNum=0;
-	si->draggerVec.push_back(mark);
-	
-	char buf[128];
-	snprintf(buf, 128,"_%d",waypointNum++); // name can't start with a number
-	mark->setName (buf);
-      }
-      mark->translation.setValue(pos);
-      mark->rotation.setValue(rot);
-
-      sep->addChild(mark);
-      si->draggerSwitch->addChild(sep);
-    }
-    return;
-  } // KEY_PRESS I - Insert waypoint
-
-
-  //
-  // N - Jump to the next waypoint.
-  //
-  if (SO_KEY_PRESS_EVENT(keyEvent, N)) {
-    if (0==si->draggerVec.size()) return;
-    si->cur_percent=0;
-    si->cur_mark++;
-    if (si->cur_mark >= si->draggerVec.size()) si->cur_mark=0;
-    SetCameraFromDragger(si->camera, si->draggerVec[si->cur_mark]);
-    DebugPrintf(TRACE,("Keyhit: N - now at waypoint %d\n",int(si->cur_mark)));
-    return;
-  }
-
-  //
-  // P - Jump to the previous waypoint.
-  //
-  if (SO_KEY_PRESS_EVENT(keyEvent, P)) {
-    if (0==si->draggerVec.size()) return;
-    si->cur_percent=0;
-    if (0==si->cur_mark) si->cur_mark=si->draggerVec.size()-1;
-    else si->cur_mark--;
-
-    SetCameraFromDragger(si->camera, si->draggerVec[si->cur_mark]);
-    DebugPrintf(TRACE,("Keyhit: P - now at waypoint %d\n",int(si->cur_mark)));
-    return;
-  }
-
-
-
-  // R - Toggle render mode for during animation.  If true write all frames to disk
-  if (SO_KEY_PRESS_EVENT(keyEvent, R)) {
-    si->render_frames_to_disk = (si->render_frames_to_disk?false:true); // flip
-    DebugPrintf(TRACE,("Keyhit: R - toggle render to %s\n",(si->render_frames_to_disk?"true":"false")));
-    return;
-  }
-
-
-  //
-  // S - show/hide waypoint markers
-  //
-  if (SO_KEY_PRESS_EVENT(keyEvent, S)) {
-    if (SO_SWITCH_ALL == si->draggerSwitch->whichChild.getValue())
-      si->draggerSwitch->whichChild = SO_SWITCH_NONE;
-    else si->draggerSwitch->whichChild = SO_SWITCH_ALL;
-    return;
-  }
-
-  //
-  // W - write waypoints to a file
-  //
-  if (SO_KEY_PRESS_EVENT(keyEvent, W)) {
-    const string filenameAscii("tmp.wpt.ascii");
-    const string filenameIV("tmp.wpt.iv");
-
-    DebugPrintf(TRACE,("Keyhit: W - write waypoints: %s %s\n",filenameAscii.c_str(),filenameIV.c_str()));
-#if 0
-    if (!SaveSpotLightDraggersIV(filenameIV, si->draggerSwitch))
-      cerr << "WARNING: waypoint save to " << filenameIV << "failed." << endl;
-#endif
-    if (!SaveSpotLightDraggersAscii(filenameAscii, si->draggerVec))
-      cerr << "WARNING: waypoint save to " << filenameAscii << "failed." << endl;
-    return;
-  } // KEY_PRESS W - write waypoints
-
-
-  //
-  // + - Increase the debugging level ... equal is that key with the '+' on it too.
-  //
-  // FIX: Describe which debug level we are at
-  if (SO_KEY_PRESS_EVENT(keyEvent, EQUAL)) {
-    debug_level++;
-    DebugPrintf(TRACE,("Keyhit: + - Increase debug_level to %d\n",debug_level));
-    return;
-  }
-
-  // - - Decrease the debugging level
-  if (SO_KEY_PRESS_EVENT(keyEvent, MINUS)) {
-    if (0<debug_level) debug_level--;
-    DebugPrintf(TRACE,("Keyhit: + - Decrease debug_level to %d\n",debug_level));
-    return;
-  }
-
-} // keyPressCallback
-
+// gone
 
 
 /***************************************************************************
  * TIMER FOR ANIMATION
  ***************************************************************************/
 
-/// \brief Handle details of moving the camera between waypoints
-/// \param data SceneInfo data structure
-/// \param sensor The timer that went off
-///
-/// \bug The first frame rendered to disk is not right.  So for now ignore frame 0000
-void timerSensorCallback(void *data, SoSensor *sensor) {
-  assert(data);
-  assert(sensor);
-  SceneInfo *si = (SceneInfo *)data;
+// timer is gone!
 
-  if (!si->animating) {return;}  // not turned on right now
-  if (si->draggerVec.size()<2) { si->animating=false;  cout << "nothing to animate!" << endl;   return;  }
 
-  //
-  // Check to see if we have to switch nodes or loop back to the beginning
-  //
-  if (si->cur_percent >= 1.0) {
-    // FIX: do we include the beginning way point or not
-    // -1 gives beginning  -2 give last waypoint as the end
-    if (si->a->noloop_flag && (si->draggerVec.size()-1)==si->cur_mark) {
-      cout << "Animation finished.  Use 'b' to go back to the beginning." << endl;
-      si->animating=false;
-      return;
-    }
-    si->cur_percent=0.;
-    si->cur_mark++;
-    if (si->draggerVec.size()==si->cur_mark) { si->cur_mark=0; } // back to the beginning
-    cout << "Switching to mark #" << si->cur_mark << endl;
-  }
-
-  //
-  // Calc the camera position and set it!
-  //
-  SoSpotLightDragger *d1 = si->draggerVec[si->cur_mark];
-  SoSpotLightDragger *d2;
-  if (si->cur_mark==si->draggerVec.size()-1) { d2 = si->draggerVec[0]; } // Loop back to the first mark
-  else d2 = si->draggerVec[si->cur_mark+1];
-
-  SbVec3f pos1 = d1->translation.getValue();
-  SbVec3f pos2 = d2->translation.getValue();
-
-  vector<float> v1 = ToVector(pos1);
-  vector<float> v2 = ToVector(pos2);
-  
-  vector<float> v3 = InterpolatePos (v1,v2,si->cur_percent);
-  SbVec3f pos3 = ToSbVec3f (v3);
-
-  si->camera->position = pos3;
-
-  SbRotation rot1 = d1->rotation.getValue();
-  SbRotation rot2 = d2->rotation.getValue();
-  SbRotation newRot = SbRotation::slerp (rot1, rot2, si->cur_percent);
-
-  si->camera->orientation = newRot;
-
-  DebugPrintf (VERBOSE,("Mark: %d      Step:  %f\n",int(si->cur_mark),si->cur_percent));
-  si->cur_percent += si->a->percent_arg; // User configurable jump
-
-  if (si->render_frames_to_disk) {
-    DebugPrintf (TRACE,("ANIMATION: Rendering frame to disk file\n"));
-    size_t frame_num;
-    if (!RenderFrameToDisk (string(si->a->basename_arg),string(si->a->type_arg),
-			si->a->width_arg, si->a->height_arg,
-			si->root, frame_num)
-	) {
-      cerr << "ERROR: unable to write you artistic work.  You have been sensored.  Not my fault." << endl;
-    }
-    DebugPrintf(TRACE+1,("ANIMATION: Finished writing frame number %04d\n",int(frame_num)));
-  }
-
-  return;
-}
 
 
 /// \brief Return a lineset that does through all the dragger waypoints
@@ -877,28 +443,25 @@ int main(int argc, char *argv[])
 
 
   if (a.list_given) { ListWriteFileTypes();  return (EXIT_SUCCESS); }
-  if (a.keys_given) { PrintKeyboardShorts();  return (EXIT_SUCCESS); }
   //
   // Check range of arguments
   //
-  if (a.interval_given) 
-    if (!InRange(a.interval_arg,0.001,10.0)) {cerr<<"ERROR: Interval must be 0.001<=i<=10.0"<<endl; return (EXIT_FAILURE);}
   if (a.percent_given)
     if (!InRange(a.percent_arg,0.0,1.0)) {cerr<<"ERROR: Interval must be 0.0<=i<=1.0"<<endl; return (EXIT_FAILURE);}
 
   //
-  // Init the SoDB and SimVoleon
+  // Init the SoDB and SimVoleon - no SoQT!
   //
-  QWidget* myWindow = SoQt::init(argv[0]);
-  if ( myWindow==NULL ) return (EXIT_FAILURE);
+  SoDB::init();
+  SoInteraction::init();  // Initialize for draggers
   SoVolumeRendering::init();
+
 
   if (a.type_given)
     if (!CheckTypeValid(string(a.type_arg)))
       { cerr << "File type not valid: --type=" << a.type_arg << endl; return (EXIT_FAILURE); }
 
   DebugPrintf(VERBOSE,("FIX: check the range on width and height!\n"));
-  // FIX: allow rendering without opening a window
 
   SceneInfo *si = new SceneInfo;
   si->a=&a;
@@ -912,14 +475,12 @@ int main(int argc, char *argv[])
     si->root->addChild(si->camera);
   }
 
+  // FIX: do something better with the lights
   // TOP light
   { SoPointLight *pl = new SoPointLight; si->root->addChild(pl); pl->location = SbVec3f(0.0f,0.0f,50.0f); }
   // BOT light
   { SoPointLight *pl = new SoPointLight; si->root->addChild(pl); pl->location = SbVec3f(0.0f,0.0f,-50.0f); }
 
-
-
-  SoQtExaminerViewer* myViewer = new SoQtExaminerViewer(myWindow);
   for (size_t i=0;i<a.inputs_num;i++) {
     DebugPrintf (TRACE,("Adding file: %s\n",a.inputs[i]));
     SoInput mySceneInput;
@@ -932,19 +493,6 @@ int main(int argc, char *argv[])
     si->root->addChild(node);
   }
 
-  
-  myViewer->setSceneGraph( si->root );
-  myViewer->show();
-
-
-  {
-    // Set up callback
-    SoEventCallback 	*keyEventHandler = new SoEventCallback;
-    assert (keyEventHandler);
-    keyEventHandler->addEventCallback(SoKeyboardEvent::getClassTypeId(), keyPressCallback, si);
-    si->root->addChild(keyEventHandler);
-  }
-
   // Move this to the SceneInfo constructor
   {
     SoSwitch *s = new SoSwitch(40); // We expect a lot of children.
@@ -954,34 +502,27 @@ int main(int argc, char *argv[])
     si->root->addChild(s);
     si->draggerSwitch=s;
   }
-  si->connect_sep = new SoSeparator; // Maybe this and the switch above should be in the constructor!
-  si->connect_sep->setName("connect_the_dots");
-  si->root->addChild(si->connect_sep);
 
 
-  if (a.waypoints_given) {
-    // FIX: make load go under an soswitch?
-    if (!LoadSpotLightDraggers(string(a.waypoints_arg), (SoSeparator *)si->draggerSwitch, si->draggerVec)) {
-      cerr << "WARNING: failed to load waypoints.  Continuing anyways." << endl;
-    }
+  if (!LoadSpotLightDraggers(string(a.waypoints_arg), (SoSeparator *)si->draggerSwitch, si->draggerVec)) {
+    cerr << "ERROR: failed to load waypoints.  We're toast." << endl;
+    exit (EXIT_FAILURE);
   }
+  si->draggerSwitch->whichChild = SO_SWITCH_NONE; // don't show our path
 
-  // Write out keyboard shortcuts
-  if (0<debug_level) PrintKeyboardShorts();
+  // FIX: make sure we have at least 2 waypoints!
 
   // Setup a timer callback for animating...
-  {
-    SoTimerSensor *timer = new SoTimerSensor (timerSensorCallback,si);
-    assert (timer);
-    //timer->setInterval(.25);
-    DebugPrintf(TRACE+1,("Setting animation timer to %f seconds\n",a.interval_arg));
-    timer->setInterval(a.interval_arg);
-    timer->schedule();
+  // -1 cause we do not want to render past last waypoint
+  // we are going from the current way point in wpt to the next waypoint
+  // FIX: don't miss last frame
+  for (size_t wpt=0;wpt<si->draggerVec.size()-1; wpt++) {
+    cout << "Now at waypoint " << wpt << " going to " << wpt+1 << endl;
+
+    cout << "FIX: iterate between wpt and the next waypoint" << endl;
+
   }
 
-
-  SoQt::show(myWindow);
-  SoQt::mainLoop();
 
   // probably can never reach here.
   return (ok?EXIT_SUCCESS:EXIT_FAILURE);
