@@ -36,27 +36,50 @@ void Print(const SVec &sv);
 /// \param newSample returns the new 6 values
 /// \param r the GSL random number generator that we are using
 /// \return the index into s that was randomly chosen
-
+///
 /// This is not really a bootstrap!  But is can be used to generate
 /// bootstraps.  The alorithm here is to randomly select one of the
 /// samples in \a s, then the matching simga from \a sigmas.  This
 /// selection is done with a gsl_ran_uniform so all samples are
 /// equally likely.
 ///
-/// Then for each value in the selected \a s, the sigma is multiplied
-/// by gsl_ran_gaussian(r,1.0).
+/// Then for each value in the selected \a s, a delta is created by
+/// sigmas[sampleNum] * gsl_ran_gaussian(r,1.0) then added to that s
+/// value.  The 6 new s values are then renormalized to have a trace
+/// of 1.
 ///
 /// http://www.gnu.org/software/gsl/manual/gsl-ref_19.html#SEC288
 ///
-/// FIX: I should be using gsl_ran_gaussian(r,sigma), right?   Damn.
-/// This was discovered thanks to CLJ.
+/// \bug Is this really the right way?  Can only have up to 1 sigma error.  How to allow 2 sigma error.  Or N sigma
 
 
 size_t BootstrapParametricSample(const std::vector<SVec> &s, const std::vector<float> &sigmas,
 				 SVec &newSample,   gsl_rng *r);
 
+/// \brief Draw a random sample from the raw dataset, but perturbed by a single sigma
+/// \param s All of the s 6 value diagonal matrix.  See k15_s.
+/// \param sigma sigma to apply across the s values in a gaussian distribution.  Usually a Hext site value.  See SiteSigma()
+/// \param newSample returns the new 6 values
+/// \param r the GSL random number generator that we are using
+/// \return the index into s that was randomly chosen
+///
+/// This is not really a bootstrap!  But is can be used to generate
+/// bootstraps.  The alorithm here is to randomly select one of the
+/// samples in \a s.  This selection is done with a gsl_ran_uniform so
+/// all samples are equally likely.
+///
+/// Then for each value in the selected \a s, a delta is created by
+/// sigma * gsl_ran_gaussian(r,1.0) then added to that s value.  The 6 new s
+/// values are then renormalized to have a trace of 1.
+///
+/// http://www.gnu.org/software/gsl/manual/gsl-ref_19.html#SEC288
+///
+/// \bug Is this really the right way?  Can only have up to 1 sigma error.  How to allow 2 sigma error.  Or N sigma
+
+
 size_t BootstrapParametricSite  (const std::vector<SVec> &s, const float sigma, 
 				 SVec &newSample,   gsl_rng *r);
+
 
 /// \brief This is used as a better random seed to pass to the GSL random number engine.
 /// \param randomSample Give is a variable to fill.  This function will fill it with who knows what.
