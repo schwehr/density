@@ -28,7 +28,7 @@ option "verbosity" v "Set the verbosity level (0=quiet 10=verbose 20=bombastic)"
 
 #option "box" b "Add a bounding box" float default="1.0" no argoptional
 # argoptional seems broken?
-option "box" b "Add a bounding box" float default="1.0" no 
+option "box" b "Add a bounding box with a given width" float default="1.0" no 
 option "cmap" C "Ascii color map file to use (red green blue alpha)" string typestr="filename" no
 option "scale" s "Uniform scale node" float no
 
