@@ -22,6 +22,16 @@ public:
   /// Get the bracketing percents for a point... there may be many with the same value
   float getCDF(const size_t value, float &bottom, float &top);
 
+  /// Dump the cdf to stdout
+  void print();
+
+  /// \brief Write the data out to a file in a style suitable for gnuplot
+  ///
+  /// gnuplot
+  ///
+  /// plot 'filename' with lines
+  void writeForGraphing(const std::string &filename);
+
 private:
   std::vector<size_t> value;
   std::vector<float> percent;
