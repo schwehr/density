@@ -378,9 +378,10 @@ size_t Density::scaleValue(const size_t value, const PackType p, const size_t bi
 }
 
 bool Density::writeVol(const std::string &filename,
-		       const size_t bitsPerVoxel,const PackType p,
-		       const float rotX, const float rotY,const float rotZ) // const
+		       const size_t bitsPerVoxel,const PackType p
+		       /*const float rotX, const float rotY,const float rotZ*/) // const
 {
+  const float rotX=0., rotY=0., rotZ=0.;
   bool ok=true;
   //float scales[3] ={1.,1.,1.}; // FIX: remove setting
   float scales[3];
@@ -426,6 +427,14 @@ bool Density::writeVol(const std::string &filename,
 	}
       }
       break;
+    case 32: // 5 bytes
+      {
+	uint32_t uBuf=uint32_t(scaleValue(counts[i],p,bitsPerVoxel));
+	if (sizeof(uint32_t) != fwrite(&uBuf,1,sizeof(uint32_t),o)) {
+	  perror ("failed to write vol data"); fclose (o); return (false);
+	}
+      }
+      break;
     default:
       assert(false && "Can not handle this byte size");
     }
@@ -433,6 +442,59 @@ bool Density::writeVol(const std::string &filename,
 
   if (0!=fclose (o)) {perror("closed failed");return(false);}
 
+  return (ok);
+} // writeVol
+
+
+// The user/caller defines the scale... since I don't understand scaling.
+bool Density::writeVol(const std::string &filename,
+		       const size_t bitsPerVoxel,const PackType p,
+		       const float scaleX, const float scaleY, const float scaleZ,
+		       const float rotX, const float rotY,const float rotZ
+		       ) // const
+{
+  bool ok=true;
+
+  FILE *o=fopen(filename.c_str(),"wb");
+  if (!o) {perror("unable to open file to write volumne"); return(false);}
+  {
+    VolHeader v(width,height, depth,bitsPerVoxel, scaleX,scaleY,scaleZ, rotX,rotY,rotZ);
+    if (v.getHeaderLength() != v.write(o)) {
+      cerr << "Volume header write failure" << endl;
+      fclose(o); return (false);
+    }
+  }
+  assert(0==bitsPerVoxel%8 && "Can't handle non byte aligned data just yet");
+  for (size_t i=0;i<counts.size(); i++) {
+    switch (bitsPerVoxel) {
+    case 8: // 1 byte
+      {
+	uint8_t uBuf=uint8_t(scaleValue(counts[i],p,bitsPerVoxel));
+	if (sizeof(uint8_t) != fwrite(&uBuf,1,sizeof(uint8_t),o)) {
+	  perror ("failed to write vol data"); fclose (o); return (false);
+	}
+      }
+      break;
+    case 16: // 2 bytes
+      {
+	uint16_t uBuf=uint16_t(scaleValue(counts[i],p,bitsPerVoxel));
+	if (sizeof(uint16_t) != fwrite(&uBuf,1,sizeof(uint16_t),o)) {
+	  perror ("failed to write vol data"); fclose (o); return (false);
+	}
+      }
+      break;
+    case 32: // 5 bytes
+      {
+	uint32_t uBuf=uint32_t(scaleValue(counts[i],p,bitsPerVoxel));
+	if (sizeof(uint32_t) != fwrite(&uBuf,1,sizeof(uint32_t),o)) {
+	  perror ("failed to write vol data"); fclose (o); return (false);
+	}
+      }
+      break;
+    default: assert(false && "Can not handle this byte size");
+    }
+  }
+  if (0!=fclose (o)) {perror("closed failed");return(false);}
   return (ok);
 } // writeVol
 
