@@ -1,3 +1,10 @@
+2004-10-11  Kurt Schwehr  <schwehr@catbox>
+
+	* version: Released 0.6
+	Added vol_iv program
+	Makefile is MUCH cleaner
+	Better input file handling
+
 2004-10-09  Kurt Schwehr  <schwehr@catbox>
 
 	* version: Released 0.5
