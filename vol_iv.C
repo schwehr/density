@@ -192,7 +192,7 @@ int main (int argc, char *argv[]) {
   }
 #else // debugging
   debug_level = a.verbosity_arg;
-  DebugPrintf(TRACE,("Debug level = %d\n",debug_level));
+  DebugPrintf(TRACE,("%s Debug level = %d\n",argv[0],debug_level));
 #endif
 
   //////////////////////////////////////////////////////////////////////
@@ -246,13 +246,14 @@ int main (int argc, char *argv[]) {
 			 << a.scale_arg << " " << a.scale_arg << " " << a.scale_arg
 			 << "} " << endl;
 
-    if (a.box_given)
+    if (a.box_given) {
       DebugPrintf(TRACE,("Doing wireframe box: %f\n",a.box_arg));
       o << "\tSeparator {" << endl
 	<< "\t\tDrawStyle { style LINES }" << endl
 	<< "\t\tPickStyle { style UNPICKABLE }" << endl
 	<< "\t\tCube { width "<<a.box_arg<<" height "<<a.box_arg<<" depth "<<a.box_arg<<"}" << endl
 	<< "\t}" << endl;
+    }
     o << "\tSoVolumeData {" << endl
       << "\t\tfileName \"" << a.inputs[0] << "\"" << endl
       << "\t}" <<endl
