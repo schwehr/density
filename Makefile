@@ -180,7 +180,8 @@ test_s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o
 ######################################################################
 # Worker Bees
 
-test: ${TEST_BINS}
+# TARGETS includes TEST_BINS
+test: ${TARGETS}
 	@for file in ${TEST_BINS}; do \
 		echo ;\
 		echo $$file ;\
