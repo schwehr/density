@@ -1,3 +1,9 @@
+2004-11-02  Kurt Schwehr  <schwehr@catbox>
+
+	* version: Released 0.14
+	Switched to GPL
+	Added render command for offscreen rendering to images
+
 2004-10-26  Kurt Schwehr  <schwehr@catbox>
 
 	* version: Released 0.13
