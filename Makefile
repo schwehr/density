@@ -128,13 +128,13 @@ targets: ${TARGETS} test
 histogram: histogram_cmd.o histogram.C
 	${CXX} -o $@ $^  ${CXXFLAGS}
 
-render: render_cmd.o render.C
+render: render_cmd.o InventorUtilities.o render.C
 	${CXX} -o $@ $^  ${CXXFLAGS} -lsimage -lCoin -lSimVoleon -bind_at_load
 
 s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o s_bootstrap_cmd.o Eigs.o VecAngle.o
 	${CXX} -o $@ $^ ${CXXFLAGS} -Wno-long-double -lgsl -lgslcblas
 
-simpleview: simpleview_cmd.o simpleview.C InventorUtilities.o
+simpleview: simpleview_cmd.o InventorUtilities.o simpleview.C
 	${CXX} -o $@ $^  -I/sw/include/qt ${CXXFLAGS} -lsimage -lCoin -lSoQt -lSimVoleon -lqt-mt -bind_at_load -Wno-long-long
 
 xyzdensity: xyzdensity.C Density.o VolHeader.o xyzdensity_cmd.o
