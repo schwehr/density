@@ -81,7 +81,8 @@ if [ ! -e one.cmap ]; then
 fi
 
 # Make the bounding box at 1.05 to be just outside of the volume
-vol_iv --box=1.05 -c ALPHA_BLENDING --numslicescontrol=ALL -p NONE -C one.cmap -o one-all.iv one-all.vol
+# --box=1.05
+vol_iv -c ALPHA_BLENDING --numslicescontrol=ALL -p NONE -C one.cmap -o one-all.iv one-all.vol
 
 scale="--xscale=0.5 --yscale=0.5 --zscale=0.5"
 volhdr_edit one-vmax.vol --out=tmp.vol $scale && /bin/mv tmp.vol one-vmax.vol
