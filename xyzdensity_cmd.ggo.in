@@ -22,6 +22,7 @@
 
 package "xyzdensity"
 version "0.1"
+purpose "Provide an easy way to construct 3D volume/voxel (.vol) files\n  from ascii xyz data"
 
 option "in" i "Input file name\n (must be unsigned ascii x,y,z triples)" string typestr="filename" yes
 option "out" o "Output file name" string typestr="filename" yes
