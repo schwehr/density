@@ -217,7 +217,7 @@ tar: ${GENGETOPT_BINS}
 	rm -rf ${TARNAME}
 	mkdir ${TARNAME}
 	@echo
-	cp *.{C,H,ggo,c,h,help2man} ${TARNAME}/
+	cp *.{C,H,ggo,c,h,help2man,bash} ${TARNAME}/
 	@echo
 	cp AUTHOR Makefile Doxyfile LICENSE.LGPL README.txt VERSION demos.bash good.iv ${TARNAME}/
 	@echo
