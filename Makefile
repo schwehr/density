@@ -9,7 +9,7 @@ endif
 
 CFLAGS := ${CXXFLAGS} -Wimplicit-int -Wimplicit-function-declaration -Wnested-externs
 
-TARGETS:= test_SiteSigma test_s_bootstrap makeCDF histogram
+TARGETS:= test_SiteSigma test_s_bootstrap makeCDF histogram s_bootstrap
 targets: ${TARGETS}
 
 
@@ -18,6 +18,9 @@ test_SiteSigma: SiteSigma.C SiteSigma.H
 
 test_s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o
 	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS} SiteSigma.o Bootstrap.o -lgsl -lgslcblas
+
+s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o
+	${CXX} -o $@ $<  ${CXXFLAGS} SiteSigma.o Bootstrap.o -lgsl -lgslcblas
 
 clean:
 	rm -f blah* foo* *~ ${TARGETS} *.o
