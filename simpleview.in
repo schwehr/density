@@ -6,4 +6,6 @@ else
     export DYLD_LIBRARY_PATH=@FINK@/lib:$DYLD_LIBRARY_PATH
 fi
 
-./simpleview_bin $*
+# FIX: what if this is in the local directory?
+# Then do not want bin.
+@FINK@/bin/simpleview_bin $*
