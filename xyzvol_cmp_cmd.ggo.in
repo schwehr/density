@@ -20,11 +20,13 @@
 # See also: http://www.gnu.org/software/gengetopt/gengetopt.html
 
 
-package "xyzvol_cmp_cmd.ggo"
+package "xyzvol_cmp"
 version "0.1"
 purpose "Compare xyz values to a volume density... blobby volume density.\n  Only takes the first 3 values on each line and ignores the rest of the line.\n  Output is\n\n    x y z count %%_of_total_counts %%_cdf"
 
 option "verbosity" v "Set the verbosity level (0=quiet 10=verbose 20=bombastic)" int default="0" no
+
+option "out" o "Output file name.  '-' for filename to be stdout" string typestr="filename" yes
 
 option "density" d "Density volume file.  .vol format" string typestr="filename" yes
 
