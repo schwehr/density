@@ -4,10 +4,13 @@ Voleon
 Away Work pmag
 test*.vol
 *-test?.vol
-simpleview makeCDF histogram s_bootstrap xyzdensity endian volinfo AMScrunch
 test*
 doc
 .gdb_history
 .gmtcommands
 foo*
 *_cmd.[ch]
+*.tar.bz2
+work
+simpleview makeCDF histogram s_bootstrap xyzdensity endian volinfo AMScrunch
+is_equal vol2vol vol_iv volhdr_edit volmakecmap xyz_iv xyzvol_cmp
