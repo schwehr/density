@@ -1,4 +1,4 @@
-/* $Revision$  $Author$  $Date$ */
+// $Revision$  $Author$  $Date$
 #ifndef _DENSITY_H_
 #define _DENSITY_H_
 
@@ -14,6 +14,7 @@
 /// This is kind of close:
 ///
 /// http://www.cs.purdue.edu/homes/sun/Teach/530_01S/Assignments/Data/FORMAT.TXT
+
 class  VolHeader {
 public:
   /// Everything accept dimensions set to defaults
@@ -36,15 +37,52 @@ private:
 
 
 /// \brief Voxel density handling class.  How many points per cell.
-
+///
 ///        Points loose their actual xyz when added to the grid
+///
+/*! What do we can this space representation?
+    - \a bvd - ???? volume distribution
+    - \a 3Dpdf - probability density functione
+    - \a vdf - Volume Density Function
+*/
+
 class Density {
 public:
+  /// \brief Contructor that does almost nothing.  FIX: Can we get rid of this?
+  /// \bug Do not want this constructor to exist!
+  /// If just this is called, life is bad!  Does not setup anything really.
+  Density();
+
+  /// \brief Create a voxel space of widht,height, and depth number of cells.
+  /// @param width Number of cells wide/x
+  /// @param height Number of cells deep/y
+  /// @param depth Number of cells tall/z
+  /// @param minX, maxX 3D space x range of voxel volume.
+  /// @param minY, maxY 3D space x range of voxel volume.
+  /// @param minZ, maxZ 3D space x range of voxel volume.
   Density(const size_t width, const size_t height, const size_t depth,
 	  const float minX, const float maxX,
 	  const float minY, const float maxY,
 	  const float minZ, const float maxZ
 	  );
+
+  /// Load a vol file from disk
+  Density(const std::string &filename) {assert(false);}  // FIX: Implement
+
+  /// \brief Change the volumes size.  Dumps all counts. Does not shrink memory footprint if smaller
+  /// @param width Number of cells wide/x
+  /// @param height Number of cells deep/y
+  /// @param depth Number of cells tall/z
+  /// @param minX, maxX 3D space x range of voxel volume.
+  /// @param minY, maxY 3D space x range of voxel volume.
+  /// @param minZ, maxZ 3D space x range of voxel volume.
+  void resize(const size_t width, const size_t height, const size_t depth,
+	      const float minX, const float maxX,
+	      const float minY, const float maxY,
+	      const float minZ, const float maxZ
+	      );
+
+
   /// Add a point into the voxel structure.  Figures out which cell for you
   /// \return \a true if inside the bounding box, \a false if outside and unrecorded
   bool addPoint(const float x, const float y, const float z);
@@ -54,16 +92,25 @@ public:
   size_t getWidth()  const {return (width);} ///< num of cells wide
   size_t getHeight() const {return (height);} ///< num of cells tall
   size_t getDepth()  const {return (depth);} ///< num of cell front to back
+  size_t getSize() const {return (counts.size());} ///< How many voxels in this density space?
+  /// How many points so far have been added that actually fall in the voxels' volumes
   size_t getCountInside() const {return(totalPointsInside);}
 
   /// \brief Which cell number a point in space goes to.
   /// \return Cell number or \a badValue if x,y,z is not in the volume
   size_t getCell(const float x, const float y, const float z) const;
-  bool   isValidCell(size_t i) const {return(i<counts.size()?true:false);}
+  bool   isValidCell(const size_t i) const {return(i<counts.size()?true:false);}
   size_t getCellX(const float x) const {return(size_t((x-xR[0])/dx));}
   size_t getCellY(const float y) const {return(size_t((y-yR[0])/dy));}
   size_t getCellZ(const float z) const {return(size_t((z-zR[0])/dz));}
   void   getCellXYZ(const size_t index, size_t &cx, size_t &cy, size_t &cz) const;
+  size_t getCellFromWHD(const size_t xIndex, const size_t yIndex, const size_t zIndex) const;
+
+
+  /// x less, x more, y less, y more, z less, z more
+  enum NeighborEnum {LEFT,RIGHT,FRONT,BACK,BELOW,ABOVE,NUM_NEIGHBORS=6};
+  /// returns \a badValue if the neighbor is outside of the volume
+  size_t getCellNeighbor(const size_t i, NeighborEnum which) const; 
 
   /// Given a cell index number, what is the location of the center?
   void getCellCenter(const size_t cellNum, float &x, float &y, float &z) const;
@@ -77,7 +124,7 @@ public:
   float getDZ() const {return(dz);}  ///< How deep is one cell
 
   /// Write out a vol formatted file for SIM Voleon
-  /// \return \a true on success or \false if there was an error
+  /// \return \a true on success or \a false if there was an error
   bool writeVol(const std::string &filename);
 
   /// This is the value for an unknown or bad entry.  Should be a huge number that we would never encounter.
@@ -87,6 +134,7 @@ public:
   unsigned char scaleCount(const size_t i, const size_t min, const size_t max) const;
   size_t getMaxCount() const; ///< What is the maximum count in one cell across the whole count vector?
   size_t getMinCount() const; ///< What is the minimum count in one cell across the whole count vector?
+
 
 #ifndef REGRESSION_TEST
 private:
