@@ -160,6 +160,7 @@ VolHeader::VolHeader(const size_t _width, const size_t _height, const size_t dep
   index_bits=0; // Grrr...
 
   scaleX=_scaleX;  scaleY=_scaleY;  scaleZ=_scaleZ;
+  cout << "const scales: " << scaleX << " " << scaleY << " " << scaleZ << endl;
   rotX=_rotX;  rotY=_rotY;  rotZ=_rotZ;
 }
 
@@ -250,39 +251,41 @@ VolHeader::VolHeader(const std::string filename, bool &ok) {
 size_t VolHeader::write(FILE *o) {
   assert (o);   if (!o) return(0);
   size_t bytes=0;
-  uint32_t uBuf;
   size_t r;  // Number of bytes for each write
-  uBuf = hton_uint32(getMagicNumber()); bytes += (r=fwrite(&uBuf,1,sizeof(uint32_t),o));
-  if (sizeof(uint32_t)!=r) {perror("header write trouble"); return(bytes);}
-  uBuf = hton_uint32(getHeaderLength()); bytes += (r=fwrite(&uBuf,1,sizeof(uint32_t),o));
-  if (sizeof(uint32_t)!=r) {perror("header write trouble"); return(bytes);}
 
-  uBuf = hton_uint32(getWidth()); bytes += (r=fwrite(&uBuf,1,sizeof(uint32_t),o));
-  if (sizeof(uint32_t)!=r) {perror("header write trouble"); return(bytes);}
-  uBuf = hton_uint32(getHeight()); bytes += (r=fwrite(&uBuf,1,sizeof(uint32_t),o));
-  if (sizeof(uint32_t)!=r) {perror("header write trouble"); return(bytes);}
-  uBuf = hton_uint32(getImages()); bytes += (r=fwrite(&uBuf,1,sizeof(uint32_t),o));
-  if (sizeof(uint32_t)!=r) {perror("header write trouble"); return(bytes);}
-  uBuf = hton_uint32(getBitsPerVoxel()); bytes += (r=fwrite(&uBuf,1,sizeof(uint32_t),o));
-  if (sizeof(uint32_t)!=r) {perror("header write trouble"); return(bytes);}
-  uBuf = hton_uint32(getIndexBits()); bytes += (r=fwrite(&uBuf,1,sizeof(uint32_t),o));
-  if (sizeof(uint32_t)!=r) {perror("header write trouble"); return(bytes);}
+  {
+    uint32_t uBuf;
+    uBuf = hton_uint32(getMagicNumber()); bytes += (r=fwrite(&uBuf,1,sizeof(uint32_t),o));
+    if (sizeof(uint32_t)!=r) {perror("header write trouble"); return(bytes);}
+    uBuf = hton_uint32(getHeaderLength()); bytes += (r=fwrite(&uBuf,1,sizeof(uint32_t),o));
+    if (sizeof(uint32_t)!=r) {perror("header write trouble"); return(bytes);}
 
-  float fBuf;
-  fBuf = hton_float(getScaleX()); bytes += (r=fwrite(&uBuf,1,sizeof(float),o));
-  if (sizeof(float)!=r) {perror("header write trouble"); return(bytes);}
-  fBuf = hton_float(getScaleY()); bytes += (r=fwrite(&uBuf,1,sizeof(float),o));
-  if (sizeof(float)!=r) {perror("header write trouble"); return(bytes);}
-  fBuf = hton_float(getScaleZ()); bytes += (r=fwrite(&uBuf,1,sizeof(float),o));
-  if (sizeof(float)!=r) {perror("header write trouble"); return(bytes);}
-
-  fBuf = hton_float(getRotX()); bytes += (r=fwrite(&uBuf,1,sizeof(float),o));
-  if (sizeof(float)!=r) {perror("header write trouble"); return(bytes);}
-  fBuf = hton_float(getRotY()); bytes += (r=fwrite(&uBuf,1,sizeof(float),o));
-  if (sizeof(float)!=r) {perror("header write trouble"); return(bytes);}
-  fBuf = hton_float(getRotZ()); bytes += (r=fwrite(&uBuf,1,sizeof(float),o));
-  if (sizeof(float)!=r) {perror("header write trouble"); return(bytes);}
-
+    uBuf = hton_uint32(getWidth()); bytes += (r=fwrite(&uBuf,1,sizeof(uint32_t),o));
+    if (sizeof(uint32_t)!=r) {perror("header write trouble"); return(bytes);}
+    uBuf = hton_uint32(getHeight()); bytes += (r=fwrite(&uBuf,1,sizeof(uint32_t),o));
+    if (sizeof(uint32_t)!=r) {perror("header write trouble"); return(bytes);}
+    uBuf = hton_uint32(getImages()); bytes += (r=fwrite(&uBuf,1,sizeof(uint32_t),o));
+    if (sizeof(uint32_t)!=r) {perror("header write trouble"); return(bytes);}
+    uBuf = hton_uint32(getBitsPerVoxel()); bytes += (r=fwrite(&uBuf,1,sizeof(uint32_t),o));
+    if (sizeof(uint32_t)!=r) {perror("header write trouble"); return(bytes);}
+    uBuf = hton_uint32(getIndexBits()); bytes += (r=fwrite(&uBuf,1,sizeof(uint32_t),o));
+    if (sizeof(uint32_t)!=r) {perror("header write trouble"); return(bytes);}
+  }
+  {
+    float fBuf;
+    fBuf = hton_float(getScaleX()); bytes += (r=fwrite(&fBuf,1,sizeof(float),o));
+    if (sizeof(float)!=r) {perror("header write trouble"); return(bytes);}
+    fBuf = hton_float(getScaleY()); bytes += (r=fwrite(&fBuf,1,sizeof(float),o));
+    if (sizeof(float)!=r) {perror("header write trouble"); return(bytes);}
+    fBuf = hton_float(getScaleZ()); bytes += (r=fwrite(&fBuf,1,sizeof(float),o));
+    if (sizeof(float)!=r) {perror("header write trouble"); return(bytes);}
+    fBuf = hton_float(getRotX()); bytes += (r=fwrite(&fBuf,1,sizeof(float),o));
+    if (sizeof(float)!=r) {perror("header write trouble"); return(bytes);}
+    fBuf = hton_float(getRotY()); bytes += (r=fwrite(&fBuf,1,sizeof(float),o));
+    if (sizeof(float)!=r) {perror("header write trouble"); return(bytes);}
+    fBuf = hton_float(getRotZ()); bytes += (r=fwrite(&fBuf,1,sizeof(float),o));
+    if (sizeof(float)!=r) {perror("header write trouble"); return(bytes);}
+  }
 
   return(bytes);
 }
