@@ -10,10 +10,20 @@ endif
 
 CFLAGS := ${CXXFLAGS} -Wimplicit-int -Wimplicit-function-declaration -Wnested-externs
 
-TARGETS:= test_SiteSigma test_s_bootstrap makeCDF histogram s_bootstrap
+TARGETS:= makeCDF histogram s_bootstrap xyzdensity
 #TARGETS+= AMScrunch
+
+# TESTING TARGETS:
+TARGETS+= test_s_bootstrap test_SiteSigma test_Density
+
 targets: ${TARGETS}
 
+
+xyzdensity: xyzdensity.C Density.o
+	${CXX} -o $@ $< ${CXXFLAGS} Density.o
+
+test_Density: Density.C Density.H
+	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS} 
 
 test_SiteSigma: SiteSigma.C SiteSigma.H
 	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS} 
