@@ -260,7 +260,7 @@ tar: ${GEN_CFILES} ${GENGETOPT_BINS} test
 	mv HEADER.html ${TARNAME}/HEADER.html
 	@echo
 	cp AUTHOR ChangeLog Doxyfile INSTALL LICENSE.GPL ${TARNAME}/
-	cp Makefile Makefile.endian README.txt TODO VERSION ${TARNAME}/
+	cp Makefile Makefile.endian README.txt TODO VERSION axes.iv ${TARNAME}/
 	@echo Copying example data for one.bash and bootvolume-thesis.bash
 	cp sample.wpt as1-crypt.s as2-slump.s as3-undef.s ${TARNAME}/
 	@echo
@@ -295,6 +295,9 @@ clean-runs:
 	rm -f current.cmap as[0-9]-*all-1.0.iv as?-?????-????-8.iv vol.iv
 	rm -f *.vol.cmp
 	rm -f test3.vol*
+	@echo Owens Lake stuff
+	rm -f g?-*.{iv,vol,dat,s,xyz*}
+
 
 real-clean: clean
 	rm -rf doc
