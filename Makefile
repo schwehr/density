@@ -37,6 +37,7 @@ help:
 	@echo "  make tar         - Build a distribution"
 	@echo "  make check       - Search for all known code issuse (FIX tags)"
 	@echo "  make info        - Display a number of internal make variables"
+	@echo "  make html        - Make html from Makefile and bash scripts"
 	@echo
 	@echo "  Add 'OPTIMIZE=1' - Build with optimizations enabled and then test"
 	@echo
@@ -274,6 +275,22 @@ install-web-doxy: docs
 	scp doc/html/* kds:www/software/density/html
 install-web-man2html: man2html
 	scp doc/man/man1/*.html kds:www/software/density/man
+install-web-html: html
+	scp [a-z]*.html kds:www/software/density/files
+	scp HEADER-files.html kds:www/software/density/files/HEADER.html
+
+
+CODE2HTML_OPTS:=-o html-dark -N 
+html:
+	code2html ${CODE2HTML_OPTS} Makefile Makefile.html
+	code2html ${CODE2HTML_OPTS} bootvol-thesis.bash bootvol-thesis.bash.html
+	code2html ${CODE2HTML_OPTS} debug.bash debug.bash.html
+	code2html ${CODE2HTML_OPTS} getgroups-ol92.bash getgroups-ol92.bash.html
+	code2html ${CODE2HTML_OPTS} makemovie.bash makemovie.bash.html
+	code2html ${CODE2HTML_OPTS} one.bash one.bash.html
+	code2html ${CODE2HTML_OPTS} regression.bash regression.bash.html
+	code2html ${CODE2HTML_OPTS} eigs2xyz.py eigs2xyz.py.html
+	code2html ${CODE2HTML_OPTS} splitdepth.py splitdepth.py.html
 
 
 # Need these so we can make sure the *_cmd.[ch] files exist so do not need gengetopt
