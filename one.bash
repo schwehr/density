@@ -24,7 +24,7 @@
 # Test out all the functionality with just one point to make sure
 # everything lines up.
 
-. utilities.bash
+. debug.bash
 
 
 export PATH=${PATH}:.
