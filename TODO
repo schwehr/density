@@ -7,3 +7,4 @@
 * Use splines to go between waypoints or something
 * Make a main man page for density
 * Have ggo's take the version from VERSION.  mv *.ggo to .ggo.in and perl them
+* simpleview needs a quit button or key!
