@@ -1,0 +1,60 @@
+-*- auto-fill -*-
+
+$Id$
+
+Basic Installation Of Density
+=============================
+
+WARNING 1:
+
+Density does not yet have a GNU Autoconf setup, so things will be a
+bit trickier than the usual ./configure.
+
+WARNING 2:
+
+To date, the density package has only been built and tested on Mac OSX
+10.3.5 with fink 0.22.2/0.7.1.cvs
+
+
+
+First, make sure you have all the tools needed for building:
+
+0.  If you haven't already done so, install Apple's X-Code, Apple's
+	X11, and Apple's X11SDK.
+
+1.  Install fink and FinkCommander from http://fink.sf.net
+
+2.  Using FinkCommander preferences, enable unstable and do an update
+	with rsync.
+
+3.  Install these soqt, simvoleon, gsl
+
+4.  Optionally install: gengetopt, html2man, doxygen
+
+5.  You may want to install man2html
+	 (not in fink, see http://freshmean.net)
+
+
+Now build and test the package:
+
+6.  Get a menu from make:
+
+	make
+
+7.  See what the issues currently are in the source:
+
+	make check | less
+
+8.  Build and test everything:
+
+	make test
+
+9.  Optionally build the documentation:
+
+	make docs
+	make man	# requires man2html
+
+10. Cleanup and rebuild for speed:
+
+	make clean
+	make targets-no-test OPTIMIZE=1
