@@ -265,6 +265,7 @@ tar: ${GEN_CFILES} ${GENGETOPT_BINS} test
 	cp AUTHOR ChangeLog Doxyfile INSTALL LICENSE.GPL ${TARNAME}/
 	cp Makefile Makefile.endian README.txt TODO VERSION axes.iv ${TARNAME}/
 	@echo Copying example data for one.bash and bootvolume-thesis.bash
+	@echo Leaving out rosenbaum-ams-stripped.dat until published
 	cp sample.wpt as1-crypt.s as2-slump.s as3-undef.s ${TARNAME}/
 	@echo
 	tar cf ${TARNAME}.tar ${TARNAME}
