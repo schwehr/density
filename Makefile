@@ -230,6 +230,8 @@ tar: ${GEN_CFILES} ${GENGETOPT_BINS} test
 	@echo
 	cp AUTHOR ChangeLog Doxyfile INSTALL LICENSE.LGPL ${TARNAME}/
 	cp Makefile Makefile.endian README.txt TODO VERSION ${TARNAME}/
+	@echo Copying example data for one.bash and bootvolume-thesis.bash
+	cp as1-crypt.s as2-slump.s as3-undef.s ${TARNAME}/
 	@echo
 	tar cf ${TARNAME}.tar ${TARNAME}
 	bzip2 -9 ${TARNAME}.tar
