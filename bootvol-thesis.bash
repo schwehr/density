@@ -165,7 +165,7 @@ if [ ! -e "rosenbaum-ams-stripped.dat" ]; then
     exit $EXIT_FAILURE
 fi
 
-if [ ! -e g1-fluidized.dat ]; then getgroups.bash; fi
+if [ ! -e g1-fluidized.dat ]; then getgroups-ol92.bash; fi
 
 
 if [ 1 == 1 ]; then
