@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ -z "$DYLD_LIBRARY_PATH" ]; then
+    export DYLD_LIBRARY_PATH=@FINK@/lib
+else
+    export DYLD_LIBRARY_PATH=@FINK@/lib:$DYLD_LIBRARY_PATH
+fi
+
+./render_bin $*
