@@ -1,0 +1,52 @@
+Package: density
+Version: 0.16
+Revision: 1
+Source: http://schwehr.org/software/density/%n-%v.tar.bz2
+Source-MD5: 66821b3dfb0ab4859181003435eeacd9
+BuildDepends: doxygen, soqt21-dev, simvoleon41, help2man, man2html, gsl, nana, gengetopt (>= 2.12)
+Depends: soqt21-shlibs, simvoleon41-shlibs, gnuplot, acoc, nana, gsl-shlibs
+CompileScript: <<
+  #make test
+  #make clean
+  make OPTIMIZE=1 targets-no-test
+  echo "FIX: make this right... no /sw!"
+  export DYLD_LIBRARY_PATH=/sw/lib && make docs man
+<<
+InstallScript: <<
+  mkdir -p %i/bin
+  mv histogram makeCDF render s_bootstrap simpleview vol2vol vol_iv volhdr_edit volinfo volmakecmap xyz_iv xyzdensity xyzvol_cmp %i/bin
+
+  mkdir -p %i/share/man/man1
+  mv doc/man/man1/* %i/share/man/man1/
+
+  mkdir -p %i/share/man/man3
+  mv doc/man/man3/* %i/share/man/man3/
+
+  mkdir -p %i/share/%n/html
+  mv doc/html/* %i/share/%n/html/
+
+<<
+DocFiles: AUTHOR INSTALL LICENSE.GPL README.txt TODO VERSION ChangeLog
+#DocFiles: AUTHOR INSTALL LICENSE.GPL README.txt TODO VERSION .acoc.conf ChangeLog
+Description: 3D volume file processing for simvoleon
+DescDetail: <<
+Provides programs to create, interpret, and display volume files in
+SIMVoleon format.  These are voxel/3D density representations.
+Includes simple view for creating flight paths and screen shots.  You
+can then use render to create frames for fly-through movies.
+
+This package come out of Kurt Schwehr's PhD thesis so it has
+additional scripts and programs for processing Anisotropy of Magnetic
+Susceptability.  However, the programs should be useful to anyone
+using SIM Voleon/Coin.
+
+Recommend you install the pmag package by Lisa Tauxe which is not
+currently in fink.  You can get the info file from Kurt Schwehr.
+<<
+DescPort: <<
+Do NOT put this in fink yet outside of your local directory.  This
+is still beta software and does not belong in fink.
+<<
+License: GPL
+Homepage: http://schwehr.org/software/density
+Maintainer: Kurt Schwehr <kurt@etool.com>
