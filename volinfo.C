@@ -29,6 +29,17 @@
 using namespace std;
 
 
+//#include <fcntl.h>   /* File control definitions */
+//#include <errno.h>   /* Error number definitions */
+//#include <termios.h> /* POSIX terminal control definitions */
+//#include <term.h>
+//#include <sys/select.h>
+//#include <unistd.h>  // Select 
+//#include <sys/mman.h>	// mmap
+#include <sys/types.h>
+#include <sys/stat.h>
+
+
 /***************************************************************************
  * LOCAL MACROS and DEFINES
  ***************************************************************************/
@@ -80,32 +91,41 @@ int main (const int argc, char *argv[]) {
     cout << i << " " << a.in_arg[i] << endl;
     const string filename(a.in_arg[i]);
     bool r;
+
+    struct stat sb;
+    {
+      int r = stat (filename.c_str(), &sb);
+      if (0 != r) {perror("stat to get file size FAILED");ok=false;continue;}
+    }
+
+
     VolHeader v(filename,r);
     if (!r) {ok=false; cerr << "Failed to read file: " << filename << endl; continue;}
     cout << endl;
-    cout << "FILE:    " << filename << endl
+    cout << "FILE           = " << filename << endl
+         << "File size      = " << sb.st_size << endl
 	 << "magic_number   = " << v.getMagicNumber() << endl
 	 << "header_length  = " << v.getHeaderLength() << endl
-	 << "width  = " << v.getWidth()  << "   (x)" << endl
-	 << "height = " << v.getHeight() << "   (y)" << endl
-	 << "images = " << v.getImages()  << "   (depth/z)" << endl
+	 << "width          = " << v.getWidth()  << "   (x)" << endl
+	 << "height         = " << v.getHeight() << "   (y)" << endl
+	 << "images         = " << v.getImages()  << "   (depth/z)" << endl
       ;
     cout << "bits_per_voxel = " << v.getBitsPerVoxel() << "       bytes = "<<v.getBitsPerVoxel()/8<< endl
-	 << "index_bits = " << v.getIndexBits() << endl;
+	 << "index_bits     = " << v.getIndexBits() << endl;
 
-    cout << "scaleX = " << v.getScaleX() << endl
-	 << "scaleY = " << v.getScaleY() << endl
-	 << "scaleZ = " << v.getScaleZ() << endl
-	 << "rotX   = " << v.getRotX() << endl
-	 << "rotY   = " << v.getRotY() << endl
-	 << "rotZ   = " << v.getRotZ() << endl
+    cout << "scaleX         = " << v.getScaleX() << endl
+	 << "scaleY         = " << v.getScaleY() << endl
+	 << "scaleZ         = " << v.getScaleZ() << endl
+	 << "rotX           = " << v.getRotX() << endl
+	 << "rotY           = " << v.getRotY() << endl
+	 << "rotZ           = " << v.getRotZ() << endl
       ;
 
     if (0!=a.range_given) {
       Density d(filename,r);
       if (!r) {ok=false; cerr << "Failed to read file: " << filename << endl; continue;}
-      cout << "minVal = " << d.getMinCount() << endl
-	   << "maxVal = " << d.getMaxCount() << endl;
+      cout << "minVal         = " << d.getMinCount() << endl
+	   << "maxVal         = " << d.getMaxCount() << endl;
     }
   } // for a.in_given
 
