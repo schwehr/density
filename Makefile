@@ -18,10 +18,13 @@ endif
 CFLAGS := ${CXXFLAGS} -Wimplicit-int -Wimplicit-function-declaration -Wnested-externs
 
 TARGETS:= makeCDF histogram s_bootstrap xyzdensity endian
+TAGGETS+= volinfo
 #TARGETS+= AMScrunch
 
 # TESTING TARGETS:
-TARGETS+= test_s_bootstrap test_SiteSigma
+TARGETS+= test_s_bootstrap
+TARGETS+= test_SiteSigma
+TARGETS+= test_VolHeader
 TARGETS+= test_Density
 TARGETS+= test_DensityFlagged
 
@@ -30,10 +33,13 @@ targets: ${TARGETS}
 xyzdensity: xyzdensity.C Density.o
 	${CXX} -o $@ $< ${CXXFLAGS} Density.o
 
-test_Density: Density.C Density.H
-	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS} 
+test_VolHeader: VolHeader.C VolHeader.H
+	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS}
 
-test_DensityFlagged: DensityFlagged.C DensityFlagged.H Density.H Density.o
+test_Density: Density.C Density.H VolHeader.o
+	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS} VolHeader.o
+
+test_DensityFlagged: DensityFlagged.C DensityFlagged.H Density.H Density.o VolHeader.o
 	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS} Density.o
 
 test_SiteSigma: SiteSigma.C SiteSigma.H
@@ -52,3 +58,9 @@ clean:
 	rm -f blah* foo* *~ ${TARGETS} *.o
 
 Density.o: endian
+
+simpleview: simpleview.C
+	${CXX} -o $@ $<  -I/sw/include/qt ${CXXFLAGS} -lsimage -lCoin -lSoQt -lSimVoleon -lqt-mt
+
+volinfo: volinfo.C VolHeader.o
+	${CXX} -o $@ $^  ${CXXFLAGS}
