@@ -85,11 +85,22 @@ public:
 	      );
 
 
+
+  /// \brief Change the volume range/scale. Does not destroy the data.  Just where we think it lives
+  /// @param minX, maxX 3D space x range of voxel volume.
+  /// @param minY, maxY 3D space x range of voxel volume.
+  /// @param minZ, maxZ 3D space x range of voxel volume.
+  void rescale(const float minX, const float maxX,
+	       const float minY, const float maxY,
+	       const float minZ, const float maxZ
+	      );
+
+
   /// Add a point into the voxel structure.  Figures out which cell for you
   /// \return \a true if inside the bounding box, \a false if outside and unrecorded
   bool addPoint(const float x, const float y, const float z);
   /// Add points to a cell at \a index
-  void addPoints(const size_t index,const size_t count) {assert(isValidCell(index)); counts[index]+=count;}
+  void addPoints(const size_t index,const size_t count) {assert(isValidCell(index)); counts[index]+=count; totalPointsInside+=count;}
   /// Print to stdout the cell number and the count
   void printCellCounts() const;
   size_t getWidth()  const {return (width);} ///< num of cells wide
@@ -166,6 +177,11 @@ public:
 
   /// Return a number scaled between 0 and 255
   unsigned char scaleCount(const size_t i, const size_t min, const size_t max) const;
+
+  /// \brief fill two vectors with the count and the percent.  Both will be of size getMaxCount()
+  /// \param cdfPercent How many cells have have the value of the index or smaller?
+  /// \return \a false if there was some trouble
+  bool buildCDF(std::vector<float> &cdfpercent) const;
 
 private:
   // Computing min/max doesn't change the object, so mutable
