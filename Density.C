@@ -129,10 +129,15 @@ VolHeader::VolHeader(const size_t _width, const size_t _height, const size_t dep
 //####################################################################
 
 
-Density::Density(const size_t _width, const size_t _height, const size_t _depth,
-		 const float minX, const float maxX,
-		 const float minY, const float maxY,
-		 const float minZ, const float maxZ)
+Density::Density() {
+  cout << "FIX: make sure that later, things get setup ok.  Density()" << endl;
+}
+
+void
+Density::resize(const size_t _width, const size_t _height, const size_t _depth,
+		const float minX, const float maxX,
+		const float minY, const float maxY,
+		const float minZ, const float maxZ)
 {
   assert (_width  < 10000); // Would be bad to be much larger
   assert (_height < 10000); // Would be bad to be much larger
@@ -149,9 +154,18 @@ Density::Density(const size_t _width, const size_t _height, const size_t _depth,
   xR[0]=minX;xR[1]=maxX;
   yR[0]=minY;yR[1]=maxY;
   zR[0]=minZ;zR[1]=maxZ;
-  counts.resize(width*height*depth);
-  for (size_t i=0;i<counts.size();i++) counts[i]=0;
+  counts.resize(width*height*depth,0); // set all to zero
+  //for (size_t i=0;i<counts.size();i++) counts[i]=0;
   totalPointsInside=0;
+  return;
+} // resize()
+
+Density::Density(const size_t _width, const size_t _height, const size_t _depth,
+		 const float minX, const float maxX,
+		 const float minY, const float maxY,
+		 const float minZ, const float maxZ)
+{
+  resize(_width, _height, _depth,  minX,maxX,   minY,maxY,   minZ,maxZ);
 }
 
 bool
@@ -184,6 +198,18 @@ void Density::printCellCounts()const {
 	 << "   " << x << " " << y << " " << z 
 	 << endl;
   }
+}
+
+size_t Density::getCellFromWHD(const size_t xIndex, const size_t yIndex, const size_t zIndex) const {
+  const size_t zOff = zIndex * getWidth() * getHeight();
+  const size_t yOff = yIndex * getWidth();
+  const size_t  off = xIndex + yOff + zOff;
+  if (!isValidCell(off)) {
+    cerr << "WARNING: getCellFromWHD out of bounds" << endl;
+    FAILED_HERE;
+    return (badValue());
+  }
+  return (off);
 }
 
 size_t
@@ -219,6 +245,25 @@ void Density::getCellXYZ(const size_t index, size_t &cx, size_t &cy, size_t &cz)
 }
 
 
+size_t Density::getCellNeighbor(const size_t i, NeighborEnum which) const {
+  assert (isValidCell(i));
+  size_t cx,cy,cz;
+  getCellXYZ (i,cx,cy,cz);
+
+  size_t cxNew=cx,cyNew=cy,czNew=cz;
+  switch (which) {
+  case LEFT:  cxNew = cx - 1;  if (cxNew>cx)             return (badValue());  break;
+  case RIGHT: cxNew = cx + 1;  if (getWidth() <= cxNew)  return (badValue());  break;
+  case FRONT: cyNew = cy - 1;  if (cyNew>cy)             return (badValue());  break;
+  case BACK:  cyNew = cy + 1;  if (getHeight() <= cyNew) return (badValue());  break;
+  case BELOW: czNew = cz - 1;  if (czNew>cz)             return (badValue());  break;
+  case ABOVE: czNew = cz + 1;  if (getDepth() <= czNew)  return (badValue());  break;
+  default:
+    assert(false);
+  }
+  
+  return (getCellFromWHD(cxNew,cyNew,czNew));
+} // getCellNeighbor
 
 
 void Density::getCellCenter(const size_t cellNum, float &x, float &y, float &z) const {
@@ -377,6 +422,17 @@ bool test3() {
   return(true);
 }
 
+
+bool test4() {
+  // FIX: test these...
+  Density();
+  Density(string("filename"));
+  resize();
+  getSize();
+  getCellFromWHD();
+  getCellNeighbor();
+}
+
 int main (UNUSED int argc, char *argv[]) {
   // Put test code here
   bool ok=true;
@@ -401,6 +457,7 @@ int main (UNUSED int argc, char *argv[]) {
   if (!test1()) {FAILED_HERE;ok=false;}
   if (!test2()) {FAILED_HERE;ok=false;}
   if (!test3()) {FAILED_HERE;ok=false;} // test writing
+  if (!test4()) {FAILED_HERE;ok=false;}
 
   cout << "  " << argv[0] << " test:  " << (ok?"ok":"failed")<<endl;
   return (ok?EXIT_SUCCESS:EXIT_FAILURE);
