@@ -49,6 +49,9 @@ CXXFLAGS += -D${shell ./endian}
 
 FFLAGS := -g -Wall
 
+# Make is shut up about GSL using long double
+CXXFLAGS += -Wno-long-double
+
 ifdef OPTIMIZE
   CXXFLAGS += -O3 -funroll-loops -fexpensive-optimizations -DNDEBUG
   CXXFLAGS += -ffast-math -mtune=G4 -mcpu=G4 -mpowerpc
@@ -113,8 +116,14 @@ test_SiteSigma: SiteSigma.C SiteSigma.H
 test_s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o
 	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS} SiteSigma.o Bootstrap.o -lgsl -lgslcblas
 
-s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o
-	${CXX} -o $@ $<  ${CXXFLAGS} SiteSigma.o Bootstrap.o -lgsl -lgslcblas
+s_bootstrap_cmd.c: s_bootstrap_cmd.h
+s_bootstrap_cmd.h: s_bootstrap_cmd.ggo
+	gengetopt --input=$< --file-name=${<:.ggo=}
+s_bootstrap_cmd.o: s_bootstrap_cmd.c s_bootstrap_cmd.ggo
+	${CXX} -c $< ${CXXFLAGS}
+
+s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o s_bootstrap_cmd.o Eigs.o
+	${CXX} -o $@ $^ ${CXXFLAGS} -Wno-long-double -lgsl -lgslcblas
 
 endian: endian.C
 	${CXX} -g -Wall $< -o $@
