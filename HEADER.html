@@ -1,0 +1,81 @@
+[<a href="http://schwehr.org/index2.html">schwehr.org</a>]
+
+<center>
+<a href="density.jpg" target="dense_img"><img src="density-sml.jpg"></a>
+<h3>Density</h3>
+Tools for working with SimVoleon vol format voxel data<br>
+By Kurt Schwehr
+</center>
+<p>
+
+This project is a set of tools that I am using for my PhD thesis on
+comparing magnetic eigen parameters of sediments.  That being said,
+other that the statistical bootstrap/error modeling code, the rest of
+the code is applicable to just about any volumetric project.
+<p>
+
+I tend to think of the vol data structure as a 3D histogram.
+For each XYZ point, that adds to the count in any one cell.  Remember
+that histograms have all kinds of sampling theory problems, so use
+volume data with care.
+<p>
+
+<hr>
+
+<b>Docs:</b> <a href="html">Doxygen documentation</a> or click on the programs below for a man page.
+<p>
+
+<b>The programs:</b>
+
+<ul>
+<li> <b><a href="man/render.html">render</a></b> - Offscreen rendering of waypoints to movie frames
+<li> <b><a href="man/s_bootstrap.html">s_bootstrap</a></b> - Sigma based resampling of data points.
+<li> <b><a href="man/simpleview.html">simpleview</a></b> - Coin/Voleon OpenInventor viewer (like ivview).
+<li> <b><a href="man/xyzdensity.html">xyzdensity</a></b> - Produce a vol file from xyz dotcloud.
+<li> <b><a href="man/xyz_iv.html">xyz_iv</a></b> - Generate geometry for points and lines.
+<li> <b><a href="man/xyzvol_cmp.html">xyzvol_cmp</a></b> - Compare xyz points to a volume.  What's up with the voxel for this point.
+<li> <b><a href="man/vol2vol.html">vol2vol</a></b> - Covert between 8, 16, and 32 bit volumes. Voleon can only render 8 bit, but we want to work with 16 and 32 bit volumes.
+<li> <b><a href="man/volhdr_edit.html">volhdr_edit</a></b> - Tweak the vol header, but not the data.  Mostly to change the scale values.
+<li> <b><a href="man/volinfo.html">volinfo</a></b> - Tell all about a vol file.
+<li> <b><a href="man/vol_iv.html">vol_iv</a></b> - Make an OpenInventor file wrapper for a vol file.  Uses a cmap.
+<li> <b><a href="man/volmakecmap.html">volmakecmap</a></b> - Generate color maps from GMT like color pallet table (cpt) files.
+</ul>
+
+
+<h3>SEE ALSO:</h3>
+
+These are the main tools I use for development of <em>density</em>.
+This serves as a quick way to get to the documentation when working
+with <em>density</em>
+<p>
+
+[<a href="http://doc.coin3d.org/SIMVoleon/">SIMVoleon</a>]
+[<a href="http://doc.coin3d.org/Coin/">Coin</a>]
+[<a href="http://doc.coin3d.org/SoQt/">SoQt</a>]
+
+<br>
+[<a href="http://gcc.gnu.org/onlinedocs/">gcc/g++</a>]
+[<a href="http://cnswww.cns.cwru.edu/~chet/bash/bashtop.html">bash</a>]
+[<a href="http://www.gnu.org/software/make/">GNU Make</a>]
+[<a href="http://www.gnu.org/software/gengetopt/gengetopt.html">gengetopts</a>]
+[<a href="http://www.doxygen.org">Doxygen</a>]
+
+<br>
+[<a href="http://www.gnu.org/software/help2man/">help2man</a>]
+[<a href="http://www.oac.uci.edu/indiv/ehood/man2html.html">man2html</a>]
+[<a href="https://www.cvshome.org/">cvs</a>]
+[<a href="http://sorcerer.ucsd.edu/">pmag</a>]
+[<a href="http://www.caliban.org/ruby/acoc.shtml">acoc</a>]
+<br>
+[<a href="http://fink.sf.net/">fink</a>]
+[<a href="http://www.gnu.org/software/emacs/manual/emacs.html">emacs</a>]
+[<a href="http://www.gnu.org/software/gdb/">gdb</a>]
+[<a href="http://www.gnuplot.info/">gnuplot</a>]
+[<a href="http://www.python.org/">python</a>]
+<br>
+[<a href="http://www.gnu.org/software/gsl/">gsl</a>]
+
+
+<hr>
+
+Thanks to Ian Macdonald for adding an environment variable option to acoc!
