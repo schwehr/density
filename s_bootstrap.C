@@ -53,11 +53,6 @@ LoadS(const string filename,vector <SVec> &s,vector<float> &sigmas) {
   return (true);
 }
 
-void Print(const SVec &sv) {
-  assert(6==sv.size());
-  for(size_t i=0;i<sv.size();i++) cout << sv[i] << " ";
-}
-
 //////////////////////////////////////////////////////////////////////
 // MAIN
 //////////////////////////////////////////////////////////////////////
@@ -66,6 +61,19 @@ void Print(const SVec &sv) {
 enum BootTypeEnum { SITE_PARAMETRIC, SAMPLE_PARAMETRIC };
 
 int main(int argc, char *argv[]) {
+  if (4!=argc) {
+    cerr << endl
+	 << "Usage: " << argv[0] << " -{P,p} sFile numSamples " << endl
+	 << endl
+	 << "  -p Sample parametric bootstrap" << endl
+	 << "  -P Site   parametric bootstrap" << endl
+	 << endl
+	 << "  e.g.:  " << argv[0] << "-P as1-crypt.s 500 > as1-bootPsite"<<endl
+	 << endl;
+      exit(EXIT_FAILURE);
+  }
+
+
   gsl_rng * r;  /* global generator */
   const gsl_rng_type *T;
   gsl_rng_env_setup();
@@ -73,7 +81,6 @@ int main(int argc, char *argv[]) {
   r = gsl_rng_alloc (T);
   { unsigned long int s;  getDevRandom(s);  gsl_rng_set (r, s); } // Set the Seed
 
-  assert (4==argc);
   BootTypeEnum type;
   {
     string typestr(argv[1]);
@@ -105,7 +112,7 @@ int main(int argc, char *argv[]) {
 #endif
 
   SVec newSample(6,0.);
-  cout << setprecision(12);
+  cout << setiosflags(ios::fixed) /*<< setw(14)*/ << setprecision(10);
   for (size_t i=0;i<numSamples; i++) {
     switch (type) {
     case SITE_PARAMETRIC:   BootstrapParametricSite   (s,siteSigma,newSample, r); Print(newSample);
