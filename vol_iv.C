@@ -87,7 +87,7 @@ getPredefCmap (const int given, const char *cstr, bool &ok) {
 /// \brief Parse a string to find out what type of colormap.  Defaults to RGBA.
 /// \param cmaptype_given Bool of if the user specified anything
 /// \param cmaptype_arg What the user tried to tell us
-/// \param \a false something cookoo happened... very likely with user typos
+/// \param ok \a false something cookoo happened... very likely with user typos
 /// \return SoTransferFunction::ColorMapType of ALPHA, LUB_ALPHA, or RGBA
 SoTransferFunction::ColorMapType
 getCmapType(const int cmaptype_given, const char *cmaptype_arg, bool &ok) {
@@ -107,7 +107,7 @@ getCmapType(const int cmaptype_given, const char *cmaptype_arg, bool &ok) {
 /// \brief Read in a color map and check if it is ok
 /// \param o Output stream to write color map to
 /// \param filename File to read the color map in from
-/// \parapm cmaptype What type of color map do we have?  They have different number of columns
+/// \param cmaptype What type of color map do we have?  They have different number of columns
 /// \return \a false if there is trouble 
 bool WriteColorMap(ofstream &o, const string &filename, SoTransferFunction::ColorMapType cmaptype)  {
   DebugPrintf(TRACE,("WriteColorMap: %s %d\n",filename.c_str(), int(cmaptype)));
