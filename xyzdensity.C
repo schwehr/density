@@ -58,6 +58,9 @@ using namespace std;
 /// Let the debugger find out which version is being used.
 static const UNUSED char* RCSid ="@(#) $Id$";
 
+//######################################################################
+// LOCAL FUNCTIONS
+//######################################################################
 
 bool LoadData(const string &filename, Density &d) {
 
@@ -75,29 +78,6 @@ bool LoadData(const string &filename, Density &d) {
 //######################################################################
 
 int main (int argc, char *argv[]) {
-#if 0
-  cout << "Starting " << argv[0] << endl;
-  assert(3==argc);
-  const string filename(argv[1]);//("as2-slump.xyz");
-  const int numCellsInt(atoi(argv[2]));
-  assert (0<numCellsInt);
-  const size_t numCells(numCellsInt);
-
-  Density d(numCells,numCells,numCells, -0.5,0.5,  -0.5,0.5,  -0.5,0.5);
-
-  vector<float> x,y,z;
-  ifstream in(filename.c_str(),ios::in);
-  {
-    float _x,_y,_z;
-    while (in >> _x >> _y >> _z) {
-      x.push_back(_x);y.push_back(_y);z.push_back(_z);
-      d.addPoint(_x,_y,_z);
-    }
-  }
-  //d.printCellCounts();
-  d.writeVolScale(string("density.vol"));
-#endif
-
 
   gengetopt_args_info a;
   if (0!=cmdline_parser(argc,argv,&a)) {
@@ -145,7 +125,7 @@ int main (int argc, char *argv[]) {
 	 << endl;
   }
 
-  //if (!dens.writeVol(outfile,size_t(a.bpv_arg),packing,0.f,0.f,0.f)) {
+  // FIX: add rotation handling
   if (!dens.writeVol(outfile,size_t(a.bpv_arg),packing)) {
     cerr << " ERROR: Unable to correctly write out vol file" << endl;
     return(EXIT_FAILURE);
