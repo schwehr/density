@@ -1,5 +1,10 @@
+
+
 CXXFLAGS := -Wall -Wimplicit -pedantic -W -Wstrict-prototypes -Wredundant-decls
 CXXFLAGS += -I/sw/include -L/sw/lib
+
+# This is a cheap hack to prebuild endian
+ENDIAN_DUMMY:=${shell make -f Makefile.endian}
 CXXFLAGS += -D${shell ./endian}
 
 FFLAGS := -g -Wall
