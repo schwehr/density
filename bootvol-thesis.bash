@@ -32,46 +32,7 @@
 # Debugging
 ######################################################################
 
-declare -ri EXIT_FAILURE=1
-declare -ri EXIT_SUCCESS=0
-
-
-declare -ri TERSE=1
-declare -ri TRACE=4
-declare -ri VERBOSE=8
-declare -ri BOMBASTIC=16
-
-if [ -z "$VERBOSITY" ]; then
-    declare -i debugLevel=4
-else
-    declare -i debugLevel=$VERBOSITY
-fi
-
-# Twisted way to get down to the fundamental script name.
-tmp=${0##/*/}
-tmp=${tmp%%.bash}
-tmp=${tmp##*.}
-tmp=${tmp##*/}
-declare -r SCRIPT_NAME=$tmp
-
-# $1 is the level to compare against debugLevel
-# $2 is line number
-# $3 is the string to echo to stdout.
-DebugEcho()
-{
-    declare -ir val=$1
-    if [ "$debugLevel" -ge "$val" ]; then
-	#echo $2
-	echo "${SCRIPT_NAME}.bash:$2: (`printf "%02d" $1`) $3"
-    fi
-}
-
-#DebugEcho $TERSE     "Terse is on"
-#DebugEcho $TRACE     "Trace is on"
-DebugEcho $VERBOSE    $LINENO  "Verbose is on"
-DebugEcho $BOMBASTIC  $LINENO  "Bombastic is on"
-
-DebugEcho $TERSE $LINENO "debugLevel           = $debugLevel"
+. debug.bash
 
 ######################################################################
 # Local tuning
@@ -81,7 +42,14 @@ DebugEcho $TERSE $LINENO "debugLevel           = $debugLevel"
 
 export PATH=${PATH}:.:..
 declare -ir cells=100
-declare -ir draw=25000
+if [ -z "$DENSITY_DRAW" ]; then
+    declare -ir draw=25000
+else
+    declare -ir draw=$DENSITY_DRAW
+fi
+DebugEcho $TRACE $LINENO "draw = $draw"
+
+
 declare -ar groups=( as1-crypt as2-slump as3-undef )
 declare -r w=0.5
 declare -r boundaries="-x -${w} -X ${w} -y -${w} -Y ${w} -z -${w} -Z ${w}"
