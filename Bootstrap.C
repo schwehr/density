@@ -31,6 +31,14 @@ BootstrapParametricSample(const vector<SVec> &s, const vector<float> &sigmas,
     //cout << i << " delta = " << delta << endl;
     newSample[i] = s[sampleNum][i] + delta;
   }
+
+  // FIX: keep or not for normalize?
+  {
+    static bool done=false;if(!done){cerr<<"normalize"<<endl;done=true;}
+    const float trace=newSample[0]+newSample[1]+newSample[2];
+    for (size_t i=0;i<6;i++) newSample[i]/=trace;
+  }
+
 #ifdef REGRESSION_TEST
   cout << sampleNum << " Sample Was: "; Print(s[sampleNum]);
   cout << sampleNum << " Sample Now: "; Print(newSample);
@@ -60,6 +68,14 @@ BootstrapParametricSite(const vector<SVec> &s, const float sigma, //const vector
     //cout << i << " delta = " << delta << endl;
     newSample[i] = s[sampleNum][i] + delta;
   }
+
+  // FIX: keep or not for normalize?
+  {
+    static bool done=false;if(!done){cerr<<"normalize"<<endl;done=true;}
+    const float trace=newSample[0]+newSample[1]+newSample[2];
+    for (size_t i=0;i<6;i++) newSample[i]/=trace;
+  }
+
 #ifdef REGRESSION_TEST
   cout << sampleNum << " Sample Was: "; Print(s[sampleNum]);
   cout << sampleNum << " Sample Now: "; Print(newSample);
