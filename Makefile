@@ -261,6 +261,7 @@ clean:
 
 real-clean: clean
 	rm -rf doc
+	rm -f .gdb_history
 
 # FIX: make optimize print on or off
 info:
@@ -274,6 +275,33 @@ info:
 	@echo " GENGETOPT GGOs  -  " ${GGOS:.ggo=}
 	@echo " GENGETOPT_BINS  -  " ${GENGETOPT_BINS}
 
+
+# When you need to "RTFS/RTFM"... get the latest
+CVSROOT_SIM:= ":pserver:cvs@cvs.coin3d.org:/export/cvsroot"
+sim-cvs-login:
+	-mkdir tmp
+	cd tmp && export CVSROOT=${CVSROOT_SIM} && cvs login
+get-cvs-coin:
+	-mkdir tmp
+	cd tmp && export CVSROOT=${CVSROOT_SIM} && cvs get Coin
+get-cvs-soguiexamples:
+	-mkdir tmp
+	cd tmp && export CVSROOT=${CVSROOT_SIM} && cvs -z3 get SoGuiExamples
+get-cvs-soqt:
+	-mkdir tmp
+	cd tmp && export CVSROOT=${CVSROOT_SIM} && cvs -z3 get SoQt
+get-cvs-dime:
+	-mkdir tmp
+	cd tmp && export CVSROOT=${CVSROOT_SIM} && cvs -z3 get dime
+get-cvs-smallchange:
+	-mkdir tmp
+	cd tmp && export CVSROOT=${CVSROOT_SIM} && cvs -z3 get SmallChange
+get-cvs-voleon:
+	-mkdir tmp
+	cd tmp && export CVSROOT=${CVSROOT_SIM} && cvs -z3 get SIMVoleon
+get-cvs-soxt:
+	-mkdir tmp
+	cd tmp && export CVSROOT=${CVSROOT_SIM} && cvs -z3 get SoXt
 
 
 ############################################################
