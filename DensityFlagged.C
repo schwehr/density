@@ -50,6 +50,9 @@ using namespace std;
  ***************************************************************************/
 
 #include "debug.H" // provides FAILED_HERE, UNUSED, DebugPrintf
+#ifdef REGRESSION_TEST
+int debug_level=0;
+#endif
 
 /// Let the debugger find out which version is being used.
 static const UNUSED char* RCSid ="@(#) $Id$";
@@ -193,7 +196,7 @@ void DensityFlagged::buildBlob(const float percent) {
 void DensityFlagged::printBlob() const {
   cout << "  *** BLOB OF DOOM ***" << endl <<endl;
   const float total=float(getCountInside());
-  size_t cnts; // Running total
+  size_t cnts=0; // Running total
   for (size_t i=0;i<used.size();i++) {
     cnts += counts[used[i]];
     cout << i << ":  cell=" << used[i] << "  cnts=" << counts[used[i]] 
