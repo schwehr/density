@@ -40,3 +40,11 @@ option "depth" d "Num voxels in the z direction" int default="10" no
 option "pack" p "How to scale/fit counts into voxels.\n 0=PACK_SCALE, 1=PACK_CLIP, 2=PACK_WRAP" int default="0" no
 
 option "bpv" b "Bits per voxel.  This is an unsigned data type.\nCan be 8, 16, or 32." int default="8" no
+
+# if autoscale, ignore [xyz]scale
+option "autoscale" a "Let the voxel and real axes determine the scale.  May be broken!" no
+
+# What are goood short letters?
+option "xscale" j "Scale the voxels.  Seems to behave funny if not 1" float default="1.0" no
+option "yscale" k "Scale the voxels.  Seems to behave funny if not 1" float default="1.0" no
+option "zscale" l "Scale the voxels.  Seems to behave funny if not 1" float default="1.0" no
