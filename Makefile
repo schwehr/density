@@ -21,7 +21,9 @@ TARGETS:= makeCDF histogram s_bootstrap xyzdensity endian
 #TARGETS+= AMScrunch
 
 # TESTING TARGETS:
-TARGETS+= test_s_bootstrap test_SiteSigma test_Density
+TARGETS+= test_s_bootstrap test_SiteSigma
+TARGETS+= test_Density
+TARGETS+= test_DensityFlagged
 
 targets: ${TARGETS}
 
@@ -30,6 +32,9 @@ xyzdensity: xyzdensity.C Density.o
 
 test_Density: Density.C Density.H
 	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS} 
+
+test_DensityFlagged: DensityFlagged.C DensityFlagged.H Density.H Density.o
+	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS} Density.o
 
 test_SiteSigma: SiteSigma.C SiteSigma.H
 	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS} 
