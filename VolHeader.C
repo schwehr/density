@@ -135,7 +135,7 @@ VolHeader::VolHeader(const size_t _width, const size_t _height, const size_t dep
 {
   magic_number=hMagicNum();
   header_length=requiredSize();
-  assert(52==header_length);
+  assert(52==header_length);  // Can't handle header with extra padding yet.
 
   width =_width;
   height=_height;
@@ -278,6 +278,8 @@ size_t VolHeader::write(FILE *o) {
     fBuf = hton_float(getRotZ()); bytes += (r=fwrite(&fBuf,1,sizeof(float),o));
     if (sizeof(float)!=r) {perror("header write trouble"); return(bytes);}
   }
+
+  assert(52==getHeaderLength());  // FIX: add padding?? if header is longer than 52?
 
   return(bytes);
 }
