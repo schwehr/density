@@ -27,3 +27,9 @@ purpose "Coin/SimVoleon viewer of OpenInventor, VRML, and Voxel data"
 
 option "verbosity" v "Set the verbosity level (0=quiet 10=verbose 20=bombastic)" int default="0" no
 
+option "width" W "Width of rendered frames in pixels" int default="800" no
+option "height" H "Height of rendered frames in pixels" int default="600" no
+
+option "basename" b "Basename to use when creating output files" string default="moose_poop-"
+
+option "list" l "List the output file formats available for dumping images" no
