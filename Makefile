@@ -228,7 +228,8 @@ tar: ${GEN_CFILES} ${GENGETOPT_BINS} test
 	@echo
 	cp *.{C,H,ggo,c,h,help2man,bash} ${TARNAME}/
 	@echo
-	cp AUTHOR ChangeLog Doxyfile LICENSE.LGPL Makefile README.txt TODO VERSION ${TARNAME}/
+	cp AUTHOR ChangeLog Doxyfile INSTALL LICENSE.LGPL ${TARNAME}/
+	cp Makefile README.txt TODO VERSION ${TARNAME}/
 	@echo
 	tar cf ${TARNAME}.tar ${TARNAME}
 	bzip2 -9 ${TARNAME}.tar
