@@ -102,19 +102,41 @@ int main (int argc, char *argv[]) {
   {
     o << "Separator { " << endl;
 
+    if (a.scale_given) o << "\tScale { scaleFactor " 
+			 << a.scale_arg << " " << a.scale_arg << " " << a.scale_arg
+			 << "} " << endl;
 
+    if (a.box_given)
+      o << "\tSeparator {" << endl
+	<< "\t\tDrawStyle { style LINES }" << endl
+	<< "\t\tPickStyle { style UNPICKABLE }" << endl
+	<< "\t\tCube { width "<<a.box_arg<<" height "<<a.box_arg<<" depth "<<a.box_arg<<"}" << endl
+	<< "\t}" << endl;
     o << "\tSoVolumeData {" << endl
       << "\t\tfileName \"" << a.inputs[0] << "\"" << endl
       << "\t}" <<endl
       ;
 
-    o << "\tSoTransferFunction {" << endl
-      << "\t\tpredefColorMap TEMPERATURE" << endl
-      << "\t}" << endl;
 
+    o << "\tSoTransferFunction {" << endl;
+    if(a.predefcmap_given) o << "\t\tpredefColorMap " << a.predefcmap_arg << endl;
+    if(a.cmaptype_given) o << "\t\tcolorMapType" << a.cmaptype_arg << endl;
+    if(a.cmap_given) {
+      o << "\t\tcolorMap [ ";
+      cerr << "FIX: write out a color map here" << endl;
+      o << "\t\t]" << endl;
+    }
+    o << "\t}" << endl;
+
+    // file:///sw/share/SIMVoleon/html/classSoVolumeRender.html
     o << "\tSoVolumeRender {" << endl;
-    //o << "    fields [ SFEnum interpolation, SFEnum composition, SFBool lighting, SFVec3f lightDirection, SFFloat lightIntensity, SFEnum numSlicesControl, SFInt32 numSlices, SFBool viewAlignedSlices ]" << endl;
-    o << "\t\tinterpolation LINEAR" << endl;
+    if (a.interpolation_given)    o << "\t\tinterpolation "    << a.interpolation_arg << endl;
+    if (a.composition_given)      o << "\t\tcompsition "       << a.composition_arg << endl;
+    if (a.numslicescontrol_given) o << "\t\tnumSlicesControl " << a.numslicescontrol_arg << endl;
+    if (a.numslices_given)        o << "\t\tnumSlices "        << a.numslices_arg << endl;
+
+
+    //o << "\t\tinterpolation LINEAR" << endl;
     //o << "    #composition SUM_INTENSITY" << endl;
     //o << "    #composition MAX_INTENSITY" << endl;
     //o << "    numSlicesControl ALL" << endl;
@@ -124,7 +146,7 @@ int main (int argc, char *argv[]) {
 
     o << "} # End of safety separator" << endl;
   }
-  o << "# END OF VOLUME WRAPPER FILE" << endl;
+  o << endl << "# EOF ( " << a.out_arg << " )" << endl;
 
 
   return (ok?EXIT_SUCCESS:EXIT_FAILURE);
