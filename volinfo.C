@@ -78,7 +78,7 @@ int main (const int argc, char *argv[]) {
     bool r;
     VolHeader v(filename,r);
     if (!r) {ok=false; cerr << "Failed to read file: " << filename << endl; continue;}
-
+    cout << endl;
     cout << "FILE:    " << filename << endl
 	 << "magic_number   = " << v.getMagicNumber() << endl
 	 << "header_length  = " << v.getHeaderLength() << endl
@@ -86,6 +86,9 @@ int main (const int argc, char *argv[]) {
 	 << "height = " << v.getHeight() << "   (y)" << endl
 	 << "images = " << v.getImages()  << "   (depth/z)" << endl
       ;
+    cout << "bits_per_voxel = " << v.getBitsPerVoxel() << "       bytes = "<<v.getBitsPerVoxel()/8<< endl
+	 << "index_bits = " << v.getIndexBits() << endl;
+
     cout << "scaleX = " << v.getScaleX() << endl
 	 << "scaleY = " << v.getScaleY() << endl
 	 << "scaleZ = " << v.getScaleZ() << endl
