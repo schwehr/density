@@ -421,6 +421,47 @@ bool InRange (const float check, const float v1, const float v2) {
   return (true);
 }
 
+
+
+
+/// \brief interpolate between two draggers and render a frame to disk
+bool WaypointRenderFrameToDisk (const SoSpotLightDragger *d1, const SoSpotLightDragger *d2,
+				const float cur_percent, SoCamera *camera, 
+				const string &basename, const string &typeStr,
+				const int width, const int height,
+				SoNode *root, size_t &frame_num
+				) 
+{
+  assert(d1);      assert(d2);
+  assert(camera);  assert(root);
+
+  SbVec3f pos1 = d1->translation.getValue();
+  SbVec3f pos2 = d2->translation.getValue();
+
+  vector<float> v1 = ToVector(pos1);
+  vector<float> v2 = ToVector(pos2);
+  
+  vector<float> v3 = InterpolatePos (v1,v2,cur_percent);
+  SbVec3f pos3 = ToSbVec3f (v3);
+ 
+  camera->position = pos3;
+
+  SbRotation rot1 = d1->rotation.getValue();
+  SbRotation rot2 = d2->rotation.getValue();
+  SbRotation newRot = SbRotation::slerp (rot1, rot2, cur_percent);
+  camera->orientation = newRot;
+
+  DebugPrintf (TRACE,("ANIMATION: Rendering frame to disk file\n"));
+  if (!RenderFrameToDisk (basename,typeStr, width, height, root, frame_num) ) {
+    cerr << "ERROR: unable to write frame" << endl;
+    return (false);
+  }
+  DebugPrintf(VERBOSE,("ANIMATION: Finished writing frame number %04d\n",int(frame_num)));
+  return (true);
+}
+
+
+
 /***************************************************************************
  * MAIN
  ***************************************************************************/
@@ -526,6 +567,9 @@ int main(int argc, char *argv[])
   // ANIMATE - no timer needed!
   //////////////////////////////
 
+  const string basenameStr(a.basename_arg);
+  const string typeStr(a.type_arg);
+
   // -1 cause we do not want to render past last waypoint
   // we are going from the current way point in wpt to the next waypoint
   // FIX: don't miss last frame
@@ -538,32 +582,36 @@ int main(int argc, char *argv[])
 
     for (float cur_percent=0.; cur_percent < 1.0; cur_percent += a.percent_arg) {
       cout << "percent: " << cur_percent << endl;
-       SbVec3f pos1 = d1->translation.getValue();
-       SbVec3f pos2 = d2->translation.getValue();
+      size_t frame_num;
 
-       vector<float> v1 = ToVector(pos1);
-       vector<float> v2 = ToVector(pos2);
-  
-       vector<float> v3 = InterpolatePos (v1,v2,cur_percent);
-       SbVec3f pos3 = ToSbVec3f (v3);
- 
-       si->camera->position = pos3;
+      const bool r = WaypointRenderFrameToDisk (d1,d2, cur_percent, si->camera, 
+						basenameStr, typeStr,
+						a.width_arg, a.height_arg,
+						si->root, frame_num
+						);
+      if (!r) {
+	cerr << "ERROR: failed to write a frame.  I give up." << endl;
+	exit(EXIT_FAILURE);
+      }
+    } // for cur_percent
+  } // for wpt
 
-       SbRotation rot1 = d1->rotation.getValue();
-       SbRotation rot2 = d2->rotation.getValue();
-       SbRotation newRot = SbRotation::slerp (rot1, rot2, cur_percent);
-       si->camera->orientation = newRot;
-
-       DebugPrintf (TRACE,("ANIMATION: Rendering frame to disk file\n"));
-       size_t frame_num;
-       if (!RenderFrameToDisk (string(a.basename_arg),string(a.type_arg),
-			       a.width_arg, a.height_arg,
-			       si->root, frame_num)
-	   ) {
-	 cerr << "ERROR: unable to write your artistic work.  You have been sensored.  Not my fault." << endl;
-       }
-       DebugPrintf(TRACE+1,("ANIMATION: Finished writing frame number %04d\n",int(frame_num)));
+  // Render that last missing frame.  If looping to start, we do not need this frame
+  if (!a.loop_flag) {
+    DebugPrintf (TRACE,("Rendering final frame.\n"));
+    size_t frame_num;
+    const bool r = WaypointRenderFrameToDisk (si->draggerVec[si->draggerVec.size()-1],
+					      si->draggerVec[si->draggerVec.size()-1],
+					      0., si->camera, 
+					      basenameStr, typeStr,
+					      a.width_arg, a.height_arg,
+					      si->root, frame_num
+					      );
+    if (!r) {
+      cerr << "ERROR: failed to write a frame.  I give up." << endl;
+      exit(EXIT_FAILURE);
     }
+
   }
 
   return (ok?EXIT_SUCCESS:EXIT_FAILURE);
