@@ -8,4 +8,8 @@ fi
 
 # FIX: what if this is in the local directory?
 # Then do not want bin.
-@FINK@/bin/simpleview_bin $*
+#@FINK@/bin/simpleview_bin $*
+
+# Assumes they live in the same directory
+cmd="`dirname $0`/simpleview_bin $*"
+$cmd
