@@ -99,12 +99,18 @@ Density::addPoint(const float x, const float y, const float z) {
 }
 
 void Density::printCellCounts()const {
+  cout << "# " << endl
+<< "# i cx cy cz counts x y z " << endl
+<< "# " << endl
+<< "# " << endl
+    ;
   for (size_t i=0; i<width*height*depth;i++) {
     float x,y,z; getCellCenter(i,x,y,z);
     size_t cx,cy,cz;
-    cout << i << " " << counts[i] 
-	 << " " << cx << " " << cy << " " << cz 
-	 << " " << x << " " << y << " " << z 
+    getCellXYZ(i,cx,cy,cz);
+    cout << i << "   " << counts[i] 
+	 << "   " << cx << " " << cy << " " << cz 
+	 << "   " << x << " " << y << " " << z 
 	 << endl;
   }
 }
@@ -128,21 +134,33 @@ Density::getCell(const float x, const float y, const float z) const {
 }
 
 void Density::getCellXYZ(const size_t index, size_t &cx, size_t &cy, size_t &cz) const {
+  assert (isValidCell(index));
+  assert (index<1000000);
   cz = index/(getWidth() * getHeight());
-  const size_t i2=index-cz*getDepth();
+  const size_t i2=index-cz*(getWidth() * getHeight());
+  assert (i2<100000);
   cy = i2/getWidth();
   cx = i2 - cy*getWidth();
+  //cout << "getCellXYZ:  " << index << " " << cx << " " << cy << " " << cz << endl;
+  assert (cx<100000);
+  assert (cy<100000);
+  assert (cz<100000);
 }
 
 
 
 
 void Density::getCellCenter(const size_t cellNum, float &x, float &y, float &z) const {
+  assert(isValidCell(cellNum));
   size_t cx, cy, cz;  // number of cells from the origin
   getCellXYZ(cellNum,cx,cy,cz);
-  x = (cx+0.5) * dx;
-  y = (cy+0.5) * dy;
-  z = (cz+0.5) * dz;
+  //cout << "cIndex: " << cx << " " <<cy<<" "<<cz<<endl;
+  assert (cx<1000000);
+  assert (cy<1000000);
+  assert (cz<1000000);
+  x = xR[0] + (cx+0.5) * dx;
+  y = yR[0] + (cy+0.5) * dy;
+  z = zR[0] + (cz+0.5) * dz;
 }
 
 //####################################################################
@@ -189,6 +207,41 @@ bool test2() {
   d.addPoint(1.5,.1,.1);
   if (1!=d.getCellCount(0))     {FAILED_HERE;return(false);}
   if (1!=d.getCellCount(1))     {FAILED_HERE;return(false);}
+
+#if 0
+  {
+    cout << "Danger: "<< endl;
+    Density dx(10,1,1,  -5,5.,  0.,1.,  0.,1.);
+    for (size_t i=0;i<10;i++) {
+      float x,y,z;
+      dx.getCellCenter(i,x,y,z);
+      cout << " " << x << " " << y << " " << z << endl;
+    }
+  }
+#endif
+#if 0
+  {
+    cout << "Danger: Y"<< endl;
+    Density dy(1,10,1,  0,1.,  -5.,5.,  0.,1.);
+    for (size_t i=0;i<10;i++) {
+      float x,y,z;
+      dy.getCellCenter(i,x,y,z);
+      cout << " Y: " << x << " " << y << " " << z << endl;
+    }
+  }
+#endif
+
+#if 0
+  {
+    cout << "Danger: Z"<< endl;
+    Density dy(1,1,10,  0,1.,  0.,1.,  -5.,5.);
+    for (size_t i=0;i<10;i++) {
+      float x,y,z;
+      dy.getCellCenter(i,x,y,z);
+      cout << " Y: " << x << " " << y << " " << z << endl;
+    }
+  }
+#endif
 
   return(true);
 } // test2
