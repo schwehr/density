@@ -80,7 +80,9 @@
 #include <Inventor/draggers/SoSpotLightDragger.h>
 
 // Voleon Includes
+#ifndef NO_VOLEON
 #include <VolumeViz/nodes/SoVolumeRendering.h>
+#endif
 
 // local includes
 #include "render_cmd.h"
@@ -492,8 +494,9 @@ int main(int argc, char *argv[])
   //
   SoDB::init();
   SoInteraction::init();  // Initialize for draggers
+#ifndef NO_VOLEON
   SoVolumeRendering::init();
-
+#endif
 
   if (a.type_given)
     if (!CheckTypeValid(string(a.type_arg)))
