@@ -178,7 +178,18 @@ test_s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o
 
 
 ######################################################################
+# Weird tweaks
+
+simpleview.help2man: simpleview simpleview.help2man.in
+	/bin/cp simpleview.help2man.in simpleview.help2man
+	@echo Generating file format text
+	./simpleview -l >> simpleview.help2man
+	@echo Generating keyboard shortcut text
+	./simpleview -k >> simpleview.help2man
+
+######################################################################
 # Worker Bees
+
 
 # TARGETS includes TEST_BINS
 test: ${TARGETS}
@@ -200,7 +211,7 @@ docs:
 
 # to view a man page:
 # groff -Tascii -man xyzdensity.1 | less
-man: ${GENGETOPT_BINS}
+man: ${GENGETOPT_BINS} simpleview.help2man
 	mkdir -p doc/man/man1
 	for file in ${GENGETOPT_BINS}; do echo Processing $$file;help2man -N ./$$file --opt-include $$file.help2man > doc/man/man1/$$file.1; done
 
