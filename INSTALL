@@ -58,3 +58,10 @@ Now build and test the package:
 
 	make clean
 	make targets-no-test OPTIMIZE=1
+
+11. Install - Put the programs somewhere, for example:
+
+	cp s_bootstrap simpleview xyzdensity xyz_iv xyzvol_cmp vol2vol \
+		volhdr_edit volinfo vol_iv volmakecmap histogram makeCDF \
+		~/bin
+
