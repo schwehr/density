@@ -93,15 +93,17 @@ int main (int argc, char *argv[]) {
     return (EXIT_FAILURE);
   }
 
-  //#ifdef NDEBUG
-  //if (a.verbosity_given) {
-  //cerr << "Verbosity is totally ignored for optimized code.  Continuing in silent mode" << endl;
-  //}
-  //#else // debugging
   debug_level = a.verbosity_arg;
+  DebugPrintf(TERSE,("Starting %s\n",argv[0]));
   DebugPrintf(TRACE,("Debug level = %d\n",debug_level));
-  //#endif
-  
+#ifndef NDEBUG
+  if (debug_level>=VERBOSE) {
+    cout << "Command line: ";
+    for (int i=0;i<argc;i++) cout << argv[i] << " ";
+    cout << endl;
+  }
+#endif  
+
   if (0!=a.pack_arg && 1!=a.pack_arg && 2!=a.pack_arg) {
     cerr << endl 
 	 << "ERROR: Packing must be 0, 1, or 2!" << endl
