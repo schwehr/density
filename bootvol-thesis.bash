@@ -37,13 +37,6 @@
 # Local tuning
 ######################################################################
 
-die()
-{
-    declare -ir line=$1
-    echo "ERROR: Command failed at line $line"
-    exit $EXIT_FAILURE
-}
-
 export PATH=${PATH}:.:..
 declare -ir cells=100
 if [ -z "$DENSITY_DRAW" ]; then
@@ -162,9 +155,7 @@ DebugEcho $TERSE $LINENO "# Owens Lake #"
 DebugEcho $TERSE $LINENO "##############"
 
 
-#declare -ar ol_groups=( g1-fluidized g2-undeformed g3-sheared g4-little-def g5-intermediate )
-declare -ar ol_groups=( g2-undeformed )
-
+declare -ar ol_groups=( g1-fluidized g2-undeformed g3-sheared g4-little-def g5-intermediate )
 
 if [ ! -e "rosenbaum-ams-stripped.dat" ]; then
     DebugEcho $ALWAY $LINENO "ERROR: Must have rosenbaum-ams-stripped.dat to continue.  Bye" 
@@ -198,7 +189,7 @@ if [ 1 == 1 ]; then
 	echo "Only doing 8 bpv"
 	#args=" -p 1  --bpv=16 -w ${cells} -t ${cells} -d ${cells} --verbosity=$debugLevel"
 	args=" -p 1  --bpv=8 -w ${cells} -t ${cells} -d ${cells} --verbosity=$debugLevel"
-	if [ ! -e ${group}-vmax.vol ]; then
+	if [ ! -e ${group}-vmax-8.vol ]; then
 	    xyzdensity ${group}-boot-vmax.xyz --out=${group}-vmax-8.vol $args $boundaries || die $LINENO
 	    xyzdensity ${group}-boot-vint.xyz --out=${group}-vint-8.vol $args $boundaries || die $LINENO
 	    xyzdensity ${group}-boot-vmin.xyz --out=${group}-vmin-8.vol $args $boundaries || die $LINENO
@@ -242,18 +233,18 @@ if [ 1 == 1 ]; then
 	#
 	s_eigs < $group.s > $group.eigs
 	eigs2xyz.py $group.eigs > $group.xyz
-	awk '{print $1,$2,$3}' $group.xyz > $group.xyz.vmin || die $LINENO
-	awk '{print $4,$5,$6}' $group.xyz > $group.xyz.vint || die $LINENO
-	awk '{print $7,$8,$9}' $group.xyz > $group.xyz.vmax || die $LINENO
+	awk '{print $1,$2,$3}' $group.xyz > $group-vmin.xyz || die $LINENO
+	awk '{print $4,$5,$6}' $group.xyz > $group-vint.xyz || die $LINENO
+	awk '{print $7,$8,$9}' $group.xyz > $group-vmax.xyz || die $LINENO
 
-	xyz_iv $box -p --color="1 0 0" --out=$group.xyz.vmin.iv -v 3 $group.xyz.vmin || die $LINENO
-	xyz_iv $box -p --color="1 1 0" --out=$group.xyz.vint.iv -v 3 $group.xyz.vint || die $LINENO
-	xyz_iv $box -p --color="0 0 1" --out=$group.xyz.vmax.iv -v 3 $group.xyz.vmax || die $LINENO
+	xyz_iv $box -p --color="1 0 0" --out=$group-vmin.xyz.iv -v 3 $group-vmin.xyz || die $LINENO
+	xyz_iv $box -p --color="1 1 0" --out=$group-vint.xyz.iv -v 3 $group-vint.xyz || die $LINENO
+	xyz_iv $box -p --color="0 0 1" --out=$group-vmax.xyz.iv -v 3 $group-vmax.xyz || die $LINENO
     done
 fi
 
 ######################################################################
 
-echo
-echo Done with $0
+DebugEcho $TERSE $LINENO "Done with $0"
+
 
