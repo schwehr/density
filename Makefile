@@ -73,6 +73,7 @@ CFLAGS := ${CXXFLAGS} -Wimplicit-int -Wimplicit-function-declaration -Wnested-ex
 
 # These are programs that give --help for help2man
 GENGETOPT_BINS := s_bootstrap
+GENGETOPT_BINS += simpleview
 GENGETOPT_BINS += xyzdensity
 GENGETOPT_BINS += xyz_iv
 GENGETOPT_BINS += xyzvol_cmp
@@ -85,7 +86,6 @@ BINS := ${GENGETOPT_BINS}
 BINS += makeCDF
 BINS += histogram
 BINS += endian
-BINS += simpleview
 #BINS+= AMScrunch
 
 # TESTING TARGETS:
@@ -111,6 +111,9 @@ targets: ${TARGETS} test
 s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o s_bootstrap_cmd.o Eigs.o
 	${CXX} -o $@ $^ ${CXXFLAGS} -Wno-long-double -lgsl -lgslcblas
 
+simpleview: simpleview_cmd.o simpleview.C
+	${CXX} -o $@ $^  -I/sw/include/qt ${CXXFLAGS} -lsimage -lCoin -lSoQt -lSimVoleon -lqt-mt
+
 xyzdensity: xyzdensity.C Density.o VolHeader.o xyzdensity_cmd.o
 	${CXX} -o $@ $^ ${CXXFLAGS}
 
@@ -135,12 +138,7 @@ vol_iv: vol_iv.C vol_iv_cmd.o
 ######################################################################
 # Regular commands sans GENGETOPT
 
-simpleview: simpleview.C
-	${CXX} -o $@ $<  -I/sw/include/qt ${CXXFLAGS} -lsimage -lCoin -lSoQt -lSimVoleon -lqt-mt
-
-endian: endian.C
-	${CXX} -g -Wall $< -o $@
-
+# Do not need to be here unless they need some extra flags
 
 ######################################################################
 # Test Programs
@@ -168,7 +166,7 @@ test_s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o
 
 
 ######################################################################
-
+# Worker Bees
 
 test: ${TEST_BINS}
 	@for file in ${TEST_BINS}; do \
