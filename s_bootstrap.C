@@ -55,9 +55,10 @@ using namespace std;
  ***************************************************************************/
 
 #include "debug.H" // provides FAILED_HERE, UNUSED, DebugPrintf
-#ifndef NDEBUG
+//#ifndef NDEBUG
+// Can be used even in non-debug mode for huge runs
 int debug_level;
-#endif
+//#endif
 
 /***************************************************************************
  * GLOBALS
@@ -193,6 +194,9 @@ bool DoS_Bootstrap(const vector<string> &inFiles,
 
     // Draw out and bootstrap 'draw' number of samples
     for (size_t i=0;i<size_t(draw); i++) {
+      if (10<=debug_level) { if (0==i%100000) cout << i <<" "<<i/float(draw) << endl; }
+      else if (4<=debug_level) { if (0==i%1000000) cout << i <<" "<<i/float(draw) << endl; }
+
       switch (type) {
       case SITE_PARAMETRIC:   BootstrapParametricSite   (s,siteSigma,newSample, r); break;
       case SAMPLE_PARAMETRIC: BootstrapParametricSample (s,sigmas   ,newSample, r); break;
@@ -251,14 +255,14 @@ int main (const int argc, char *argv[]) {
     return (EXIT_FAILURE);
   }
 
-#ifdef NDEBUG
-  if (a.verbosity_given) {
-    cerr << "Verbosity is totally ignored for optimized code.  Continuing in silent mode" << endl;
-  }
-#else // debugging
-  debug_level = a.verbosity_arg;
+  //#ifdef NDEBUG
+  //if (a.verbosity_given) {
+  //  cerr << "Verbosity is totally ignored for optimized code.  Continuing in silent mode" << endl;
+  //}
+  //#else // debugging
+  debug_level = a.verbosity_arg; // now used even in OPTIMIZE mode
   DebugPrintf(TRACE,("Debug level = %d",debug_level));
-#endif
+  //#endif
 
   vector<string> inFiles;
   if (0==a.inputs_num) {cerr << "ERROR: must specify at least one input file" << endl; return(EXIT_FAILURE);}
