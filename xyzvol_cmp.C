@@ -42,6 +42,7 @@
 
 // Local includes
 #include "Density.H"
+#include "VecAngle.H"
 
 #include "xyzvol_cmp_cmd.h"
 
@@ -79,6 +80,11 @@ int main (int argc, char *argv[]) {
     cout << endl;
   }
 #endif  
+
+  if (0==a.inputs_num) {
+    cerr << "ERROR: must specify input xys files to compare to the volume" << endl;
+    exit(EXIT_FAILURE);
+  }
 
   bool r;
   string densityFileName(a.density_arg);
@@ -118,6 +124,7 @@ int main (int argc, char *argv[]) {
     }
   }
 
+
   for (size_t filenum=0;filenum < a.inputs_num; filenum++) {
     DebugPrintf(TRACE,("testing file: %s\n",a.inputs[filenum]));
     ifstream in(a.inputs[filenum],ios::in);
@@ -134,16 +141,35 @@ int main (int argc, char *argv[]) {
       float x,y,z;
     
       istr >> x >> y >> z;
-      const size_t cellIndex = d.getCell(x,y,z);
-      const size_t count = d.getCellCount(cellIndex);
-      if (use_cout)
-	cout << densityFileName << " " << filename << " " << x << "\t" << y << "\t" << z << "\t  "
-	     << count << "\t" << float(count)/d.getCountInside() << "\t" << cdf[count] << endl;
-      else
+      {
+	const size_t cellIndex = d.getCell(x,y,z);
+	const size_t count = d.getCellCount(cellIndex);
+	if (use_cout)
+	  cout << densityFileName << " " << filename << " " << x << "\t" << y << "\t" << z << "\t  "
+	       << count << "\t" << float(count)/d.getCountInside() << "\t" << cdf[count] << endl;
+	else
 	  out << densityFileName << " " << filename << " " << x << "\t" << y << "\t" << z << "\t  "
 	      << count << "\t" << float(count)/d.getCountInside() << "\t" << cdf[count] << endl;
+      }
+
+      if (a.rotate_fit_given) {
+	DebugPrintf(VERBOSE+1,("Starting rotation compare\n"));
+	vector<size_t> countCircle(360,0);
+
+	float _x,_y;
+	for (size_t i=0;i<countCircle.size();i++) {
+	  const float angle=i * 2*M_PI/countCircle.size();
+	  rotateXY(x,y,angle,_x,_y);
+	  const size_t cellIndex = d.getCell(_x,_y,z);
+	  countCircle[i] = d.getCellCount(cellIndex);
+
+	  cout << angle << " " << countCircle[i] << endl;
+	}
+
+      }
 
     }
   } // for filenum
   return (ok?EXIT_SUCCESS:EXIT_FAILURE);
 }
+
