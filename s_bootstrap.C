@@ -40,14 +40,18 @@ algorithm which requires two calls to the random number generator r.
 
 */
 
+// c library includes
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 
+// c++ includes
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 #include <string>
+#include <sstream> // string stream
 
+// local includes
 #include "kdsPmagL.H" // L is for local
 #include "SiteSigma.H"
 #include "Bootstrap.H"
@@ -96,10 +100,29 @@ LoadS(const string filename,vector <SVec> &s,vector<float> &sigmas) {
   // FIX: detect formats -  {s[6]}, {s[6],sigma}, {name, sigma, s[6]}
   // FIX: only do {s[6],sigma} for now
   SVec tmp(6,0.);  float tmpSigma;
+
+#if 1
+  char buf[1024];
+  while (in.getline(buf,1024)) {
+    if ('#'==buf[0]) continue; // Comment
+    istringstream istr(buf);
+    istr >> tmp[0] >> tmp[1] >> tmp[2] >> tmp[3] >> tmp[4] >> tmp[5] >> tmpSigma;
+    // FIX: add better error checking
+    assert (1.0>tmp[0]); assert (1.0>tmp[1]);  assert (1.0>tmp[2]); 
+    assert(1.01>tmp[0]+tmp[1]+tmp[2]); 
+    s.push_back(tmp);
+    sigmas.push_back(tmpSigma);
+  }
+#else
+  // This fails when there is a name in the last position
   while (in >> tmp[0] >> tmp[1] >> tmp[2] >> tmp[3] >> tmp[4] >> tmp[5] >> tmpSigma) {
     s.push_back(tmp);  
     sigmas.push_back(tmpSigma);
   }
+#endif
+
+  DebugPrintf (VERBOSE,("LoadS lines read: %d\n",int(s.size())));
+
   // FIX: do we need to normalize so that the trace is 1?
   // Not all data will have a trace==1??
   return (true);
