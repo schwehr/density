@@ -44,7 +44,7 @@ make targets-no-test
 echo "0.01 0.01 0.01" > $testno.xyz
 range="--xmin=0. --xmax=1. --ymin=0. --ymax=1. --zmin=0. --zmax=1."
 xyzdensity --out=$testno.vol --pack=1 $range -b 8 -w 10 -t 10 -d 10 $testno.xyz
-count=`xyzvol_cmp -d $testno.vol $range $testno.xyz | awk '{print $6}'`
+count=`xyzvol_cmp -d $testno.vol $range $testno.xyz --out=- | awk '{print $6}'`
 if [ 1 != $count ]; then
     echo "  Test number $testno:    FAILED"
     exit 1
@@ -57,7 +57,7 @@ testno=$[testno+1]
 echo "0.99 0.01 0.01" > $testno.xyz
 range="--xmin=0. --xmax=1. --ymin=0. --ymax=1. --zmin=0. --zmax=1."
 xyzdensity --out=$testno.vol --pack=1 $range -b 8 -w 10 -t 10 -d 10 $testno.xyz
-count=`xyzvol_cmp -d $testno.vol $range $testno.xyz | awk '{print $6}'`
+count=`xyzvol_cmp -d $testno.vol $range $testno.xyz --out=- | awk '{print $6}'`
 if [ 1 != $count ]; then
     echo "  Test number $testno:    FAILED"
     exit 1
@@ -70,7 +70,7 @@ testno=$[testno+1]
 echo "0.01 0.01 0.99" > $testno.xyz
 range="--xmin=0. --xmax=1. --ymin=0. --ymax=1. --zmin=0. --zmax=1."
 xyzdensity --out=$testno.vol --pack=1 $range -b 8 -w 10 -t 10 -d 10 $testno.xyz
-count=`xyzvol_cmp -d $testno.vol $range $testno.xyz | awk '{print $6}'`
+count=`xyzvol_cmp -d $testno.vol $range $testno.xyz  --out=- | awk '{print $6}'`
 if [ 1 != $count ]; then
     echo "  Test number $testno:    FAILED"
     exit 1
@@ -84,7 +84,7 @@ echo "0.01 0.01 0.99" > $testno.xyz
 echo "0.01 0.99 0.99" > $testno-b.xyz
 range="--xmin=0. --xmax=1. --ymin=0. --ymax=1. --zmin=0. --zmax=1."
 xyzdensity --out=$testno.vol --pack=1 $range -b 8 -w 10 -t 10 -d 10 $testno.xyz
-count=`xyzvol_cmp -d $testno.vol $range $testno-b.xyz | awk '{print $6}'`
+count=`xyzvol_cmp -d $testno.vol $range $testno-b.xyz  --out=- | awk '{print $6}'`
 if [ 0 != $count ]; then
     echo "  Test number $testno:    FAILED"
     exit 1
@@ -97,7 +97,7 @@ testno=$[testno+1]
 echo "0.01 0.99 0.99" > $testno.xyz
 range="--xmin=0. --xmax=1. --ymin=0. --ymax=1. --zmin=0. --zmax=1."
 xyzdensity --out=$testno.vol --pack=1 $range -b 8 -w 10 -t 10 -d 10 $testno.xyz
-count=`xyzvol_cmp -d $testno.vol $range $testno.xyz | awk '{print $6}'`
+count=`xyzvol_cmp -d $testno.vol $range $testno.xyz  --out=- | awk '{print $6}'`
 if [ 1 != $count ]; then
     echo "  Test number $testno:    FAILED"
     exit 1
@@ -111,7 +111,7 @@ testno=$[testno+1]
 echo "0.99 0.01 0.99" > $testno.xyz
 range="--xmin=0. --xmax=1. --ymin=0. --ymax=1. --zmin=0. --zmax=1."
 xyzdensity --out=$testno.vol --pack=1 $range -b 8 -w 10 -t 10 -d 10 $testno.xyz
-count=`xyzvol_cmp -d $testno.vol $range $testno.xyz | awk '{print $6}'`
+count=`xyzvol_cmp -d $testno.vol $range $testno.xyz  --out=- | awk '{print $6}'`
 if [ 1 != $count ]; then
     echo "  Test number $testno:    FAILED"
     exit 1
@@ -124,7 +124,7 @@ testno=$[testno+1]
 echo "0.99 0.99 0.99" > $testno.xyz
 range="--xmin=0. --xmax=1. --ymin=0. --ymax=1. --zmin=0. --zmax=1."
 xyzdensity --out=$testno.vol --pack=1 $range -b 8 -w 10 -t 10 -d 10 $testno.xyz
-count=`xyzvol_cmp -d $testno.vol $range $testno.xyz | awk '{print $6}'`
+count=`xyzvol_cmp -d $testno.vol $range $testno.xyz  --out=- | awk '{print $6}'`
 if [ 1 != $count ]; then
     echo "  Test number $testno:    FAILED"
     exit 1
@@ -138,7 +138,7 @@ testno=$[testno+1]
 echo "0.5 0.5 0.5" > $testno.xyz
 range="--xmin=0. --xmax=1. --ymin=0. --ymax=1. --zmin=0. --zmax=1."
 xyzdensity --out=$testno.vol --pack=1 $range -b 8 -w 10 -t 10 -d 10 $testno.xyz
-count=`xyzvol_cmp -d $testno.vol $range $testno.xyz | awk '{print $6}'`
+count=`xyzvol_cmp -d $testno.vol $range $testno.xyz  --out=- | awk '{print $6}'`
 if [ 1 != $count ]; then
     echo "  Test number $testno:    FAILED"
     exit 1

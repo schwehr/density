@@ -26,8 +26,8 @@
 
 
 export PATH=${PATH}:.
-cells=80
-draw=10000
+cells=150
+draw=50000
 declare -r w=0.5
 declare -r boundaries="-x -${w} -X ${w} -y -${w} -Y ${w} -z -${w} -Z ${w}"
 declare -r debug_level=2
@@ -78,6 +78,6 @@ xyz_iv --box=0.005 -p --color="0 0 1" --out=one.xyz.vmax.iv -v 3 one.xyz.vmax
 #debug_level=1
 echo "TYPE  VOL_FILE     XYZ_FILE     x         y           z     counts FracTotal FracCDF"
 echo "------------------------------------------------------------------------------------"
-echo -n "VMIN: " && xyzvol_cmp -v $debug_level -d one-vmin.vol one.xyz.vmin
-echo -n "VINT: " && xyzvol_cmp -v $debug_level -d one-vint.vol one.xyz.vint 
-echo -n "VMAX: " && xyzvol_cmp -v $debug_level -d one-vmax.vol one.xyz.vmax 
+echo -n "VMIN: " && xyzvol_cmp -v $debug_level -d one-vmin.vol one.xyz.vmin --out=-
+echo -n "VINT: " && xyzvol_cmp -v $debug_level -d one-vint.vol one.xyz.vint --out=-
+echo -n "VMAX: " && xyzvol_cmp -v $debug_level -d one-vmax.vol one.xyz.vmax --out=-
