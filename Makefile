@@ -25,6 +25,7 @@ CFLAGS := ${CXXFLAGS} -Wimplicit-int -Wimplicit-function-declaration -Wnested-ex
 
 BINS := makeCDF histogram s_bootstrap xyzdensity endian
 BINS += volinfo
+BINS += simpleview
 #BINS+= AMScrunch
 
 # TESTING TARGETS:
