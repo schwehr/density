@@ -70,7 +70,8 @@ DensityFlagged::DensityFlagged(const size_t _width, const size_t _height, const 
 		 const float minY, const float maxY,
 		 const float minZ, const float maxZ)
 {
-  Density(_width,_height,_depth, minX,maxX, minY,maxY, minZ,maxZ);
+  //Density(_width,_height,_depth, minX,maxX, minY,maxY, minZ,maxZ);
+  resize(_width,_height,_depth, minX,maxX, minY,maxY, minZ,maxZ);
 
   flags.resize(getSize(),false);
   //for (vector<bool>::iterator i=flags.begin();i!=flags.end();i++) *i=false;
@@ -78,8 +79,33 @@ DensityFlagged::DensityFlagged(const size_t _width, const size_t _height, const 
   return;
 } // DensityFlagged constructor
 
+
+size_t DensityFlagged::getLargest() const {
+  size_t max=0;
+  size_t maxIndex=badValue();
+  for (size_t i=0;i<counts.size();i++)
+    if (counts[i]>max) {
+      max = counts[i];
+      maxIndex=i;
+    }
+  return maxIndex;
+}
+
+size_t DensityFlagged::getLargestUnflagged() const {
+  size_t max=0;
+  size_t maxIndex=badValue();
+  for (size_t i=0;i<counts.size();i++)
+    if (counts[i]>max && !isFlagged(i)) {
+      max = counts[i];
+      maxIndex=i;
+    }
+  return maxIndex;
+}
+
+
+
 // Won't return an empty cell
-size_t DensityFlagged::getLargestNeighbor(const size_t index) {
+size_t DensityFlagged::getLargestNeighbor(const size_t index) const {
   assert(isValidCell(index));
   //size_t n[NUM_NEIGHBORS];
   //size_t cts[NUM_NEIGHBORS];
@@ -97,7 +123,7 @@ size_t DensityFlagged::getLargestNeighbor(const size_t index) {
   return (maxIndex);
 }
 
-size_t DensityFlagged::getLargestUnflaggedNeighbor(const size_t index) {
+size_t DensityFlagged::getLargestUnflaggedNeighbor(const size_t index) const {
   assert(isValidCell(index));
   assert(false);
 }
@@ -115,6 +141,29 @@ bool test1() {
   DensityFlagged df(2,2,2, 0.,2., 0.,2., 0.,2.);
   for (size_t i=0;i<df.getSize();i++)
     if (df.isFlagged(i)) {ok=false; FAILED_HERE;}
+
+  for (size_t i=0;i<10;i++) df.addPoint(0.1,0.1,0.1); // 0
+  for (size_t i=0;i< 9;i++) df.addPoint(1.1,0.1,0.1); // 1
+  for (size_t i=0;i< 8;i++) df.addPoint(0.1,1.1,0.1); // 2
+  for (size_t i=0;i< 7;i++) df.addPoint(1.1,1.1,0.1); // 3
+
+  for (size_t i=0;i< 6;i++) df.addPoint(0.1,0.1,1.1); // 4
+  for (size_t i=0;i< 5;i++) df.addPoint(1.1,0.1,1.1); // 5
+  for (size_t i=0;i< 4;i++) df.addPoint(0.1,1.1,1.1); // 6
+  for (size_t i=0;i< 1;i++) df.addPoint(1.1,1.1,1.1); // 7
+
+  {
+    if (0!=df.getCellFromWHD(0,0,0))  {ok=false; FAILED_HERE;}
+    if (1!=df.getCellFromWHD(1,0,0))  {ok=false; FAILED_HERE;}
+    if (5!=df.getCellFromWHD(1,0,1))  {ok=false; FAILED_HERE;}
+  }
+
+  if (0!=df.getLargest())  {ok=false; FAILED_HERE;}
+  if (0!=df.getLargestUnflagged())  {ok=false; FAILED_HERE;}
+  df.setFlag(0);
+  if (1!=df.getLargestUnflagged())  {ok=false; FAILED_HERE;}
+  df.setFlag(0,false);
+  if (0!=df.getLargest())  {ok=false; FAILED_HERE;}
 
   return(ok);
 } // test1
