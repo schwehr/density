@@ -77,7 +77,7 @@ static const UNUSED char* RCSid ="@(#) $Id$";
 /// \return \a true if all went well.  \a false if trouble of any kind
 /// \param filename File to open and read data from
 /// \param s Return vector of data.  The \a s diagonalized matrix parameters.  See s_eigs
-/// \param sigmas Return vector of simgma errors
+/// \param sigmas Return vector of sigma errors
 ///
 /// Unlike Lisa's code, this one does NOT alter the sigmas on loading
 /// which is what the adread subroutine did.`
@@ -178,7 +178,7 @@ bool DoS_Bootstrap(const vector<string> &inFiles,
   vector<float> Vmin(3,0), Vint(3,0), Vmax(3,0); // for xyz or tpr
 
   for(size_t i=0;i<inFiles.size();i++) {
-    DebugPrintf (TRACE,("Reading file: %s",inFiles[i].c_str()));
+    DebugPrintf (TRACE,("Reading file: %s\n",inFiles[i].c_str()));
     s.clear(); sigmas.clear();
     if (!LoadS(inFiles[i],s,sigmas)) {
       cerr << "ERROR - can't load datafile, skipping: " << inFiles[i] << endl;
@@ -261,7 +261,7 @@ int main (const int argc, char *argv[]) {
   //}
   //#else // debugging
   debug_level = a.verbosity_arg; // now used even in OPTIMIZE mode
-  DebugPrintf(TRACE,("Debug level = %d",debug_level));
+  DebugPrintf(TRACE,("Debug level = %d\n",debug_level));
   //#endif
 
   vector<string> inFiles;
@@ -275,7 +275,7 @@ int main (const int argc, char *argv[]) {
   }
 
   const FormatEnum format = GetFormat(a.format_arg);
-  DebugPrintf(VERBOSE,("format: %s (%d)",a.format_arg,int(format)));
+  DebugPrintf(VERBOSE,("format: %s (%d)\n",a.format_arg,int(format)));
 
   // Can't have S_FORMAT and 3 outfiles.  Does not make sense!!!
   if (3==a.numout_arg && S_FORMAT==format) {
