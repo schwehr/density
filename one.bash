@@ -26,8 +26,8 @@
 
 
 export PATH=${PATH}:.
-cells=150
-draw=50000
+cells=50
+draw=10000
 declare -r w=0.5
 declare -r boundaries="-x -${w} -X ${w} -y -${w} -Y ${w} -z -${w} -Z ${w}"
 declare -r debug_level=2
@@ -56,13 +56,14 @@ xyzdensity --out=one-all.vol -p 1 -b 8 -w ${cells} -t ${cells} -d ${cells} $boun
 
 volmakecmap --cpt=rgba.cpt -o one.cmap --zero=0
 
-vol_iv --box=1.0 -c ALPHA_BLENDING --numslicescontrol=ALL -p NONE -C one.cmap -o one-all.iv one-all.vol
+# Make the bounding box at 1.05 to be just outside of the volume
+vol_iv --box=1.05 -c ALPHA_BLENDING --numslicescontrol=ALL -p NONE -C one.cmap -o one-all.iv one-all.vol
 
 scale="--xscale=0.5 --yscale=0.5 --zscale=0.5"
-volhdr_edit one-vmax.vol --out=tmp $scale && /bin/mv tmp one-vmax.vol
-volhdr_edit one-vint.vol --out=tmp $scale && /bin/mv tmp one-vint.vol
-volhdr_edit one-vmin.vol --out=tmp $scale && /bin/mv tmp one-vmin.vol
-volhdr_edit one-all.vol --out=tmp $scale && /bin/mv tmp one-all.vol
+volhdr_edit one-vmax.vol --out=tmp.vol $scale && /bin/mv tmp.vol one-vmax.vol
+volhdr_edit one-vint.vol --out=tmp.vol $scale && /bin/mv tmp.vol one-vint.vol
+volhdr_edit one-vmin.vol --out=tmp.vol $scale && /bin/mv tmp.vol one-vmin.vol
+volhdr_edit one-all.vol  --out=tmp.vol $scale && /bin/mv tmp.vol one-all.vol
 
 
 s_eigs < one.s > one.eigs
