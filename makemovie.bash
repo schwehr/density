@@ -65,11 +65,8 @@ declare -ir maxFrames=100
 #
 declare -ir size=200
 declare -r render_args="axes.iv     -p 0.05  -w sample.wpt -L -W $size -H $size -v $debugLevel"
-#declare -r render_args="axes.iv     -p 0.5  -w sample.wpt -L -W $size -H $size -v $debugLevel"
-
 
 declare -ar ol_groups=( g1-fluidized g2-undeformed g3-sheared g4-little-def g5-intermediate )
-#declare -ar ol_groups=( g2-undeformed )
 
 echo ${ol_groups[@]}
 
@@ -78,7 +75,9 @@ if [ 1 == 1 ]; then
 	DebugEcho $TERSE $LINENO "Rendering group $group"
 
 	FailIfNotThere $LINENO ${group}-all.iv
-	render -b ${group}-all- ${group}-all.iv $render_args || die $LINENO
+	cmd="render -b ${group}-all- ${group}-all.iv $render_args"
+	DebugEcho $VERBOSE $LINENO "$cmd"
+	$cmd || die $LINENO
 
 	FailIfNotThere $LINENO ${group}-vmax-8.iv
         render -b ${group}-vmax- ${group}-vmax-8.iv $render_args $group-vmax.xyz.iv || die $LINENO
