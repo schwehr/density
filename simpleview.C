@@ -133,6 +133,7 @@ public:
   float  cur_percent; ///< how far between waypoints
   size_t cur_mark;   //< Which waypoint are we on
 
+  SbColor background; ///< Background rendering color
 
   /// Use magic numbers to make sure you actually get this class when you
   /// must do a cast to/from void pointer
@@ -264,14 +265,16 @@ void SetCameraFromDragger(SoCamera *c,SoSpotLightDragger *d) {
 /// \return \a false if we flailed trying to get a pretty picture to disk
 ///
 /// \bug FIX: could optimize by keeping one renderer in memory
-
 bool RenderFrameToDisk (const string &basename,const string &filetype,
 			const int width, const int height,
-			SoNode *root, size_t &frame_num)
+			SoNode *root, size_t &frame_num, const SbColor &background)
 {
   assert (root);
+  DebugPrintf(VERBOSE,("w,h=%d,%d\n",width,height));
   SbViewportRegion viewport(width,height);
   SoOffscreenRenderer *renderer = new SoOffscreenRenderer(viewport);
+
+  //renderer->setBackgroundColor (background);
 
 #ifndef NDEBUG
   SbVec2s maxRes = renderer->getMaximumResolution();
@@ -290,6 +293,7 @@ bool RenderFrameToDisk (const string &basename,const string &filetype,
     + string(".")
     + filetype;
   SbName filetype_sb(filetype.c_str());
+  DebugPrintf (VERBOSE,("rendering offscreen - writeToFile:  %s  %s\n",filename.c_str(), filetype_sb.getString()));
   ok = renderer->writeToFile(filename.c_str(), filetype_sb);
   if (!ok) {cerr << "Failed to render" << endl; }
   delete (renderer);
@@ -584,11 +588,23 @@ keyPressCallback(void *data, SoEventCallback *cb) {
   //
   if (SO_KEY_PRESS_EVENT(keyEvent, D)) {
     DebugPrintf(TRACE,("Keyhit: D - render  %d %d\n",si->a->width_arg,si->a->height_arg));
+
+    float r=-666.,g=-666.,b=-666.;
+    if (3!=sscanf(si->a->color_arg,"%f,%f,%f",&r,&g,&b)) {
+      cerr << "ERROR: XCORE_BG_COLOR should be 3 floats.  Found...\n" << si->a->color_arg << "\n";
+      exit(EXIT_FAILURE);
+    }
+    r/=255.;  g/=255.;  b/=255.;
+    if(0.>r || 1.0<r) {  cerr << "ERROR: red   must be between 0.0 and 1.0\n"; exit(EXIT_FAILURE); }
+    if(0.>g || 1.0<g) {  cerr << "ERROR: green must be between 0.0 and 1.0\n"; exit(EXIT_FAILURE); }
+    if(0.>b || 1.0<b) {  cerr << "ERROR: blue  must be between 0.0 and 1.0\n"; exit(EXIT_FAILURE); }
+    SbColor background(r,g,b);
+
     size_t frame_num;
     if (!RenderFrameToDisk (string(si->a->basename_arg),string(si->a->type_arg),
 			    si->a->width_arg, si->a->height_arg,
-			    si->root, frame_num) )
-      cerr << "ERROR: unable to write you artistic work.  You have been sensored.  Not my fault." << endl;
+			    si->root, frame_num, background) )
+      cerr << __FILE__ << " " << __LINE__ << " ERROR: Unable to write your artistic work.\n  You have been sensored." << endl;
 
     DebugPrintf(TRACE+1,("Finished writing frame number %04d\n",int(frame_num)));
     return;
@@ -805,9 +821,9 @@ void timerSensorCallback(void *data, SoSensor *sensor) {
     size_t frame_num;
     if (!RenderFrameToDisk (string(si->a->basename_arg),string(si->a->type_arg),
 			si->a->width_arg, si->a->height_arg,
-			si->root, frame_num)
+			si->root, frame_num,si->background)
 	) {
-      cerr << "ERROR: unable to write you artistic work.  You have been sensored.  Not my fault." << endl;
+      cerr << "ERROR: Unable to write your artistic work.\n  You have been sensored." << endl;
     }
     DebugPrintf(TRACE+1,("ANIMATION: Finished writing frame number %04d\n",int(frame_num)));
   }
@@ -916,6 +932,7 @@ int main(int argc, char *argv[])
 
 
 
+
   SoQtExaminerViewer* myViewer = new SoQtExaminerViewer(myWindow);
   for (size_t i=0;i<a.inputs_num;i++) {
     DebugPrintf (TRACE,("Adding file: %s\n",a.inputs[i]));
@@ -929,6 +946,21 @@ int main(int argc, char *argv[])
     si->root->addChild(node);
   }
 
+  // Set background color
+  {
+    float r=-666.,g=-666.,b=-666.;
+    if (3!=sscanf(a.color_arg,"%f,%f,%f",&r,&g,&b)) {
+      cerr << "ERROR: XCORE_BG_COLOR should be 3 floats.  Found...\n" << a.color_arg << "\n";
+      exit(EXIT_FAILURE);
+    }
+    r/=255.;  g/=255.;  b/=255.;
+    if(0.>r || 1.0<r) {  cerr << "ERROR: red   must be between 0.0 and 1.0\n"; exit(EXIT_FAILURE); }
+    if(0.>g || 1.0<g) {  cerr << "ERROR: green must be between 0.0 and 1.0\n"; exit(EXIT_FAILURE); }
+    if(0.>b || 1.0<b) {  cerr << "ERROR: blue  must be between 0.0 and 1.0\n"; exit(EXIT_FAILURE); }
+    SbColor c(r,g,b);
+    si->background = c;
+    myViewer->setBackgroundColor(c);
+  }
   
   myViewer->setSceneGraph( si->root );
   myViewer->show();
