@@ -21,8 +21,7 @@
 #include <vector>
 
 // Local includes
-#include "Triangle.H"
-#include "Vector.H"	// GetNormal()
+#include "Density.H"
 
 using namespace std;
 
@@ -55,4 +54,33 @@ using namespace std;
  * GLOBALS
  ***************************************************************************/
 
+/// Let the debugger find out which version is being used.
 static const UNUSED char* RCSid ="@(#) $Id$";
+
+//######################################################################
+// MAIN
+//######################################################################
+
+int main (int argc, char *argv[]) {
+  cout << "Starting " << argv[0] << endl;
+  //assert(3==argc);
+  const string filename("as2-slump.xyz");//(argv[1]);
+  const int numCellsInt(atoi(argv[2]));
+  assert (0<numCellsInt);
+  const size_t numCells(numCellsInt);
+
+  Density d(4,4,4, -0.5,0.5,  -0.5,0.5,  -0.5,0.5);
+
+  vector<float> x,y,z;
+  ifstream in(filename.c_str(),ios::in);
+  {
+    float _x,_y,_z;
+    while (in >> _x >> _y >> _z) {
+      x.push_back(_x);y.push_back(_y);z.push_back(_z);
+      d.addPoint(_x,_y,_z);
+    }
+  }
+  d.printCellCounts();
+
+  return (EXIT_SUCCESS);
+}
