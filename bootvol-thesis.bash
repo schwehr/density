@@ -6,19 +6,19 @@
 ##############################################################################
 #     Copyright (C) 2004  Kurt Schwehr
 #
-#     This library is free software; you can redistribute it and/or
-#     modify it under the terms of the GNU Lesser General Public
-#     License as published by the Free Software Foundation; either
-#     version 2.1 of the License, or (at your option) any later version.
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
 #
-#     This library is distributed in the hope that it will be useful,
-#     but WITHOUT ANY WARRANTY; without even the implied warranty of
-#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#     Lesser General Public License for more details.
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
 #
-#     You should have received a copy of the GNU Lesser General Public
-#     License along with this library; if not, write to the Free Software
-#     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
 # The goal of this script is to take 1st the ardath data sets and test
@@ -225,6 +225,21 @@ if [ 1 == 1 ]; then
 	vol_iv -o ${group}-vmax-8.iv ${group}-vmax-8.vol $ivargs
 	vol_iv -o ${group}-vint-8.iv ${group}-vint-8.vol $ivargs
 	vol_iv -o ${group}-vmin-8.iv ${group}-vmin-8.vol $ivargs
+
+	#
+	# Plot all the points as boxes
+	#
+	s_eigs < $group.s > $group.eigs
+	eigs2xyz.py $group.eigs > $group.xyz
+	awk '{print $1,$2,$3}' $group.xyz > $group.xyz.vmin
+	awk '{print $4,$5,$6}' $group.xyz > $group.xyz.vint
+	awk '{print $7,$8,$9}' $group.xyz > $group.xyz.vmax
+
+	xyz_iv $box -p --color="1 0 0" --out=$group.xyz.vmin.iv -v 3 $group.xyz.vmin
+	xyz_iv $box -p --color="1 1 0" --out=$group.xyz.vint.iv -v 3 $group.xyz.vint
+	xyz_iv $box -p --color="0 0 1" --out=$group.xyz.vmax.iv -v 3 $group.xyz.vmax
+
+
     done
 fi
 
