@@ -132,6 +132,28 @@ Density::resize(const size_t _width, const size_t _height, const size_t _depth,
   return;
 } // resize()
 
+
+// non-destructive
+void
+Density::rescale(const float minX, const float maxX,
+		 const float minY, const float maxY,
+		 const float minZ, const float maxZ)
+{
+  assert (minX < maxX);
+  assert (minY < maxY);
+  assert (minZ < maxZ);
+  dx = (maxX-minX)/width;
+  dy = (maxY-minY)/height;
+  dz = (maxZ-minZ)/depth;
+  xR[0]=minX;xR[1]=maxX;
+  yR[0]=minY;yR[1]=maxY;
+  zR[0]=minZ;zR[1]=maxZ;
+
+  return;
+} // rescale
+
+
+
 Density::Density(const size_t _width, const size_t _height, const size_t _depth,
 		 const float minX, const float maxX,
 		 const float minY, const float maxY,
@@ -207,7 +229,9 @@ Density::Density(const std::string &filename, bool &ok) {
     size_t val;
     next = ReadDataUnsigned(next, v.getBitsPerVoxel(), val, readOK);
     if (!readOK) {cerr<<"Data read error!" << endl;ok=false; break;}
-    addPoints(i,val);
+    
+    //if (val>0) cout << "read: " << i << " " << val << endl;
+    if (val>0) addPoints(i,val);
   }
 
 
@@ -505,21 +529,30 @@ unsigned char Density::scaleCount(const size_t i, const size_t min, const size_t
   return (r);
 }
 
-//#include <algorithm>
-// Yes const... doesn't change the data
-void Density::computeMinMax() const {
-#if 0
-  size_t min = std::numeric_limits<size_t>::max();
-  size_t max = std::numeric_limits<size_t>::min();
-  for (size_t i=0;i<counts.size();i++) {
-    if (counts[i]<min)
-      min=counts[i];
-    if (counts[i]>max)
-      max=counts[i];
+
+bool Density::buildCDF(vector<float> &cdfpercent) const {
+  if (0==getCountInside()) return(false);
+
+  vector<size_t> sumcounts(getMaxCount()+1,0); // # cells that have each count (count is the index)
+  for (vector<size_t>::const_iterator i=counts.begin();i!=counts.end();i++) {
+    //cout << *i << endl;
+    if (0!=*i)sumcounts[*i]++;
   }
-  minCache = min;
-  maxCache = max;
-#endif
+
+  cdfpercent.resize(getMaxCount()+1,0);
+  for (size_t total=0, i=0;i<cdfpercent.size();i++) {
+    total+=i*sumcounts[i];
+    cdfpercent[i] = float(total)/totalPointsInside;
+    //cout << "cdf " << i << "  " << sumcounts[i] << "  "
+    // << total << "  " << totalPointsInside << "   " << cdfpercent[i] << endl;
+  }
+  
+  return(true);
+}
+
+
+
+void Density::computeMinMax() const {
   minCache = *min_element(counts.begin(),counts.end());
   maxCache = *max_element(counts.begin(),counts.end());
   stale=false;
