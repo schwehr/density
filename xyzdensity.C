@@ -64,12 +64,12 @@ static const UNUSED char* RCSid ="@(#) $Id$";
 int main (int argc, char *argv[]) {
   cout << "Starting " << argv[0] << endl;
   //assert(3==argc);
-  const string filename("as2-slump.xyz");//(argv[1]);
+  const string filename(argv[1]);//("as2-slump.xyz");
   const int numCellsInt(atoi(argv[2]));
   assert (0<numCellsInt);
   const size_t numCells(numCellsInt);
 
-  Density d(4,4,4, -0.5,0.5,  -0.5,0.5,  -0.5,0.5);
+  Density d(numCells,numCells,numCells, -0.5,0.5,  -0.5,0.5,  -0.5,0.5);
 
   vector<float> x,y,z;
   ifstream in(filename.c_str(),ios::in);
