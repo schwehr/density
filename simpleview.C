@@ -119,7 +119,7 @@ public:
 
   bool animating;  ///< set to true to start animation;
   bool render_frames_to_disk;  ///< true, we write out each animated frame
-  float percent; ///< Where we are between the two current waypoints
+  //float percent; ///< Where we are between the two current waypoints
 
 
   /// Use magic numbers to make sure you actually get this class when you
@@ -704,7 +704,8 @@ void timerSensorCallback(void *data, SoSensor *sensor) {
   si->camera->orientation = newRot;
 
   DebugPrintf (VERBOSE,("Mark: %d      Step:  %f\n",int(cur),percent));
-  percent += 0.1;
+  //percent += 0.1;
+  percent += si->a->percent_arg; // User configurable jump
 
   if (si->render_frames_to_disk) {
     DebugPrintf (TRACE,("ANIMATION: Rendering frame to disk file\n"));
