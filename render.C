@@ -292,6 +292,8 @@ int main(int argc, char *argv[])
     // Need a camera in the scene for the SoOffscreenRender to work
     si->camera = new SoPerspectiveCamera;
     si->root->addChild(si->camera);
+    si->camera->nearDistance=a.near_arg;
+    si->camera-> farDistance=a.far_arg;
   }
 
   // FIX: do something better with the lights
