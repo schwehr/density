@@ -34,6 +34,7 @@ help:
 	@echo "  make clean       - Clean up all the moose droppings"
 	@echo "  make docs        - Generate doxygen docs"
 	@echo "  make man         - Generate section 1 man pages"
+	@echo "  make man2html    - Generate section 1 man pages (html versions)"
 	@echo "  make tar         - Build a distribution"
 	@echo "  make check       - Search for all known code issuse (FIX tags)"
 	@echo "  make info        - Display a number of internal make variables"
