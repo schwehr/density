@@ -26,6 +26,19 @@
  * INCLUDES
  ***************************************************************************/
 
+
+#include <fcntl.h>   /* File control definitions */
+#include <errno.h>   /* Error number definitions */
+#include <termios.h> /* POSIX terminal control definitions */
+#include <term.h>
+#include <sys/select.h>
+#include <unistd.h>  // Select 
+
+#include <sys/mman.h>	// mmap
+#include <sys/types.h>
+#include <sys/stat.h>
+
+
 #include <cassert>
 
 #include <cstdlib>
@@ -84,6 +97,10 @@ static const UNUSED char* RCSid ="@(#) $Id$";
 
 Density::Density() {
   //cout << "FIX: make sure that later, things get setup ok.  Density()" << endl;
+#ifndef NDEBUG
+  width=height=depth=0;//badValue();
+  invalidateCache();
+#endif
 }
 
 void
@@ -98,6 +115,7 @@ Density::resize(const size_t _width, const size_t _height, const size_t _depth,
   assert (minX < maxX);
   assert (minY < maxY);
   assert (minZ < maxZ);
+  invalidateCache();
   width  = _width;
   height = _height;
   depth  = _depth;
@@ -110,6 +128,7 @@ Density::resize(const size_t _width, const size_t _height, const size_t _depth,
   counts.resize(width*height*depth,0); // set all to zero
   //for (size_t i=0;i<counts.size();i++) counts[i]=0;
   totalPointsInside=0;
+ 
   return;
 } // resize()
 
@@ -120,17 +139,6 @@ Density::Density(const size_t _width, const size_t _height, const size_t _depth,
 {
   resize(_width, _height, _depth,  minX,maxX,   minY,maxY,   minZ,maxZ);
 }
-
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
-#include <term.h>
-#include <sys/select.h>
-#include <unistd.h>  // Select 
-
-#include <sys/mman.h>	// mmap
-#include <sys/types.h>
-#include <sys/stat.h>
 
 /// \brief Read unsigned data from memory give a bitsPerVoxel
 /// @param data Pointer to the current data item
@@ -218,13 +226,16 @@ Density::addPoint(const float x, const float y, const float z) {
 #endif    
     return (false); // Outside!!
   }
+
+  invalidateCache();
+
   assert (cellNum<counts.size());
   counts[cellNum]++;
   totalPointsInside++;
   return(true);
 }
 
-void Density::printCellCounts()const {
+void Density::printCellCounts() const {
   cout << "# " << endl
 << "# i cx cy cz counts x y z " << endl
 << "# " << endl
@@ -321,7 +332,7 @@ void Density::getCellCenter(const size_t cellNum, float &x, float &y, float &z) 
 }
 
 // Old crufty inflexible version of write
-bool Density::writeVolScale(const string &filename) const {
+bool Density::writeVolScale(const string &filename) {
   FILE *o=fopen(filename.c_str(),"wb");
   if (!o) {perror("failed to open output file");cerr << "   " << filename << endl;return(false);}
 
@@ -341,7 +352,7 @@ bool Density::writeVolScale(const string &filename) const {
 
 
 
-size_t Density::scaleValue(const size_t value, const PackType p, const size_t bitsPerVoxel) const {
+size_t Density::scaleValue(const size_t value, const PackType p, const size_t bitsPerVoxel) {
   size_t maxVox;
   switch (bitsPerVoxel) {
   case  8: maxVox=std::numeric_limits<uint8_t >::max(); break;
@@ -368,7 +379,7 @@ size_t Density::scaleValue(const size_t value, const PackType p, const size_t bi
 
 bool Density::writeVol(const std::string &filename,
 		       const size_t bitsPerVoxel,const PackType p,
-		       const float rotX, const float rotY,const float rotZ) const
+		       const float rotX, const float rotY,const float rotZ) // const
 {
   bool ok=true;
   //float scales[3] ={1.,1.,1.}; // FIX: remove setting
@@ -433,15 +444,28 @@ unsigned char Density::scaleCount(const size_t i, const size_t min, const size_t
   return (r);
 }
 
-size_t Density::getMaxCount() const {
-  size_t max = std::numeric_limits<size_t>::min();
-  for (size_t i=0;i<counts.size();i++) if (counts[i]>max) max=counts[i];
-  return (max);
-}
-size_t Density::getMinCount() const {
+// Yes const... doesn't change the data
+void Density::computeMinMax() {
   size_t min = std::numeric_limits<size_t>::max();
-  for (size_t i=0;i<counts.size();i++) if (counts[i]<min) min=counts[i];
-  return(min);
+  size_t max = std::numeric_limits<size_t>::min();
+  for (size_t i=0;i<counts.size();i++) {
+    if (counts[i]<min)
+      min=counts[i];
+    if (counts[i]>max)
+      max=counts[i];
+  }
+  minCache = min;
+  maxCache = max;
+  stale=false;
+}
+
+size_t Density::getMaxCount(){
+  if (stale) computeMinMax();
+  return(maxCache);
+}
+size_t Density::getMinCount(){
+  if (stale) computeMinMax();
+  return(minCache);
 }
 
 
@@ -457,9 +481,14 @@ bool test1() {
   if (0!=d.getCountInside())     {FAILED_HERE;return(false);}
   if (0!=d.getCell(0.1,0.1,0.1)) {FAILED_HERE;return(false);}
   if (0!=d.getCell(0.9,0.9,0.9)) {FAILED_HERE;return(false);}
+  if (0!=d.getMinCount())  {FAILED_HERE;return(false);}
+  if (0!=d.getMaxCount())  {FAILED_HERE;return(false);}
+
 
   if (!d.addPoint(0.5,0.5,0.5)) {FAILED_HERE;return(false);}
   if (1!=d.getCountInside())    {FAILED_HERE;return(false);}
+  if (1!=d.getMinCount())  {FAILED_HERE;return(false);}
+  if (1!=d.getMaxCount())  {FAILED_HERE;return(false);}
 
   if (d.addPoint(5,0.5,0.5)) {FAILED_HERE;return(false);}
   if (1!=d.getCountInside()) {FAILED_HERE;return(false);}
@@ -486,44 +515,13 @@ bool test2() {
   d.addPoint(0.5,.1,.1);
   if (1!=d.getCellCount(0))     {FAILED_HERE;return(false);}
   if (0!=d.getCellCount(1))     {FAILED_HERE;return(false);}
+  if (0!=d.getMinCount())  {FAILED_HERE;return(false);}
+  if (1!=d.getMaxCount())  {FAILED_HERE;return(false);}
+
+
   d.addPoint(1.5,.1,.1);
   if (1!=d.getCellCount(0))     {FAILED_HERE;return(false);}
   if (1!=d.getCellCount(1))     {FAILED_HERE;return(false);}
-
-#if 0
-  {
-    cout << "Danger: "<< endl;
-    Density dx(10,1,1,  -5,5.,  0.,1.,  0.,1.);
-    for (size_t i=0;i<10;i++) {
-      float x,y,z;
-      dx.getCellCenter(i,x,y,z);
-      cout << " " << x << " " << y << " " << z << endl;
-    }
-  }
-#endif
-#if 0
-  {
-    cout << "Danger: Y"<< endl;
-    Density dy(1,10,1,  0,1.,  -5.,5.,  0.,1.);
-    for (size_t i=0;i<10;i++) {
-      float x,y,z;
-      dy.getCellCenter(i,x,y,z);
-      cout << " Y: " << x << " " << y << " " << z << endl;
-    }
-  }
-#endif
-
-#if 0
-  {
-    cout << "Danger: Z"<< endl;
-    Density dy(1,1,10,  0,1.,  0.,1.,  -5.,5.);
-    for (size_t i=0;i<10;i++) {
-      float x,y,z;
-      dy.getCellCenter(i,x,y,z);
-      cout << " Y: " << x << " " << y << " " << z << endl;
-    }
-  }
-#endif
 
   return(true);
 } // test2

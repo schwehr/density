@@ -130,17 +130,17 @@ public:
   /// \brief Write out a vol formatted file for SIM Voleon in uchar format
   /// \return \a true on success or \a false if there was an error
   /// This write scales the data between min/max
-  bool writeVolScale(const std::string &filename) const;
+  bool writeVolScale(const std::string &filename);
 
   /// Compress data based on PackType
-  size_t scaleValue(const size_t value, const PackType p, const size_t bitsPerVoxel) const;
+  size_t scaleValue(const size_t value, const PackType p, const size_t bitsPerVoxel);
 
   /// \brief Write out a Voleon style voxel 3D cell file.
   /// \return \a true if success or \a false if there was some trouble
   /// Uses the x,y, and z ranges to set the Scale[XYZ] fields of the header
   /// \bug What does index_bits do?
   bool writeVol(const std::string &filename,const size_t bitsPerPixel,const PackType p,
-		const float RotX=0., const float RotY=0.,const float RotZ=0.) const;
+		const float RotX=0., const float RotY=0.,const float RotZ=0.);// const;
 
 
   /// This is the value for an unknown or bad entry.  Should be a huge number that we would never encounter.
@@ -148,8 +148,18 @@ public:
 
   /// Return a number scaled between 0 and 255
   unsigned char scaleCount(const size_t i, const size_t min, const size_t max) const;
-  size_t getMaxCount() const; ///< What is the maximum count in one cell across the whole count vector?
-  size_t getMinCount() const; ///< What is the minimum count in one cell across the whole count vector?
+
+private:
+  bool stale; ///< set to true when max and min have to be recomputed
+  size_t maxCache, minCache;
+  /// Call this on anytime the counts change.
+  void invalidateCache() {stale=true; maxCache=minCache=badValue();}
+  void computeMinMax();
+
+public:
+
+  size_t getMaxCount(); ///< What is the maximum count in one cell across the whole count vector?
+  size_t getMinCount(); ///< What is the minimum count in one cell across the whole count vector?
 
 
 #ifndef REGRESSION_TEST
