@@ -100,10 +100,12 @@ TARGETS:=${BINS} ${TEST_BINS}
 targets: ${TARGETS} test
 
 
-xyzdensity_cmd.c: xyzdensity_cmd.h
-xyzdensity_cmd.h: xyzdensity_cmd.ggo
-	gengetopt --input=$< --file-name=${<:.ggo=}
-xyzdensity_cmd.o: xyzdensity_cmd.c xyzdensity_cmd.ggo
+%.c: %.ggo
+	gengetopt --input=$< --file-name=${<:.ggo=} --unamed-opts
+
+
+xyzdensity_cmd.c: xyzdensity_cmd.ggo
+xyzdensity_cmd.o: xyzdensity_cmd.c xyzdensity_cmd.o
 	${CXX} -c $< ${CXXFLAGS}
 
 xyzdensity: xyzdensity.C Density.o VolHeader.o xyzdensity_cmd.o
