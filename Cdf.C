@@ -74,6 +74,9 @@ cdf(const std::vector<size_t> &data, std::vector<size_t> &value, std::vector<flo
 //####################################################################
 
 
+// Need to optimize more
+// This is for smaller data sets where it is ok to copy the data.
+// Won't work well for huge vectors where we run out of RAM and have to swap
 Cdf::Cdf(const vector<size_t> &data, bool countZeros) {
   vector<size_t> d(data);
   sort(d.begin(),d.end());
@@ -99,6 +102,8 @@ Cdf::Cdf(const vector<size_t> &data, bool countZeros) {
     if (curVal!=d[i]) {
       value.push_back(curVal);
       percent.push_back(float(i)/d.size());
+      curVal=d[i];
+      count=0; // Is count actually used?
     } else {
       count++;
     }
@@ -118,6 +123,22 @@ float Cdf::getCDF(const size_t val) {
 }
 
 
+void Cdf::print() {
+  for (size_t i=0;i<value.size();i++) {
+    cout << value[i] << " " << percent[i] << endl;
+  }
+}
+
+void Cdf::writeForGraphing(const string &filename) {
+  ofstream o(filename.c_str(),ios::out);
+  o << "0 0" << endl;
+  for (size_t i=0;i<value.size();i++) {
+    if (0!=i) o << value[i-1] << " " << percent[i] << endl;
+    o << value[i] << " " << percent[i] << endl;
+  }
+  o << value[value.size()-1]+1 << " " << 1.0;
+}
+
 
 //####################################################################
 // TEST CODE
@@ -126,6 +147,14 @@ float Cdf::getCDF(const size_t val) {
 
 bool test1() {
   cout << "      test1" << endl;
+  vector<size_t> t;
+  for(size_t i=0;i<20;i++) t.push_back(i);
+  for(size_t i=0;i<10;i++) t.push_back(10);
+  for(size_t i=0;i<12;i++) t.push_back(11);
+  for(size_t i=0;i<10;i++) t.push_back(13);
+  Cdf cdf(t,true);
+  cdf.print();
+  cdf.writeForGraphing(string("test1.cdf"));
 
   return (true);
 }
