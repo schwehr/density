@@ -2,6 +2,14 @@
 .PP
 Write a description of of s_bootstrap here.
 
+This algorithm perturbs samples by either the sample sigma in the 7th
+position or by an overall site sigma.  The site sigma is calculated
+with the Hext algorithm in the same was as in Lisa's sitesig.f.
+
+In the future, I would like to add an option to do allow bootstrap
+sample averages as in Lisa's bootams.  If you really want this, bug
+me.
+
 [EXAMPLES]
 .PP
 Describe the example here
@@ -13,7 +21,7 @@ Describe the example here
 Kurt Schwehr
 
 [SEE ALSO]
-xyzdensity, s_eigs
+xyzdensity, s_eigs, bootams, sitesig.f
 
 FIX: get the reference right
 "Paleomagnetic: Principles and Practice," L. Tauxe, 1998, Klewer.
