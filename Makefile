@@ -219,7 +219,7 @@ tar: ${GENGETOPT_BINS}
 	@echo
 	cp *.{C,H,ggo,c,h,help2man,bash} ${TARNAME}/
 	@echo
-	cp AUTHOR Makefile Doxyfile LICENSE.LGPL README.txt VERSION demos.bash good.iv ${TARNAME}/
+	cp ChangeLog AUTHOR Makefile Doxyfile LICENSE.LGPL README.txt VERSION good.iv ${TARNAME}/
 	@echo
 	tar cf ${TARNAME}.tar ${TARNAME}
 	bzip2 -9 ${TARNAME}.tar
