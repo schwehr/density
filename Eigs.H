@@ -45,6 +45,37 @@ inline double rad2deg (const float &rad) {return(rad/M_PI * 180.);}
 /// Note: does \a not force the radians to be in [0..2PI]
 inline double deg2rad (const float &deg) {return(deg/180. * M_PI);}
 
+
+/// \brief put a vector in the lower hemisphere
+/// \param dec Declination from north clockwise.  angle in degrees
+/// \param dip Dip of vector.  Returns 0 is horizontal, 90 is vertical, down
+/// \bug Should this be a template?
+void flip (double &dec, double &dip); 
+/// \brief put a vector in the lower hemisphere
+/// \param dec Declination from north clockwise.  angle in degrees
+/// \param dip Dip of vector.  Returns 0 is horizontal, 90 is vertical, down
+void flip (float &dec, float &dip);
+
+
+/// \brief renormalize an angle to be in [0..2*M_PI]
+/// \param angleRad  Angle in radians.  No limit to the value
+/// \return angle in [0..2*M_PI]
+/// \bug will be slow for angles that are very far from the returned range.  1000000*M_PI would take a while
+float normRadAngle(float angleRad);
+
+/// \brief rotate an XY vector about the origin
+/// \param x1 Input x value
+/// \param y1 Input y value
+/// \param angleRad Angle in radians to rotate by.  Right handed rotation.
+/// \param x2 Output x value
+/// \param y2 Output y value
+///
+/// An example... rotateXY (1.0, 0.0, M_PI/4, x2, y2) will give:
+/// (0.0, 1.0)
+void rotateXY (const float x1, const float y1, const float angleRad, float &x2, float &y2);
+
+
+
 /// \brief convert xyz to theta (t) and phi(p) in radians.  Go polar.
 /// \param x Cartesian x coord.
 /// \param y Cartesian y coord.
@@ -64,6 +95,11 @@ size_t GetIndex(const EigsEnum which, const gsl_vector *v);
 /// \param eigenvals Precomputed eigen values.  Use gsl_eigensymmv
 /// \param vec Return array for the eigen vector
 /// \param val Return the eigen value.  Should be less than 1!!! (t1+t2+t3 == 1.0)
+/// \return should someday return false if got a bad param
+///
+/// The eigen parameters are unsorted when computed, so the min could be first, second, or third.  
+/// Use this to grab the data out of the gsl data structures for the eigen parameters you want.
+
 bool GetEig(const EigsEnum which, const gsl_matrix *eigenvecs, const gsl_vector *eigenvals,
 	    float vec[3], float &val);
 
