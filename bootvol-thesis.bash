@@ -27,8 +27,8 @@
 # Owens Lake data.
 
 export PATH=${PATH}:.
-cells=100
-draw=1000000
+cells=25
+draw=1000
 declare -ar groups=( as1-crypt as2-slump as3-undef )
 declare -r w=0.5
 declare -r boundaries="-x -${w} -X ${w} -y -${w} -Y ${w} -z -${w} -Z ${w}"
@@ -36,18 +36,20 @@ declare -r debug_level=2
 
 echo $boundaries
 
-make s_bootstrap xyzdensity xyzvol_cmp volhdr_edit vol_iv
+make s_bootstrap xyzdensity xyzvol_cmp volhdr_edit vol_iv volmakecmap
 
 #
 # Bootstrap each of the groups to produce Vmin (V3), Vint(V2), Vmax(V1) volumes
 #
 if [ 1 == 1 ]; then
     for group in "${groups[@]}"; do
+
 	echo Processing $group
 	s_bootstrap ${group}.s -f xyz  -n 3 --out ${group}.xyz. -p --draw ${draw}
-	mv ${group}.xyz.1 ${group}-boot.xyz.vmax
-	mv ${group}.xyz.2 ${group}-boot.xyz.vint
-	mv ${group}.xyz.3 ${group}-boot.xyz.vmin
+	mv ${group}.xyz.1.vmax ${group}-boot.xyz.vmax
+	mv ${group}.xyz.2.vint ${group}-boot.xyz.vint
+	mv ${group}.xyz.3.vmin ${group}-boot.xyz.vmin
+
 	echo Densifying
 	args="  --bpv=16 -w ${cells} -t ${cells} -d ${cells} --verbosity=$debug_level"
 	xyzdensity ${group}-boot.xyz.vmax --out=${group}-vmax.vol -p 1 $args $boundaries
@@ -63,8 +65,9 @@ if [ 1 == 1 ]; then
 	#volhdr_edit ${group}-all-1.0.vol --out=${group}-all-0.5.vol --xscale=0.5 --yscale=0.5 --zscale=0.5
 	#volhdr_edit ${group}-all-1.0.vol --out=${group}-all-2.0.vol --xscale=2.0 --yscale=2.0 --zscale=2.0
 
-	#vol_iv -b=2 -c ALPHA_BLENDING --numslicescontrol=ALL -p NONE -C kurt.cmap -o density.iv density.vol
-	vol_iv -b=2 -c ALPHA_BLENDING --numslicescontrol=ALL -p NONE -C kurt.cmap -o ${group}-all-1.0.iv ${group}-all-1.0.vol
+	volmakecmap --cpt=rgba.cpt -o current.cmap --zero=0
+
+	vol_iv -b=2 -c ALPHA_BLENDING --numslicescontrol=ALL -p NONE -C current.cmap -o ${group}-all-1.0.iv ${group}-all-1.0.vol
 
 	scale="--xscale=0.5 --yscale=0.5 --zscale=0.5"
 	volhdr_edit ${group}-vmax.vol --out=tmp $scale && /bin/mv tmp ${group}-vmax.vol
@@ -91,7 +94,6 @@ for eig_type in vmin vint vmax; do
 	./xyzvol_cmp -v $debug_level -d $file as?-?????-$eig_type.xyz > ${eig_type}-${file}.cmp
     done
 done
-
 
 echo
 echo Done with $0
