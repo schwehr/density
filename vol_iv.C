@@ -62,12 +62,33 @@ static const UNUSED char* RCSid ="@(#) $Id$";
 
 #include <VolumeViz/nodes/SoTransferFunction.h> // ColorMapType
 
+/// \brief Return the PredefColorMap from user input.  Defaults to NONE
+///
+SoTransferFunction::PredefColorMap
+getPredefCmap (const int given, const char *cstr, bool &ok) {
+  ok=true;
+  if (!given) return SoTransferFunction::NONE;
+  assert(cstr);
+  string str(cstr);
+  if (0==str.compare("NONE"))        {DebugPrintf(BOMBASTIC,("NONE\n"));        return(SoTransferFunction::NONE);}
+  if (0==str.compare("GREY"))        {DebugPrintf(BOMBASTIC,("GREY\n"));        return(SoTransferFunction::GREY);}
+  if (0==str.compare("GRAY"))        {DebugPrintf(BOMBASTIC,("GRAY\n"));        return(SoTransferFunction::GRAY);}
+  if (0==str.compare("TEMPERATURE")) {DebugPrintf(BOMBASTIC,("TEMPERATURE\n")); return(SoTransferFunction::TEMPERATURE);}
+  if (0==str.compare("PHYSICS"))     {DebugPrintf(BOMBASTIC,("PHSYICS\n"));     return(SoTransferFunction::PHYSICS);}
+  if (0==str.compare("STANDARD"))    {DebugPrintf(BOMBASTIC,("STANDARD\n"));    return(SoTransferFunction::STANDARD);}
+  if (0==str.compare("GLOW"))        {DebugPrintf(BOMBASTIC,("GLOW\n"));        return(SoTransferFunction::GLOW);}
+  if (0==str.compare("BLUE_RED"))    {DebugPrintf(BOMBASTIC,("BLUE_RED\n"));    return(SoTransferFunction::BLUE_RED);}
+  if (0==str.compare("SEISMIC"))     {DebugPrintf(BOMBASTIC,("SEISMIC\n"));     return(SoTransferFunction::SEISMIC);}
+  cerr << "ERROR: unknown PredefColorMap... " << str << endl;
+  ok=false;
+  return(SoTransferFunction::NONE);
+}
+
 /// \brief Parse a string to find out what type of colormap.  Defaults to RGBA.
 /// \param cmaptype_given Bool of if the user specified anything
 /// \param cmaptype_arg What the user tried to tell us
 /// \param \a false something cookoo happened... very likely with user typos
 /// \return SoTransferFunction::ColorMapType of ALPHA, LUB_ALPHA, or RGBA
-
 SoTransferFunction::ColorMapType
 getCmapType(const int cmaptype_given, const char *cmaptype_arg, bool &ok) {
   DebugPrintf(TRACE,("getCmapType: %d\n",int(cmaptype_given)));
@@ -98,8 +119,7 @@ bool WriteColorMap(ofstream &o, const string &filename, SoTransferFunction::Colo
   switch (cmaptype) {
   case SoTransferFunction::ALPHA:
     {
-      float tmp;
-      size_t count=0;
+      float tmp;      size_t count=0;
       while(in >> tmp) {
 	if (256<=count) {cerr << "WARNING!  Too many color map entries!"<<endl; break;}
 	o << "\t\t\t"<<tmp<<","<<endl;
@@ -109,10 +129,28 @@ bool WriteColorMap(ofstream &o, const string &filename, SoTransferFunction::Colo
     }
     break;
   case SoTransferFunction::LUM_ALPHA:
+    {
+      float a,b;      size_t count=0;
+      while(in >> a >> b) {
+	if (256<=count) {cerr << "WARNING!  Too many color map entries!"<<endl; break;}
+	o << "\t\t\t" << a << "," << b << "," << endl;
+	count++;
+      }
+      if (count!=256) {cerr << "WARNING! Not exactly 256 LUM/ALPHA pairs."<<endl;}
+    }
     break;
   case SoTransferFunction::RGBA:
+    {
+      float a,b,c,d;      size_t count=0;
+      while(in >> a >> b >> c >> d) {
+	if (256<=count) {cerr << "WARNING!  Too many color map entries!"<<endl; break;}
+	o << "\t\t\t" << a << "," << b << "," << c << "," << d << "," << endl;
+	count++;
+      }
+      if (count!=256) {cerr << "WARNING! Not exactly 256 RGBA values."<<endl;}
+    }
     break;
-  default: assert(false && "Visiting Davey Jones' locker");
+  default: assert(false && "Visiting Davey Jones' Locker... http://dusk.geo.orst.edu/djl/");
   }
   return(true);
 }
@@ -141,11 +179,31 @@ int main (int argc, char *argv[]) {
   DebugPrintf(TRACE,("Debug level = %d\n",debug_level));
 #endif
 
-  // FIX: allow more than one input volume
+  //////////////////////////////////////////////////////////////////////
+  // ERROR CHECK ARGS
+  //////////////////////////////////////////////////////////////////////
+
   if (1!=a.inputs_num) {
     cerr << "ERROR: Must specify either 0 or 1 inputfile.  You gave 2 or more!" << endl;
     return (EXIT_FAILURE);
   }
+
+  {
+    bool r;
+    getPredefCmap(a.predefcmap_given, a.predefcmap_arg, r);
+    if (!r) {cerr << "ERROR: bad predefined color map.  Bye." << endl; return(EXIT_FAILURE);}
+  }
+
+  {
+    bool r;
+    getCmapType(a.cmaptype_given, a.cmaptype_arg,r);
+    if (!r) {cerr << "ERROR: bad color map type.  Bye." << endl; return(EXIT_FAILURE);}
+  }
+
+
+  //////////////////////////////////////////////////////////////////////
+  // GO SPEED RACER
+  //////////////////////////////////////////////////////////////////////
 
   ofstream o(a.out_arg,ios::out);
   if (!o.is_open()) {
@@ -179,9 +237,11 @@ int main (int argc, char *argv[]) {
     if(a.predefcmap_given) o << "\t\tpredefColorMap " << a.predefcmap_arg << endl;
     if(a.cmaptype_given) o << "\t\tcolorMapType " << a.cmaptype_arg << endl;
     if(a.cmap_given) {
+      bool r;
+      if (SoTransferFunction::NONE != getPredefCmap(a.predefcmap_given, a.predefcmap_arg, r)) 
+	cerr << "WARNING: you specified a predefined color map with a color map.  Are you crazy?" << endl;
       DebugPrintf(TRACE,("cmap_given\n"));
       o << "\t\tcolorMap [ ";
-      bool r;
       const SoTransferFunction::ColorMapType cmaptype = getCmapType(a.cmaptype_given, a.cmaptype_arg,r);
       if (r && !WriteColorMap(o,string(a.cmap_arg),cmaptype)) {
 	ok=false; cerr << "ERROR: Failed to write color map" << endl;
