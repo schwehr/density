@@ -63,6 +63,9 @@ using namespace std;
  ***************************************************************************/
 
 #include "debug.H" // provides FAILED_HERE, UNUSED, DebugPrintf
+#ifdef REGRESSION_TEST
+int debug_level=0;
+#endif
 
 /// Let the debugger find out which version is being used.
 static const UNUSED char* RCSid ="@(#) $Id$";
@@ -149,6 +152,7 @@ Density::Density(const size_t _width, const size_t _height, const size_t _depth,
 /// @bug Would be nice to handle 1, 2, and 4 bit voxels for huge grids
 /// Just need to add a new arg of the bit index
 char *ReadDataUnsigned(char *data, const size_t bitsPerVoxel, size_t &val, bool &ok) {
+  ok=true;
   assert(data);
 #ifndef NDEBUG
   if (0==(bitsPerVoxel/8)) {ok=false;return (0);}
@@ -364,7 +368,7 @@ size_t Density::scaleValue(const size_t value, const PackType p, const size_t bi
   case  8: maxVox=std::numeric_limits<uint8_t >::max(); break;
   case 16: maxVox=std::numeric_limits<uint16_t>::max(); break;
   case 32: maxVox=std::numeric_limits<uint32_t>::max(); break;
-  default: assert(false && "Time to go clean the cat box");
+  default: maxVox=0; assert(false && "Time to go clean the cat box");
   }
   switch (p) {
   case PACK_SCALE:
