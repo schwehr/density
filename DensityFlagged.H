@@ -38,6 +38,27 @@ public:
   /// \a false if not flagged or \a true if flagged
   bool isFlagged(size_t i) const {assert(isValidCell(i)); return(flags[i]);}
   void setFlag(size_t i, bool v=true) {assert(isValidCell(i)); flags[i]=v;}
+  size_t getNumFlagged() const; ///< How many cells flagged?
+
+  /// \brief Return the number of counts in all the flagged cells.  FIX: slow!
+  /// Same as used count
+  size_t getFlaggedCount() const;
+
+  /// How many elements in the blob?
+  size_t getNumUsed() const {return(used.size());}
+  /// Get the nth cell of the blob
+  size_t getUsedIndex(const size_t i) const {assert(i<used.size());return(used[i]);}
+
+  /// Scan through used and look for the largest unflagged point
+  size_t getLargestNeighborOfFlagged() const;
+
+  /// \brief Grow a blob until we reach percent of total counts
+  /// Puts used cells in the \a used private vector.
+  /// This will stop if it runs out of connected cells
+  void buildBlob(const float percent);
+
+  /// dump a description of the blob to stdout
+  void printBlob() const;
 
 private:
   std::vector<bool> flags;
