@@ -301,7 +301,7 @@ void Density::getCellCenter(const size_t cellNum, float &x, float &y, float &z) 
   z = zR[0] + (cz+0.5) * dz;
 }
 
-bool Density::writeVol(const string &filename) {
+bool Density::writeVolScale(const string &filename) const {
   FILE *o=fopen(filename.c_str(),"wb");
   if (!o) {perror("failed to open output file");cerr << "   " << filename << endl;return(false);}
 
@@ -328,7 +328,81 @@ bool Density::writeVol(const string &filename) {
 
   if (0!=fclose(o)) {perror("close failed... bizarre");return(false);}
   return (true);
+} // writeVolScale
+
+size_t Density::ScaleValue(const size_t value, const PackType p, const size_t bitsPerVoxel) const {
+  size_t maxVox;
+  switch (bitsPerVoxel) {
+  case  8: maxVox=std::numeric_limits<uint8_t >::max(); break;
+  case 16: maxVox=std::numeric_limits<uint16_t>::max(); break;
+  case 32: maxVox=std::numeric_limits<uint32_t>::max(); break;
+  default: assert(false && "Time to go clean the cat box");
+  }
+
+  switch (p) {
+  case PACK_SCALE:
+    {
+      const size_t max = getMaxCount(); // FIX: need to make sure this is efficient
+      const size_t min = getMinCount();
+      const float _0to1 = float(value-min)/(max-min);
+      const size_t r = size_t(_0to1 * maxVox);
+      return (r);
+    }
+  case PACK_CLIP: return ((value<maxVox)?value:maxVox);
+  case PACK_WRAP: return (value%maxVox);
+  default:
+    assert(false && "Olivia's favorite food is scrambled eggs.  This program is scambled.");
+  }
+
+  return (badValue());
 }
+
+bool Density::writeVol(const std::string &filename,
+		       const size_t bitsPerVoxel,const PackType p,
+		       const float rotX, const float rotY,const float rotZ) const
+{
+  bool ok=true;
+  float scales[3] ={1.,1.,1.}; // FIX: remove setting
+  cout << "FIX: Figure scales based on xR, yR, and yZ" << endl;
+
+  FILE *o=fopen(filename.c_str(),"wb");
+  if (!o) {perror("unable to open file to write volumne"); return(false);}
+  {
+    VolHeader v(width,height,depth,bitsPerVoxel,scales[0],scales[1],scales[2], rotX,rotY,rotZ);
+    if (v.getHeaderLength() != v.write(o)) {
+      cerr << "Volume header write failure" << endl;
+      fclose(o); return (false);
+    }
+  }
+  assert(0==bitsPerVoxel%8 && "Can't handle non byte aligned data just yet");
+  //const size_t bytesPerVoxel = bitsPerVoxel/8;
+  for (size_t i=0;i<counts.size(); i++) {
+    switch (bitsPerVoxel) {
+    case 8: // 1 byte
+      {
+	uint8_t uBuf=uint8_t(ScaleValue(counts[i],p,bitsPerVoxel));
+	if (sizeof(uint8_t) != fwrite(&uBuf,1,sizeof(uint8_t),o)) {
+	  perror ("failed to write vol data"); fclose (o); return (false);
+	}
+      }
+      break;
+    case 16: // 2 bytes
+      {
+	uint16_t uBuf=uint16_t(ScaleValue(counts[i],p,bitsPerVoxel));
+	if (sizeof(uint16_t) != fwrite(&uBuf,1,sizeof(uint16_t),o)) {
+	  perror ("failed to write vol data"); fclose (o); return (false);
+	}
+      }
+      break;
+    default:
+      assert(false && "Can not handle this byte size");
+    }
+  }
+
+  return (ok);
+} // writeVol
+
+
 
 unsigned char Density::scaleCount(const size_t i, const size_t min, const size_t max) const {
   const float _0to1 = float(counts[i]-min)/(max-min);
@@ -443,14 +517,14 @@ bool test3() {
     d.addPoint(1.5,0.1,0.1);  d.addPoint(0.1,1.5,0.1);
     for (size_t i=0;i<10;i++) d.addPoint(1.5,1.5,1.5);
 
-    if (!d.writeVol(filename)) {FAILED_HERE;return(false);}
+    if (!d.writeVolScale(filename)) {FAILED_HERE;return(false);}
   }
   {
     // FIX: Would be better to read someone elses file.
     bool result;
     Density d(filename,result);
     if (!result) {FAILED_HERE;return(FALSE);}
-    if (!d.writeVol(filename+string("2"))) {FAILED_HERE;return(false);}
+    if (!d.writeVolScale(filename+string("2"))) {FAILED_HERE;return(false);}
   }
 
 
@@ -487,10 +561,23 @@ bool test4() {
   return(ok);
 }
 
+bool test5() {
+  cout << "      test 5" << endl;
+  const string suffix("-test5.vol");
+  {
+    Density d(1,1,1, 0.,1, 0.,1, 0.,1); d.addPoints(0,1);
+    d.writeVol(string("1x1x1-1x1x1")+suffix,8,Density::PACK_WRAP);
+  }
+
+
+  return(true);
+}
+
 int main (UNUSED int argc, char *argv[]) {
   // Put test code here
   bool ok=true;
 
+#if 0 // ASDF
   cout << "      Size of Density   (in bytes): " << sizeof(Density) << endl;
   cout << "      Size of VolHeader (in bytes): " << sizeof(VolHeader) << endl;
 
@@ -512,6 +599,8 @@ int main (UNUSED int argc, char *argv[]) {
   if (!test2()) {FAILED_HERE;ok=false;}
   if (!test3()) {FAILED_HERE;ok=false;} // test writing
   if (!test4()) {FAILED_HERE;ok=false;}
+#endif // ASDF
+  if (!test5()) {FAILED_HERE;ok=false;}
 
   cout << "  " << argv[0] << " test:  " << (ok?"ok":"failed")<<endl;
   return (ok?EXIT_SUCCESS:EXIT_FAILURE);
