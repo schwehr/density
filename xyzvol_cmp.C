@@ -63,20 +63,44 @@ static const UNUSED char* RCSid ="@(#) $Id$";
  ***************************************************************************/
 
 
-// Get back the max value and the position.
+/// \brief Get back the max value and the position from a vector<size_t>
+/// \param d vector of size_t values to search through
+/// \param position the index of the max value
+/// \return The value of the maximum that was found
 float findmax(vector<size_t> &d, size_t &position) {
-  //float _max=-HUGE;
   size_t _max = 0;
   position = numeric_limits<size_t>::max();
-  size_t i;
-  for (i=0;i<d.size();i++) {
-    if (d[i]>_max) {
-      _max = d[i];
-      position = i;
-    }
-  }
+  for (size_t i=0;i<d.size();i++) if (d[i]>_max) {      _max = d[i];      position = i;    }
   return (_max);
 }
+
+/// \brief Search for the best z axis rotation fit
+
+void find_best_zrot(const Density &d, const size_t search_steps, const float x, const float y, const float z,
+		    size_t &best_count, float &best_angle) {
+  DebugPrintf(VERBOSE+1,("Starting rotation compare\n"));
+  vector<size_t> countCircle;
+  vector<float> countAngle;
+
+  size_t lastCell=numeric_limits<size_t>::max();
+  float _x,_y;
+  for (size_t i=0;i<search_steps;i++) {
+    const float angle=i * 2*M_PI/search_steps;
+    rotateXY(x,y,angle,_x,_y);
+    const size_t cellIndex = d.getCell(_x,_y,z);
+    if (cellIndex != lastCell) {
+      countCircle.push_back(d.getCellCount(cellIndex));
+      countAngle.push_back(angle);
+      lastCell=cellIndex;
+      cout << i << ": " << angle << " " << countCircle[countCircle.size()-1] << endl;
+    }
+  } // for steps
+  size_t pos;
+  findmax(countCircle, pos);
+
+  best_count = countCircle[pos];
+  best_angle = countAngle[pos];
+} // find_best_zrot
 
 /***************************************************************************
  * MAIN
@@ -173,32 +197,13 @@ int main (int argc, char *argv[]) {
       }
 
       if (a.rotate_fit_given) {
-	const size_t steps=500;	// FIX: need a better way to figure out the best rotational step
+	// FIX: need a better way to figure out the best rotational step
+	size_t best_count; float best_angle;
+	find_best_zrot(d, 1000, x,y,z, best_count, best_angle);
+	cout << "MAX is at: " << best_count << " " << best_angle << endl;
+	out << "\trotmax:\t" << best_count << "\t" << best_angle << endl;
+      }
 
-	DebugPrintf(VERBOSE+1,("Starting rotation compare\n"));
-	vector<size_t> countCircle;
-	vector<float> countAngle;
-
-	size_t lastCell=numeric_limits<size_t>::max();
-	float _x,_y;
-	for (size_t i=0;i<steps;i++) {
-	  const float angle=i * 2*M_PI/steps;
-	  rotateXY(x,y,angle,_x,_y);
-	  const size_t cellIndex = d.getCell(_x,_y,z);
-	  if (cellIndex != lastCell) {
-	    countCircle.push_back(d.getCellCount(cellIndex));
-	    countAngle.push_back(angle);
-	    //countCircle[i] = d.getCellCount(cellIndex);
-	    lastCell=cellIndex;
-	    cout << i << ": " << angle << " " << countCircle[countCircle.size()-1] << endl;
-	  }
-	} // for steps
-
-	size_t pos;
-	findmax(countCircle, pos);
-	cout << "MAX is at " << pos << ": " << countCircle[pos] << " " << countAngle[pos] << endl;
-	out << "\trotmax:\t" << countCircle[pos] << "\t" << countAngle[pos] << endl;
-      } // rotate_fit_given
       out << endl;
     } // While new samples in the input file
 
