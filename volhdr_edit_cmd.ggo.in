@@ -26,7 +26,6 @@ purpose "Muck with the header of a volume file.  Does not change the data field.
 
 option "verbosity" v "Set the verbosity level (0=quiet 10=verbose 20=bombastic)" int default="0" no
 
-option "in" i "Volume file to start with" string typestr="filename" no
 option "data" D "Use volume raw data with a new header" string typestr="filename" no
 option "nodata" n "Do not write data with the header" no
 
