@@ -8,6 +8,8 @@
 
 #include "kdsPmagL.H"
 
+void Print(const SVec &sv);
+
 size_t BootstrapParametricSample(const std::vector<SVec> &s, const std::vector<float> &sigmas,
 				 SVec &newSample,   gsl_rng *r);
 size_t BootstrapParametricSite  (const std::vector<SVec> &s, const float sigma, 
