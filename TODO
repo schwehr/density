@@ -2,7 +2,7 @@
 * Allow tracking of sample names from .s file through to .cmp
 * simpleview - manipulation of lights
 * simpleview - control background color
-* Added acoc - Arbitrary command color
-* Turn on anti aliasing for offscreen render
+* anti aliasing for rendering?  Allow max size renders
 * Rotate samples about z for best fit
 * Use splines to go between waypoints or something
+* Make a main man page for density
