@@ -81,6 +81,6 @@ int main (int argc, char *argv[]) {
     }
   }
   //d.printCellCounts();
-  d.writeVol(string("density.vol"));
+  d.writeVolScale(string("density.vol"));
   return (EXIT_SUCCESS);
 }
