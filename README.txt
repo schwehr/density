@@ -18,8 +18,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 ----------------------------------------------------------------------
 
+I try to follow the GNU software standards as much as possible and
+seems practical.  I don't follow it explicitly.
+
+http://www.gnu.org/prep/standards/standards.html
+
 This is a package designed for my PhD thesis to do volumetric
-inspections of eigen vectors and values using voxel representations.
+inspections of eigen parameters using voxel representations.
 xyzdensity and volinfo are useful even if you are doing totally
 different volumetric problems.
 
