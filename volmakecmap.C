@@ -134,9 +134,6 @@ ColorPallet::ColorPallet(const string &filename, bool &ok) {
     const string bufStr(buf);
     if (checkColorModel(bufStr)) continue; // Check for COLOR_MODEL = 
     
-    // switch (colorModel)
-    assert (RGBA==colorModel || HSVA==colorModel); // Someday we get more
-
     float v1,r1,g1,b1,a1,  v2,r2,g2,b2,a2;
     istringstream istr(buf);
     istr >> v1>>r1>>g1>>b1 >>a1 >>v2>>r2>>g2>>b2>>a2;
@@ -144,6 +141,7 @@ ColorPallet::ColorPallet(const string &filename, bool &ok) {
       cerr << "Read failed for:" << bufStr << endl;
       continue;
     }
+
     if ( (HSVA!=colorModel) && !( (0.<=v1 && v1 <= 1.) 
 	    && (0.<=r1 && r1 <= 1.) && (0.<=g1 && g1 <= 1.) && (0.<=b1 && b1 <= 1.) && (0.<=a1 && a1 <= 1.)
 	    && (0.<=v2 && v2 <= 1.) 
@@ -189,10 +187,10 @@ bool ColorPallet::insertCmapEntry(const float v1, const float r1, const float g1
   for (size_t i;i<256; i++) {
     const float v = i/255.;
     if (v1>v || v2<v) continue;
-    r[i] = v * mr + br;
-    g[i] = v * mg + bg;
-    b[i] = v * mb + bb;
-    a[i] = v * ma + ba;
+    r[i] = v * mr + br; if (1.0<r[i]) r[i]=1.f; // Handle floating point jitter
+    g[i] = v * mg + bg; if (1.0<g[i]) g[i]=1.f; // Handle floating point jitter
+    b[i] = v * mb + bb; if (1.0<b[i]) b[i]=1.f; // Handle floating point jitter
+    a[i] = v * ma + ba; if (1.0<a[i]) a[i]=1.f; // Handle floating point jitter
     
   }
 
