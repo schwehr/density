@@ -18,7 +18,7 @@ using namespace std;
 // For boot strapping with Parametric SITE mode
 float SiteSigma (const vector<SVec> &s) {
   assert(0<s.size());
-  cout << "size: " << s.size() << endl;
+  //cout << "size: " << s.size() << endl;
   if (s.size()<2) { cerr << "Too small to bootstrap...  here comes a NaN" << endl;}
 
   float s0=0;
@@ -63,9 +63,9 @@ bool testFile (const string &filename, const float expected_sigma)
   float tmpSigma;
   vector <SVec> s;
   while (in >> tmp[0] >> tmp[1] >> tmp[2] >> tmp[3] >> tmp[4] >> tmp[5] >> tmpSigma) {
-    {static int i=0; cout << i++ << ": ";}
-    for (size_t i=0;i<6;i++) cout << tmp[i] << " ";
-    cout << endl; // cout << sigma << endl;
+    //{static int i=0; cout << i++ << ": ";}
+    //for (size_t i=0;i<6;i++) cout << tmp[i] << " ";
+    //cout << endl; // cout << sigma << endl;
     s.push_back(tmp);
   }
   const float sigma = SiteSigma(s);
