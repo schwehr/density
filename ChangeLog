@@ -1,3 +1,11 @@
+2004-10-19  Kurt Schwehr  <schwehr@catbox>
+
+	* version: Released 0.12
+	simpleview now has waypoint lines and forward/back control
+	simpleview has a better man page.  Needs formatting help
+	acoc - color for stdout
+	minor cleanup here and there
+
 2004-10-18  Kurt Schwehr  <schwehr@catbox>
 
 	* version: Released 0.11
