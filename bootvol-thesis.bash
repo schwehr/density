@@ -186,17 +186,32 @@ if [ 1 == 1 ]; then
 	else
 	    DebugEcho $TERSE $LINENO "Using existing bootstrapped xyz's"
 	fi
+
 	DebugEcho $TRACE $LINENO  "Densifying:  calling xyzdensity 4 times"
 
 	args=" -p 1  --bpv=16 -w ${cells} -t ${cells} -d ${cells} --verbosity=$debugLevel"
-	
- 	xyzdensity ${group}-boot.xyz.vmax --out=${group}-vmax.vol $args $boundaries
- 	xyzdensity ${group}-boot.xyz.vint --out=${group}-vint.vol $args $boundaries
- 	xyzdensity ${group}-boot.xyz.vmin --out=${group}-vmin.vol $args $boundaries
- 	xyzdensity --out=${group}-all.vol -p 1 -b 8 -w ${cells} -t ${cells} -d ${cells} $boundaries \
- 	    ${group}-boot.xyz.vmax \
- 	    ${group}-boot.xyz.vint \
- 	    ${group}-boot.xyz.vmin 
+	if [ ! -e ${group}-vmax.vol ]; then
+	    xyzdensity ${group}-boot.xyz.vmax --out=${group}-vmax.vol $args $boundaries
+	    xyzdensity ${group}-boot.xyz.vint --out=${group}-vint.vol $args $boundaries
+	    xyzdensity ${group}-boot.xyz.vmin --out=${group}-vmin.vol $args $boundaries
+	    xyzdensity --out=${group}-all.vol -p 1 -b 8 -w ${cells} -t ${cells} -d ${cells} $boundaries \
+		${group}-boot.xyz.vmax \
+		${group}-boot.xyz.vint \
+		${group}-boot.xyz.vmin 
+	    volhdr_edit ${group}-all.vol --out=tmp.vol $scale && /bin/mv tmp.vol ${group}-all.vol
+	    volhdr_edit ${group}-vmax.vol --out=tmp.vol $scale && /bin/mv tmp.vol ${group}-vmax.vol
+	    volhdr_edit ${group}-vint.vol --out=tmp.vol $scale && /bin/mv tmp.vol ${group}-vint.vol
+	    volhdr_edit ${group}-vmin.vol --out=tmp.vol $scale && /bin/mv tmp.vol ${group}-vmin.vol
+	    #
+            # Make each component viewable... scale them to min max
+	    #
+	    vol2vol_args="  -p 0 --bpv=8 -j 0.5 -k 0.5 -l 0.5 -v $debugLevel"
+	    vol2vol -o ${group}-vmax-8.vol ${group}-vmax.vol $vol2vol_args
+	    vol2vol -o ${group}-vint-8.vol ${group}-vint.vol $vol2vol_args
+	    vol2vol -o ${group}-vmin-8.vol ${group}-vmin.vol $vol2vol_args
+	else
+	    DebugEcho $TERSE $LINENO "Using existing ${group}-vmax.vol"
+	fi
 
 	if [ ! -e current.cmap ]; then 
 	    if [ ! -e rgba.cpt ]; then
@@ -205,21 +220,9 @@ if [ 1 == 1 ]; then
 	    volmakecmap --cpt=rgba.cpt -o current.cmap --zero=0
 	fi
 
-	volhdr_edit ${group}-all.vol --out=tmp.vol $scale && /bin/mv tmp.vol ${group}-all.vol
 	# --box=2.0
 	vol_iv -c ALPHA_BLENDING --numslicescontrol=ALL -p NONE -C current.cmap -o ${group}-all.iv ${group}-all.vol
 
-	volhdr_edit ${group}-vmax.vol --out=tmp.vol $scale && /bin/mv tmp.vol ${group}-vmax.vol
-	volhdr_edit ${group}-vint.vol --out=tmp.vol $scale && /bin/mv tmp.vol ${group}-vint.vol
-	volhdr_edit ${group}-vmin.vol --out=tmp.vol $scale && /bin/mv tmp.vol ${group}-vmin.vol
-
-	#
-	# Make each component viewable... scale them to min max
-	#
-	vol2vol_args="  -p 0 --bpv=8 -j 0.5 -k 0.5 -l 0.5 -v $debugLevel"
-	vol2vol -o ${group}-vmax-8.vol ${group}-vmax.vol $vol2vol_args
-	vol2vol -o ${group}-vint-8.vol ${group}-vint.vol $vol2vol_args
-	vol2vol -o ${group}-vmin-8.vol ${group}-vmin.vol $vol2vol_args
 
 	ivargs=" -c ALPHA_BLENDING --numslicescontrol=ALL -p NONE -C current.cmap -v $debugLevel"
 	vol_iv -o ${group}-vmax-8.iv ${group}-vmax-8.vol $ivargs
