@@ -46,8 +46,8 @@ BootstrapParametricSample(const vector<SVec> &s, const vector<float> &sigmas,
   }
 
 #ifdef REGRESSION_TEST
-  cout << sampleNum << " Sample Was: "; Print(s[sampleNum]);
-  cout << sampleNum << " Sample Now: "; Print(newSample);
+  //cout << sampleNum << " Sample Was: "; Print(s[sampleNum]);
+  //cout << sampleNum << " Sample Now: "; Print(newSample);
 #endif
   return (sampleNum);
 }
@@ -74,30 +74,32 @@ BootstrapParametricSite(const vector<SVec> &s, const float sigma, //const vector
   }
   const int sampleNum = int(gsl_rng_uniform(r)*s.size());
 
-  cout << "FIX: " << sigma << " " << sampleNum << endl;
+  //cout << "FIX: " << sigma << " " << sampleNum << endl;
   const SVec sample=s[sampleNum];
-  Print (sample); cout << endl;
+  //Print (sample); cout << endl;
 
   for (size_t i=0;i<6;i++) {
     const float delta = sigma * gsl_ran_gaussian (r, 1.0);
     //newSample[i] = s[sampleNum][i] + delta;
     newSample[i] = sample[i] + delta;
+#if 0
     cout << setw(14) << sample[i] << " "<< i << " delta = " 
 	 << setw(14)<< delta << " " << setw(14)<< newSample[i] << endl;
+#endif
   }
 
   // FIX: keep or not for normalize?
   {
     static bool done=false;if(!done){cerr<<"normalize"<<endl;done=true;}
     const float trace=newSample[0]+newSample[1]+newSample[2];
-    cout << "trace: " << trace << " " << Trace(newSample) << endl;
+    //cout << "trace: " << trace << " " << Trace(newSample) << endl;
     for (size_t i=0;i<6;i++) newSample[i]/=trace;
-    cout << "trace: " << Trace(newSample) << endl;
+    //cout << "trace: " << Trace(newSample) << endl;
   }
 
 #ifdef REGRESSION_TEST
-  cout << sampleNum << " Sample Was: "; Print(s[sampleNum]); cout << endl;
-  cout << sampleNum << " Sample Now: "; Print(newSample); cout << endl;
+  //cout << sampleNum << " Sample Was: "; Print(s[sampleNum]); cout << endl;
+  //cout << sampleNum << " Sample Now: "; Print(newSample); cout << endl;
 #endif
   return (sampleNum);
 }
