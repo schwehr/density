@@ -1,8 +1,5 @@
 // $Revision$  $Author$  $Date$
 /*
-    Unlike most of this library, this file is released only under the
-    GPL since it links with Coin.
-
     Copyright (C) 2004  Kurt Schwehr
 
     This program is free software; you can redistribute it and/or modify

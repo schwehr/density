@@ -1,20 +1,20 @@
 # $Revision$  $Author$  $Date$
 
 # Copyright (C) 2004  Kurt Schwehr
+
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
 #
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 2.1 of the License, or (at your option) any later version.
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
 #
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public
-# License along with this library; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #
 # FIX: assumes we are on Mac OSX 10.3 using fink with the following installed:
@@ -79,7 +79,8 @@ endif
 CFLAGS := ${CXXFLAGS} -Wimplicit-int -Wimplicit-function-declaration -Wnested-externs
 
 # These are programs that give --help for help2man
-GENGETOPT_BINS := s_bootstrap
+GENGETOPT_BINS := render
+GENGETOPT_BINS += s_bootstrap
 GENGETOPT_BINS += simpleview
 GENGETOPT_BINS += xyzdensity
 GENGETOPT_BINS += xyz_iv
@@ -123,6 +124,9 @@ targets: ${TARGETS} test
 
 %.c: %.ggo
 	gengetopt --input=$< --file-name=${<:.ggo=} --unamed-opts
+
+render: render_cmd.o render.C
+	${CXX} -o $@ $^  ${CXXFLAGS} -lsimage -lCoin -lSimVoleon -bind_at_load
 
 s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o s_bootstrap_cmd.o Eigs.o VecAngle.o
 	${CXX} -o $@ $^ ${CXXFLAGS} -Wno-long-double -lgsl -lgslcblas
@@ -343,6 +347,17 @@ install-acoc-force:
 	@echo Copying acoc.conf into your home directory.  WILL OVERWRITE
 	/bin/cp .acoc.conf ~/
 
+
+
+############################################################
+# Data/Project specific stuff
+############################################################
+
+# For Rosenbaum's data
+%.s: %.dat
+	awk '{print $$32/3,$$33/3,$$34/3,$$35/3,$$36/3,$$37/3,$$5/3}' $< > $@
+g1-fluidized.dat:
+	./getgroups.bash
 
 
 ############################################################
