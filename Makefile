@@ -33,6 +33,7 @@ help:
 	@echo "  make man         - Generate section 1 man pages"
 	@echo "  make tar         - Build a distribution"
 	@echo "  make check       - Search for all known code issuse (FIX tags)"
+	@echo "  make info        - Display a number of internal make variables"
 	@echo
 	@echo "  Add 'OPTIMIZE=1' - Build with optimizations enabled and then test"
 
@@ -83,12 +84,16 @@ GENGETOPT_BINS += volinfo
 GENGETOPT_BINS += vol_iv
 GENGETOPT_BINS += volmakecmap
 
+# Those without gengetopt
+SIMPLE_BINS := endian
+SIMPLE_BINS += histogram
+SIMPLE_BINS += is_equal
+SIMPLE_BINS += makeCDF
+#SIMPLE_BINS+= AMScrunch
+
 BINS := ${GENGETOPT_BINS}
-BINS += endian
-BINS += histogram
-BINS += is_equal
-BINS += makeCDF
-#BINS+= AMScrunch
+BINS += ${SIMPLE_BINS}
+
 
 # TESTING TARGETS:
 TEST_BINS += test_s_bootstrap
@@ -99,7 +104,7 @@ TEST_BINS += test_DensityFlagged
 TEST_BINS += test_Cdf
 TEST_BINS += test_Eigs
 
-TARGETS:=${BINS} ${TEST_BINS}
+TARGETS := ${BINS} ${TEST_BINS}
 
 targets-no-test: ${TARGETS}
 targets: ${TARGETS} test
@@ -248,6 +253,19 @@ clean:
 
 real-clean: clean
 	rm -rf doc
+
+# FIX: make optimize print on or off
+info:
+	@echo " NAME            -  " ${NAME}
+	@echo " VERSION         -  " ${VERSION}
+	@echo " OPTIMIZE        -  " ${OPTIMIZE}
+	@echo " CXXFLAGS        -  " ${CXXFLAGS}
+	@echo " CFLAGS          -  " ${CFLAGS}
+	@echo " TEST_BINS       -  " ${TEST_BINS}
+	@echo " SIMPLE_BINS     -  " ${SIMPLE_BINS}
+	@echo " GENGETOPT GGOs  -  " ${GGOS:.ggo=}
+	@echo " GENGETOPT_BINS  -  " ${GENGETOPT_BINS}
+
 
 
 ############################################################
