@@ -34,3 +34,5 @@ option "basename" b "Basename to use when creating output files" string default=
 
 option "list" l "List the output file formats available for dumping images" no
 option "type" t "File format to write rendered files too.  See --list for file types" string default="png" no 
+
+option "waypoints" w "Load in waypoints from a file" string typestr="filename" no
