@@ -125,7 +125,9 @@ bool WriteColorMap(ofstream &o, const string &filename, SoTransferFunction::Colo
 	o << "\t\t\t"<<tmp<<","<<endl;
 	count++;
       }
-      if (count!=256) {cerr << "WARNING! Not exactly 256 ALPHA values."<<endl;}
+      if (count!=256) {
+	cerr << "WARNING! Not exactly 256 ALPHA values."<<endl;
+      } // count!=256
     }
     break;
   case SoTransferFunction::LUM_ALPHA:
@@ -141,13 +143,27 @@ bool WriteColorMap(ofstream &o, const string &filename, SoTransferFunction::Colo
     break;
   case SoTransferFunction::RGBA:
     {
+#ifndef NDEBUG
+      vector<float> av,bv,cv,dv;
+#endif
       float a,b,c,d;      size_t count=0;
       while(in >> a >> b >> c >> d) {
 	if (256<=count) {cerr << "WARNING!  Too many color map entries!"<<endl; break;}
 	o << "\t\t\t" << a << "," << b << "," << c << "," << d << "," << endl;
 	count++;
+#ifndef NDEBUG
+	av.push_back(a); bv.push_back(b); cv.push_back(c); dv.push_back(d);
+#endif
       }
-      if (count!=256) {cerr << "WARNING! Not exactly 256 RGBA values."<<endl;}
+      if (count!=256) {cerr << "WARNING! Not exactly 256 RGBA values - got "<<count<<endl;
+#ifndef NDEBUG
+      if (debug_level >= BOMBASTIC-1) {
+	cerr << "Found sizes:" << av.size() << " " << dv.size()<<endl;
+	for (size_t i=0;i<av.size();i++)
+	  cerr << "i: " << av[i] << " " << bv[i] << " " << cv[i] << " " << dv[i] << endl;
+      }
+#endif
+      }
     }
     break;
   default: assert(false && "Visiting Davey Jones' Locker... http://dusk.geo.orst.edu/djl/");
@@ -185,6 +201,10 @@ int main (int argc, char *argv[]) {
 
   if (1!=a.inputs_num) {
     cerr << "ERROR: Must specify either 0 or 1 inputfile.  You gave 2 or more!" << endl;
+    cerr << "  Files you specified (might be bad args)" << endl;
+    for (size_t i=0; i< a.inputs_num; i++)
+      cerr << i << ": " << a.inputs[i] << endl;
+
     return (EXIT_FAILURE);
   }
 

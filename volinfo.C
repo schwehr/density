@@ -105,27 +105,28 @@ int main (const int argc, char *argv[]) {
       if (0 != r) {perror("stat to get file size FAILED");ok=false;continue;}
     }
 
+    const string showfile = (a.with_filename_flag?(filename+string(": ")):string(""));
 
     VolHeader v(filename,r);
     if (!r) {ok=false; cerr << "Failed to read file: " << filename << endl; continue;}
     cout << endl;
-    cout << "FILE           = " << filename << endl
-         << "File size      = " << sb.st_size << endl
-	 << "magic_number   = " << v.getMagicNumber() << endl
-	 << "header_length  = " << v.getHeaderLength() << endl
-	 << "width          = " << v.getWidth()  << "   (x)" << endl
-	 << "height         = " << v.getHeight() << "   (y)" << endl
-	 << "images         = " << v.getImages()  << "   (depth/z)" << endl
+    cout << showfile << "FILE           = " << filename << endl
+         << showfile << "File size      = " << sb.st_size << endl
+	 << showfile << "magic_number   = " << v.getMagicNumber() << endl
+	 << showfile << "header_length  = " << v.getHeaderLength() << endl
+	 << showfile << "width          = " << v.getWidth()  << "   (x)" << endl
+	 << showfile << "height         = " << v.getHeight() << "   (y)" << endl
+	 << showfile << "images         = " << v.getImages()  << "   (depth/z)" << endl
       ;
-    cout << "bits_per_voxel = " << v.getBitsPerVoxel() << "    (bytes = "<<v.getBitsPerVoxel()/8<<")" <<endl
-	 << "index_bits     = " << v.getIndexBits() << endl;
+    cout << showfile << "bits_per_voxel = " << v.getBitsPerVoxel() << "    (bytes = "<<v.getBitsPerVoxel()/8<<")" <<endl
+	 << showfile << "index_bits     = " << v.getIndexBits() << endl;
 
-    cout << "scaleX         = " << v.getScaleX() << endl
-	 << "scaleY         = " << v.getScaleY() << endl
-	 << "scaleZ         = " << v.getScaleZ() << endl
-	 << "rotX           = " << v.getRotX() << endl
-	 << "rotY           = " << v.getRotY() << endl
-	 << "rotZ           = " << v.getRotZ() << endl
+    cout << showfile << "scaleX         = " << v.getScaleX() << endl
+	 << showfile << "scaleY         = " << v.getScaleY() << endl
+	 << showfile << "scaleZ         = " << v.getScaleZ() << endl
+	 << showfile << "rotX           = " << v.getRotX() << endl
+	 << showfile << "rotY           = " << v.getRotY() << endl
+	 << showfile << "rotZ           = " << v.getRotZ() << endl
       ;
 
     // Add any command that needs to load the data here
@@ -138,11 +139,11 @@ int main (const int argc, char *argv[]) {
       }
 
       if (a.range_given)
-	cout << "minVal         = " << d.getMinCount() << endl
-	     << "maxVal         = " << d.getMaxCount() << endl;
+	cout << showfile << "minVal         = " << d.getMinCount() << endl
+	     << showfile << "maxVal         = " << d.getMaxCount() << endl;
 
       if (a.counts_given) 
-	cout << "total counts   = " << d.getCountInside() << endl;
+	cout << showfile << "total counts   = " << d.getCountInside() << endl;
 
     } // if need to load the density data
 

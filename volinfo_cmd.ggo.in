@@ -28,3 +28,5 @@ option "verbosity" v "Set the verbosity level (0=quiet 10=verbose 20=bombastic)"
 option "range" r "Show the range of data.  May take a long time" no
 option "counts" c "Show the total number of counts in the volume" no
 
+# Match grep
+option "with-filename" H "Show the filename before each line" flag off
