@@ -178,10 +178,6 @@ GetEigs(const gsl_matrix *eigenvec, const gsl_vector *eigenval, float newEigs[9]
   return(ok);
 }
 
-// Takes a triple that comes from the output of s_eigs
-/// \param len Eigen value
-/// \param dec Declination in degrees
-/// \param inc Inclination in degrees
 void ldi2xyz( const float len, const float dec, const float inc, vector<float> &xyz) {
   assert(xyz.size()==3);
   const float incRad = deg2rad(inc);
@@ -193,34 +189,85 @@ void ldi2xyz( const float len, const float dec, const float inc, vector<float> &
 }
 
 
-///// FIX:  Create a class that takes an s and returns eigs
-///// or xyz or ptr
-// Idea is to cache the workspace so we don't have to keep constructing and destroying workspaces
-// Put don't have to keep one.
-class S_Engine {
-public:
-  S_Engine();
-  S_Engine(const std::vector<float> &s);
-  bool setS(const std::vector<float> &s);
-  bool getS(std::vector<float> &s);
-  bool getEigs(std::vector<float> &V, vector<float> &T); ///< min, int, max sorted
-  bool getEig(const EigsEnum which, std::vector<float> &V, float &T);
-  bool getTau(const EigsEnum which, float &T);
-  bool getXYZ(std::vector<float> &xyz);
-  bool getXYZ(float &x, float &y, float &z);
-  bool getPTR(std::vector<float> &ptr);
-  bool getPTR(float &phi, float &theta, float &radius);
-private:
-  bool isValid; ///< True if an s value has been set
-  vector<float> s; ///< see seigs.  Store 6 or 7
-  vector<float> xyz; ///< size==9, min, int, max triples
-  vector<float> ptr; ///< size==9, min, int, max triples
-  vector<float> eigs; ///< same format as s_eigs
-};
 
-// Calculate eigs when an S is set
-// then eigs to xyz ... see python code eigs2xyz.py
-// xyztoptr
+
+//####################################################################
+// S_Engine
+//####################################################################
+
+S_Engine::S_Engine(const std::vector<float> &_s) {
+  isValid=false;
+  if (_s.size()!=6 && _s.size()!=7) {
+    cerr<< "S_Engine ERROR: requires s vec of size 6 or 7" << endl;
+    isValid=false;
+    return;
+  }
+  s.resize(6);
+  // FIX: is there a copier that is better/faster?
+  //for (size_t i=0;i<6;i++) s[i] = _s[i];
+
+  // Setup GNU Scientific Library
+  w = gsl_eigen_symmv_alloc (3);
+  A = gsl_matrix_alloc(3,3);
+  eigenval = gsl_vector_alloc(3);
+  eigenvec = gsl_matrix_alloc(3,3);
+  if (!w || !A || !eigenval || !eigenvec) {
+    cerr << "S_Engine ERROR: Unable to allocate workspace or matrix" << endl;
+    return; // isValid is still false
+  }
+
+  if (!setS(_s)) {
+    cerr << "S_Engine ERROR: unable to set s vector" << endl;
+  }
+
+  isValid=true;
+}
+
+S_Engine::~S_Engine() {
+  // Vectors clean themselves up
+  if (w) gsl_eigen_symmv_free (w);
+  if (A) gsl_matrix_free(A);
+  if (eigenvec) gsl_matrix_free(eigenvec);
+  if (eigenval) gsl_vector_free(eigenval);
+}
+
+
+bool S_Engine::setS(const vector<float> &_s) {
+  assert(6==_s.size() || 7==_s.size());
+  // FIX: is there a copier that is better/faster?
+  for (size_t i=0;i<6;i++) s[i] = _s[i];
+
+  gsl_matrix_set(A,0,0,s[0]);
+  gsl_matrix_set(A,1,1,s[1]);
+  gsl_matrix_set(A,2,2,s[2]);
+  gsl_matrix_set(A,0,1,s[3]);
+  gsl_matrix_set(A,1,0,s[3]);
+  gsl_matrix_set(A,1,2,s[4]);
+  gsl_matrix_set(A,2,1,s[4]);
+  gsl_matrix_set(A,0,2,s[5]);
+  gsl_matrix_set(A,2,0,s[5]);
+
+  // computes the eigenvalues and eigenvectors of the real symmetric matrix A
+  int r = gsl_eigen_symmv (A, eigenval, eigenvec, w) ;
+  if (r) {cout << "ERROR ("<<r<<"): " << gsl_strerror(r) << endl;FAILED_HERE;return(false);}
+  if (!GetEigs(eigenvec, eigenval, eigs)) {FAILED_HERE;return(false);}
+  return(true);
+}
+
+bool S_Engine::getXYZ(const EigsEnum which, vector<float> &xyz) {
+  if (!isValid) return(false);
+  assert(w);  assert(A); assert(eigenval); assert(eigenvec);
+  size_t base;
+  switch(which) {
+  case KMIN: base=0*3; break;
+  case KINT: base=1*3; break;
+  case KMAX: base=2*3; break;
+  default: assert(false); return(false);
+  }
+ ldi2xyz(eigs[base+0],eigs[base+1], eigs[base+2],xyz);
+
+  return (true);
+}
 
 
 //####################################################################
@@ -311,7 +358,6 @@ bool test2() {
   // 0,0 1,0 2,0
   // 0,1 1,1 2,1
   // 0,2 1,2 2,2
-  
 
   gsl_eigen_symmv_workspace *w = gsl_eigen_symmv_alloc (3);
   gsl_matrix *A = gsl_matrix_alloc(3,3);
@@ -369,6 +415,7 @@ bool test3() {
 
   // head -1 as1-crypt.s
   float s7[7] = {0.34406993,0.34145042,0.31447965,-.00168017,0.00414139,0.00152699,0.00052489};
+  //float s6[6] = {0.34406993,0.34145042,0.31447965,-.00168017,0.00414139,0.00152699};
   float eigs[9] = {0.31375569, 248.97, 80.68,
 		   0.34134611, 62.79, 9.26,
 		   0.34489819, 152.96,   0.99};
@@ -401,6 +448,19 @@ bool test3() {
 
     ldi2xyz(eigs[0],eigs[1],eigs[2],xyz);
     for (size_t i=0;i<3;i++) cout << i << " " << xyz[i] << " " << xyzs[i] << endl;
+    if (!isEqual(xyz[0],xyzs[0],0.001)) {FAILED_HERE;ok=false;}
+    if (!isEqual(xyz[1],xyzs[1],0.001)) {FAILED_HERE;ok=false;}
+    if (!isEqual(xyz[2],xyzs[2],0.001)) {FAILED_HERE;ok=false;}
+  }
+
+  {
+    vector<float> sv7(&s7[0],&s7[7]); 
+    S_Engine se(sv7);
+    //vector<float> sv6(&s7[0],&s7[6]); 
+    //se.setS(sv6);
+    //se.setS(sv7);
+    vector<float> xyz(3,0);
+    se.getXYZ(KMIN,xyz);
     if (!isEqual(xyz[0],xyzs[0],0.001)) {FAILED_HERE;ok=false;}
     if (!isEqual(xyz[1],xyzs[1],0.001)) {FAILED_HERE;ok=false;}
     if (!isEqual(xyz[2],xyzs[2],0.001)) {FAILED_HERE;ok=false;}
