@@ -1,3 +1,10 @@
+2004-10-17  Kurt Schwehr  <schwehr@catbox>
+
+	* version: Released 0.10
+	simpleview can now dump images to disk
+	Added INSTALL doc
+	Fixed up bootvol-thesis.bash and one.bash
+
 2004-10-16  Kurt Schwehr  <schwehr@catbox>
 
 	* version: Released 0.9
