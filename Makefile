@@ -19,14 +19,19 @@
 #
 # FIX: assumes we are on Mac OSX 10.3 using fink with the following installed:
 # 
-#  simvoleon21, soqt21, gengetopt (>=2.12.1), gsl
+#  simvoleon21, soqt21, gengetopt (>=2.12.1), gsl, doxygen
 #
+#  Suggested to install Lisa Tauxe's pmag (>=1.8).  Sorry, it is not in fink yet.
 
 # USAGE:
 #
 #  make              - Build with debugging enabled and then test
 #  make OPTIMIZE=1   - Build with optimizations enabled and then test
+#  make clean        - Clean up all the moose droppings
+#  make docs         - Generate doxygen docs
+#  make tar          - Build a distribution
 #
+
 
 CXXFLAGS := -Wall -Wimplicit -pedantic -W -Wstrict-prototypes -Wredundant-decls
 CXXFLAGS += -I/sw/include -L/sw/lib
@@ -133,3 +138,20 @@ test: ${TEST_BINS}
 	@echo SUCCESS!!
 	@echo All tests passed in "${shell pwd}"
 
+docs:
+	doxygen
+
+VERSION := ${shell cat VERSION}
+NAME := density
+TARNAME := ${NAME}-${VERSION}
+tar:
+	rm -rf ${TARNAME}
+	mkdir ${TARNAME}
+	@echo
+	cp *.{C,H,ggo} ${TARNAME}/
+	@echo
+	cp AUTHOR Makefile Doxyfile LICENSE.LGPL README.txt VERSION demos.bash good.iv ${TARNAME}/
+	@echo
+	tar cf ${TARNAME}.tar ${TARNAME}
+	bzip2 -9 ${TARNAME}.tar
+	rm -rf ${TARNAME}
