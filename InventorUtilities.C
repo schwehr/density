@@ -116,8 +116,7 @@ vector<float> ToVector (const SbVec3f &SbV) {
 
 
 SbVec3f
-InterpolateVec(const SbVec3f &v1, SbVec3f &v2,
-			     const float percent)
+InterpolateVec(const SbVec3f &v1, SbVec3f &v2, const float percent)
 {
   return (v1+(v2-v1)*percent);
 }
@@ -126,16 +125,6 @@ InterpolateVec(const SbVec3f &v1, SbVec3f &v2,
 SbRotation InterpolateRotations(const SbRotation &rot1,const SbRotation &rot2,
 				const float percent)
 {
-#if 0
-  // Try 1.  camera roles
-  SbVec3f axis1; float rad1;
-  rot1.getValue(axis1,rad1);
-  SbVec3f axis2; float rad2;
-  rot2.getValue(axis2,rad2);
-  SbVec3f newAxis = InterpolateVec(axis1,axis2,percent);
-  SbRotation newRot(newAxis, rad1 + (rad2-rad1)*percent);
-#endif
-
   float q1[4], q2[4], q3[4];
   rot1.getValue(q1[0],q1[1],q1[2],q1[3]);
   rot2.getValue(q2[0],q2[1],q2[2],q2[3]);
@@ -171,10 +160,6 @@ InterpolatePos(const vector<float> &v1, const vector<float> &v2,
  ***************************************************************************/
 
 
-/// \brief Given a draggers set the camera view from it
-///
-/// This is the simpler case where we do not have to interpolate
-/// between to draggers
 void SetCameraFromDragger(SoCamera *c,SoSpotLightDragger *d) {
   assert (d); assert(c);
   SbVec3f pos=d->translation.getValue();
@@ -185,15 +170,6 @@ void SetCameraFromDragger(SoCamera *c,SoSpotLightDragger *d) {
 
 
 
-/// \brief Ship off a picture to disk
-/// \param basename start the file name with this
-/// \param filetype the extension for the image format: jpg, png, etc...
-/// \param width,height The size of the rendered frame
-/// \param root Top of the scene graph to render
-/// \param frame_num return the frame number that we wrote
-/// \return \a false if we flailed trying to get a pretty picture to disk
-///
-/// \bug FIX: could optimize by keeping one renderer in memory
 bool RenderFrameToDisk (const string &basename,const string &filetype,
 			const int width, const int height,
 			SoNode *root, size_t &frame_num, const SbColor &background)
@@ -230,8 +206,8 @@ bool RenderFrameToDisk (const string &basename,const string &filetype,
 }
 
 
-/// \brief Handle the --list command line option.  Spits out the list
-/// of filetypes that work for rendering to files
+
+
 void ListWriteFileTypes() {
   if (!SoDB::isInitialized()) SoDB::init();
 
@@ -260,9 +236,7 @@ void ListWriteFileTypes() {
 
 } // ListWriteFileTypes
 
-/// \brief Check with coin/simage to see if the image extension works
-/// \param type String of the file extension.  For example \a rgb, \a png, \a jpg
-/// \return \a false if something went really bad with the lookup.
+
 bool CheckTypeValid(const string &type) {
   if (!SoDB::isInitialized()) SoDB::init();
 
@@ -277,11 +251,7 @@ bool CheckTypeValid(const string &type) {
   return (ok);
 }
 
-/// \brief Load dragger/way points from a disk file
-/// \param filename Ascii file to load from
-/// \param root Where in the scene graph location to add the draggers  (should be draggerSwitch
-/// \param draggerVec A vector in which to keep the way points handy
-/// \return \a false if trouble loading the draggers/waypoints
+
 bool
 LoadSpotLightDraggers (const string filename, SoSeparator *root, vector<SoSpotLightDragger *> &draggerVec)
 {
@@ -327,10 +297,6 @@ LoadSpotLightDraggers (const string filename, SoSeparator *root, vector<SoSpotLi
 
 
 
-/// \brief Save an ascii file of all the draggers for editing and reloading
-/// \param filename file to write to
-/// \param draggerVec pointers to all the SoSpotLightDragger way points
-/// \return \a false if had trouble writing the file
 bool
 SaveSpotLightDraggersAscii (const string &filename, vector<SoSpotLightDragger *> &draggerVec) {
   bool ok=true;
@@ -365,10 +331,6 @@ SaveSpotLightDraggersAscii (const string &filename, vector<SoSpotLightDragger *>
   return (ok);
 } // SaveSpotLightDraggersAscii
 
-/// \brief Write a scene graph to disk as ascii
-/// \param filename File to write ascii IV file to
-/// \param root Starting point of the scene graph to same
-/// \return \a false if we were not able to open the file.
 bool
 WriteSceneGraph (const string &filename, SoNode *root) {
   SoOutput o;
@@ -382,10 +344,6 @@ WriteSceneGraph (const string &filename, SoNode *root) {
   return (true);
 }
 
-
-
-/// \brief Help avoid problems with library paths.  Especially on Darwin/OSX
-/// \return true if have the proper path.  False if found something bad or lacking
 bool CheckLibraryPath () {
 #ifdef __APPLE__ // DARWIN/MacOSX
   char *path = getenv("DYLD_LIBRARY_PATH");
