@@ -106,7 +106,7 @@ TEST_BINS += test_Eigs
 
 TARGETS := ${BINS} ${TEST_BINS}
 
-targets-no-test: ${TARGETS}
+targets-no-test: ${BINS}
 targets: ${TARGETS} test
 
 
@@ -203,6 +203,15 @@ man: ${GENGETOPT_BINS}
 	mkdir -p doc/man/man1
 	for file in ${GENGETOPT_BINS}; do echo Processing $$file;help2man -N ./$$file --opt-include $$file.help2man > doc/man/man1/$$file.1; done
 
+man2html: man
+	cd doc/man/man1 && for file in *.1; do groff -Tascii -man $$file | man2html > $${file%%.1}.html; done
+
+install-web: install-web install-web-man2html
+install-web-doxy: docs
+	scp doc/html/* kds:www/software/density/html
+install-web-man2html: man2html
+	scp doc/man/man1/*.html kds:www/software/density/man
+
 
 # Need these so we can make sure the 
 GGOS:=${wildcard *.ggo}
@@ -239,16 +248,17 @@ check:
 	@grep -n FIX *.{C,H,ggo,help2man} Makefile | grep -v grep
 
 clean:
-	rm -f blah* foo* *~ ${TARGETS} *.o *.xyz *.eigs *.cdf [0-9]x[0-9]*test?.vol
+	rm -rf blah* foo* *~ ${TARGETS} *.o *.xyz *.eigs *.cdf [0-9]x[0-9]*test?.vol
 	rm -f *_cmd.[ch]
 	rm -f .*~
 	rm -f as*.xyz* as*.vol
 	rm -f ${BINS}
 	rm -f [0-9].{vol,s,xyz}
 	rm -f [0-9][0-9].{vol,s,xyz*}
-	rm -rf one.xyz* one-* one.cmap
-	rm -rf current.cmap as[0-9]-*all-1.0.iv
-	rm -rf *.vol.cmp
+	rm -f one.xyz* one-* one.cmap one.s
+	rm -f current.cmap as[0-9]-*all-1.0.iv
+	rm -f *.vol.cmp
+	rm -f test3.vol*
 
 
 real-clean: clean
