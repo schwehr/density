@@ -47,6 +47,10 @@
 #include <Inventor/Qt/SoQt.h>
 #include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
 
+#include <Inventor/SoOffscreenRenderer.h>
+
+#include <Inventor/sensors/SoTimerSensor.h>
+
 #include <Inventor/events/SoMouseButtonEvent.h>
 #include <Inventor/events/SoLocation2Event.h>
 #include <Inventor/events/SoKeyboardEvent.h>
@@ -63,8 +67,6 @@
 
 #include <Inventor/draggers/SoTranslate1Dragger.h>
 #include <Inventor/draggers/SoSpotLightDragger.h>
-
-#include <Inventor/SoOffscreenRenderer.h>
 
 // Voleon Includes
 #include <VolumeViz/nodes/SoVolumeRendering.h>
@@ -104,6 +106,8 @@ public:
   gengetopt_args_info *a; ///< a for args.  These are the command line arguments
 
   bool animating;  // set to true to start animation;
+  bool render_frames_to_disk;  // true, we write out each animated frame
+
 
   static uint8_t nominalMagicNumber() {return(178);}
   uint8_t getMagicNumber() const {return(magicNumber);}
@@ -113,13 +117,131 @@ public:
 SceneInfo::SceneInfo() {
   magicNumber = nominalMagicNumber();
   camera = 0; root = 0; draggerSwitch = 0; draggerSwitch = 0; a = 0;
-  animating=false;
+  animating=render_frames_to_disk=false;
+}
+
+
+/***************************************************************************
+ * Vector Utilities
+ ***************************************************************************/
+
+
+SbVec3f ToSbVec3f (const vector<float> &v) {
+  assert (3==v.size());
+  float x,y,z;
+  x=v[0]; y=v[1]; z=v[2];
+  SbVec3f s;
+  s.setValue(x,y,z);
+  return (s);
+}
+
+vector<float> ToVector (const SbVec3f &SbV) {
+  vector<float> v;
+  float x,y,z;
+  SbV.getValue(x,y,z);
+  v.push_back(x);
+  v.push_back(y);
+  v.push_back(z);
+  return (v);
+}
+
+
+SbVec3f
+InterpolateVec(const SbVec3f &v1, SbVec3f &v2,
+			     const float percent)
+{
+  return (v1+(v2-v1)*percent);
+}
+
+
+SbRotation InterpolateRotations(const SbRotation &rot1,const SbRotation &rot2,
+				const float percent)
+{
+#if 0
+  // Try 1.  camera roles
+  SbVec3f axis1; float rad1;
+  rot1.getValue(axis1,rad1);
+  SbVec3f axis2; float rad2;
+  rot2.getValue(axis2,rad2);
+  SbVec3f newAxis = InterpolateVec(axis1,axis2,percent);
+  SbRotation newRot(newAxis, rad1 + (rad2-rad1)*percent);
+#endif
+
+  float q1[4], q2[4], q3[4];
+  rot1.getValue(q1[0],q1[1],q1[2],q1[3]);
+  rot2.getValue(q2[0],q2[1],q2[2],q2[3]);
+
+  int i;
+  for (i=0;i<4;i++)
+    q3[i] = q1[i]+(q2[i]-q1[i])*percent;
+
+  SbRotation newRot(q3);
+  return (newRot);
+}
+
+
+vector<float>
+InterpolatePos(const vector<float> &v1, const vector<float> &v2,
+			     const float percent)
+{
+  assert (v1.size()==v2.size());
+  vector<float> v3;
+  size_t i;
+  for (i=0;i<v1.size();i++) {
+    const float a = v1[i];
+    const float b = v2[i];
+    const float delta = b-a;
+    const float newVal= a + delta*percent;
+    v3.push_back(newVal);
+  }
+  return (v3);
 }
 
 
 /***************************************************************************
  * Utilities
  ***************************************************************************/
+// FIX: could optimize by keeping one renderer in memory
+
+/// \brief Ship off a picture to disk
+/// \param basename start the file name with this
+/// \param filetype the extension for the image format: jpg, png, etc...
+/// \param width,height The size of the rendered frame
+/// \param root Top of the scene graph to render
+/// \param frame_num return the frame number that we wrote
+/// \return \a false if we flailed trying to get a pretty picture to disk
+bool RenderFrameToDisk (const string &basename_arg,const string &filetype_arg,
+			const int width, const int height,
+			SoNode *root, size_t &frame_num)
+{
+  assert (root);
+  SbViewportRegion viewport(width,height);
+  SoOffscreenRenderer *renderer = new SoOffscreenRenderer(viewport);
+
+#ifndef NDEBUG
+  SbVec2s maxRes = renderer->getMaximumResolution();
+  DebugPrintf(VERBOSE,("maxRes: %d %d\n",maxRes[0], maxRes[1]));
+#endif    
+
+  SbBool ok = renderer->render(root);
+  if (!ok) {  cerr << "Unable to render!" << endl;  delete(renderer); return(false);   }
+
+  static int count=0;
+  char countBuf[12];
+  frame_num = size_t(count);  snprintf(countBuf,12,"%04d",count++);
+  const string filename =
+    string(basename_arg)
+    + string(countBuf)
+    + string(".")
+    + filetype_arg;
+  SbName filetype(filetype_arg.c_str());
+  ok = renderer->writeToFile(filename.c_str(), filetype);
+  if (!ok) {cerr << "Failed to render" << endl; }
+  delete (renderer);
+  return (ok);
+}
+
+
 /// \brief Handle the --list command line option
 void ListWriteFileTypes() {
   if (!SoDB::isInitialized()) SoDB::init();
@@ -179,6 +301,9 @@ LoadSpotLightDraggers (const string filename, SoSeparator *root, vector<SoSpotLi
 
   // FIX: nuke the old waypoints
 
+  
+
+
   return (ok);
 }
 
@@ -228,13 +353,19 @@ SaveSpotLightDraggers (const string filename, vector<SoSpotLightDragger *> &drag
 void PrintKeyboardShorts() {
   cout << endl
        << "Keyboard shortcuts:" << endl << endl
-       << "\ta - Toggle animation -  Start/Stop" << endl
-       << "\td - Dump the current view to an image" << endl
-       << "\th - Print out this help list" << endl
-       << "\ts - Show/Hide way point markers" << endl
-       << "\tw - Write the current set of waypoints to a file" << endl
+       << "\t a - Toggle animation -  Start/Stop" << endl
+       << "\t d - Dump the current view to an image" << endl
+       << "\t h - Print out this help list" << endl
+       << "\t i - Insert a waypoint at the current camera location" << endl
+       << "\t r - Render frames as they animate" << endl
+       << "\t s - Show/Hide way point markers" << endl
+       << "\t w - Write the current set of waypoints to a file" << endl
        << endl
-       << "\tDo not forget to use the right mouse button or option-left mouse for more"<<endl
+       << "\t - - Decrease the debug level" << endl
+       << "\t + - Incease  the debug level" << endl
+       << "\t - " << endl
+       << endl
+       << "\t Do not forget to use the right mouse button or option-left mouse for more"<<endl
        << endl;
 
 }
@@ -255,7 +386,7 @@ keyPressCallback(void *data, SoEventCallback *cb) {
   const SoKeyboardEvent *keyEvent = (const SoKeyboardEvent *)cb->getEvent();
 
   //cerr << "Keypressed: " << keyEvent->getPrintableCharacter() << endl;
-  DebugPrintf(VERBOSE,("keyPressCallback: '%c'\n",keyEvent->getPrintableCharacter()));
+  DebugPrintf(VERBOSE+4,("keyPressCallback: '%c'\n",keyEvent->getPrintableCharacter()));
 
   //
   // A - toggle animating
@@ -274,6 +405,16 @@ keyPressCallback(void *data, SoEventCallback *cb) {
     DebugPrintf(TRACE,("Keyhit: D - render  %d %d\n",si->a->width_arg,si->a->height_arg));
     cerr << "d" << endl;
 
+    size_t frame_num;
+    if (!RenderFrameToDisk (string(si->a->basename_arg),string(si->a->type_arg),
+			si->a->width_arg, si->a->height_arg,
+			si->root, frame_num)
+	) {
+      cerr << "ERROR: unable to write you artistic work.  You have been sensored.  Not my fault." << endl;
+    }
+    DebugPrintf(TRACE+1,("Finished writing frame number %04d\n",int(frame_num)));
+
+#if 0
     SbViewportRegion viewport(si->a->width_arg,si->a->height_arg);
     SoOffscreenRenderer *renderer = new SoOffscreenRenderer(viewport);
 
@@ -296,22 +437,73 @@ keyPressCallback(void *data, SoEventCallback *cb) {
       if (!ok) {cerr << "Failed to render" << endl; }
     }
     delete (renderer);
+#endif
     return;
   } // KEY_PRESS D - dump screen
 
   if (SO_KEY_PRESS_EVENT(keyEvent, H)) { PrintKeyboardShorts(); return; }
 
+
+  //
+  // I - insert a waypoint marker
+  //
+  if (SO_KEY_PRESS_EVENT(keyEvent, I)) {
+    DebugPrintf(TRACE,("Keyhit: I - insert waypoint\n"));
+    SoCamera *c = si->camera;
+    float x,y,z;
+    SbVec3f pos = c->position.getValue();
+    pos.getValue (x,y,z);
+    DebugPrintf  (VERBOSE,("pos xyz: %f %f %f\n", x, y, z));
+    SbRotation rot = si->camera->orientation.getValue();
+    {
+      SbVec3f axis; float radians;
+      rot.getValue(axis,radians);
+      axis.getValue(x,y,z);
+      DebugPrintf(VERBOSE,("axis/radians: [ %f %f %f ] %f\n",x,y,z,radians));
+    }
+
+    // Add marker
+    {
+      SoSeparator *sep = new SoSeparator;
+
+      SoSpotLightDragger *mark = new SoSpotLightDragger;
+      {
+	static int waypointNum=0;
+	si->draggerVec.push_back(mark);
+	
+	char buf[128];
+	snprintf(buf, 128,"_%d",waypointNum++); // name can't start with a number
+	mark->setName (buf);
+      }
+      mark->translation.setValue(pos);
+      mark->rotation.setValue(rot);
+
+      sep->addChild(mark);
+      si->draggerSwitch->addChild(sep);
+    }
+    return;
+  } // KEY_PRESS I - Insert waypoint
+
+
+  // + - Toggle render mode for during animation.  If true write all frames to disk
+  if (SO_KEY_PRESS_EVENT(keyEvent, R)) {
+    si->render_frames_to_disk = (si->render_frames_to_disk?false:true); // flip
+
+    DebugPrintf(TRACE,("Keyhit: R - toggle render to %s\n",(si->render_frames_to_disk?"true":"false")));
+    return;
+  }
+
+
   //
   // S - show/hide waypoint markers
   //
-  if (SO_KEY_PRESS_EVENT(keyEvent, H)) {
+  if (SO_KEY_PRESS_EVENT(keyEvent, S)) {
     //cout << "(H)ide/show way points\n";
     if (SO_SWITCH_ALL == si->draggerSwitch->whichChild.getValue())
       si->draggerSwitch->whichChild = SO_SWITCH_NONE;
     else si->draggerSwitch->whichChild = SO_SWITCH_ALL;
     return;
   }
-
 
   //
   // W - write waypoints to a file
@@ -324,13 +516,129 @@ keyPressCallback(void *data, SoEventCallback *cb) {
     return;
   } // KEY_PRESS W - write waypoints
 
-  cout << "Add +/- for up and down on debug level" << endl;
+  // + - Increase the debugging level ... equal is that key with the '+' on it too.
+  if (SO_KEY_PRESS_EVENT(keyEvent, EQUAL)) {
+    debug_level++;
+    DebugPrintf(TRACE,("Keyhit: + - Increase debug_level to %d\n",debug_level));
+    return;
+  }
+
+  // - - Decrease the debugging level
+  if (SO_KEY_PRESS_EVENT(keyEvent, MINUS)) {
+    if (0<debug_level) debug_level--;
+    DebugPrintf(TRACE,("Keyhit: + - Decrease debug_level to %d\n",debug_level));
+    return;
+  }
 
 } // keyPressCallback
 
 
 
+/***************************************************************************
+ * TIMER FOR ANIMATION
+ ***************************************************************************/
 
+/// \brief Handle details of moving the camera between waypoints
+/// \param data SceneInfo data structure
+/// \param sensor The timer that went off
+void timerSensorCallback(void *data, SoSensor *sensor) {
+  assert(data);
+  assert(sensor);
+  SceneInfo *si = (SceneInfo *)data;
+  static bool initialized=false;
+
+  if (!si->animating) {
+    initialized=false;
+    return;  // not turned on right now
+  }
+  if (si->draggerVec.size()<2) {
+    cout << "nothing to animate!" << endl;
+    return;
+  }
+
+  // Now lets animate things!
+  if (0) {
+    static size_t tick=0;
+    cout << endl << "tick: " << tick++ << endl;
+  }
+
+  static float percent=10.;
+  static size_t cur=0;
+
+  // handle setup.
+  if (!initialized) {
+    initialized=true;
+    cout << "Initialization for animation." << endl;
+    percent = 0.;
+    cur = 0;
+  }
+
+  if (percent >= 1.0) {
+    percent=0.;
+    cur++;
+    cout << "Switching to mark #" << cur << endl;
+    //if (si->draggerVec.size()-1<=cur) {
+    if (si->draggerVec.size()==cur) {
+      cout << "Looping" << endl;
+      cur=0;
+    }
+  }
+
+  //
+  // Calc the camera position and set it!
+  //
+  //cout << "using: " << cur << " " << cur+1 << endl;
+  SoSpotLightDragger *d1 = si->draggerVec[cur];
+  SoSpotLightDragger *d2;
+  if (cur==si->draggerVec.size()-1) {
+    d2 = si->draggerVec[0];
+    cout << "Using " << cur << "-0" << endl;
+  } else d2 = si->draggerVec[cur+1];
+
+  SbVec3f pos1 = d1->translation.getValue();
+  SbVec3f pos2 = d2->translation.getValue();
+  //print (pos1);
+  //print (pos2);
+
+  vector<float> v1 = ToVector(pos1);
+  vector<float> v2 = ToVector(pos2);
+  //print (v1);
+  //print (v2);
+  
+  vector<float> v3 = InterpolatePos (v1,v2,percent);
+  //print (v3);
+  SbVec3f pos3 = ToSbVec3f (v3);
+  //print (pos3);
+
+  si->camera->position = pos3;
+
+  SbRotation rot1 = d1->rotation.getValue();
+  SbRotation rot2 = d2->rotation.getValue();
+#if 0
+  SbRotation newRot = InterpolateRotations(rot1,rot2,percent);
+#else
+  SbRotation newRot = SbRotation::slerp (rot1, rot2, percent);
+#endif
+
+  si->camera->orientation = newRot;
+
+  DebugPrintf (VERBOSE,("Mark: %d      Step:  %f\n",int(cur),percent));
+  percent += 0.1;
+
+  if (si->render_frames_to_disk) {
+    DebugPrintf (TRACE,("ANIMATION: Rendering frame to disk file\n"));
+    size_t frame_num;
+    if (!RenderFrameToDisk (string(si->a->basename_arg),string(si->a->type_arg),
+			si->a->width_arg, si->a->height_arg,
+			si->root, frame_num)
+	) {
+      cerr << "ERROR: unable to write you artistic work.  You have been sensored.  Not my fault." << endl;
+    }
+    DebugPrintf(TRACE+1,("ANIMATION: Finished writing frame number %04d\n",int(frame_num)));
+  }
+
+  return;
+}
 
 /***************************************************************************
  * MAIN
@@ -443,6 +751,13 @@ int main(int argc, char *argv[])
   // Write out keyboard shortcuts
   if (0<debug_level) PrintKeyboardShorts();
 
+  // Setup a timer callback for animating...
+  {
+    SoTimerSensor *timer = new SoTimerSensor (timerSensorCallback,si);
+    assert (timer);
+    timer->setInterval(.25);
+    timer->schedule();
+  }
 
 
   SoQt::show(myWindow);
