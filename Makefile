@@ -17,21 +17,23 @@ endif
 
 CFLAGS := ${CXXFLAGS} -Wimplicit-int -Wimplicit-function-declaration -Wnested-externs
 
-TARGETS:= makeCDF histogram s_bootstrap xyzdensity endian
-TAGGETS+= volinfo
-#TARGETS+= AMScrunch
+BINS := makeCDF histogram s_bootstrap xyzdensity endian
+BINS += volinfo
+#BINS+= AMScrunch
 
 # TESTING TARGETS:
-TARGETS+= test_s_bootstrap
-TARGETS+= test_SiteSigma
-TARGETS+= test_VolHeader
-TARGETS+= test_Density
-TARGETS+= test_DensityFlagged
+TEST_BINS+= test_s_bootstrap
+TEST_BINS+= test_SiteSigma
+TEST_BINS+= test_VolHeader
+TEST_BINS+= test_Density
+TEST_BINS+= test_DensityFlagged
 
-targets: ${TARGETS}
+TARGETS:=${BINS} ${TEST_BINS}
 
-xyzdensity: xyzdensity.C Density.o
-	${CXX} -o $@ $< ${CXXFLAGS} Density.o
+targets: ${TARGETS} test
+
+xyzdensity: xyzdensity.C Density.o VolHeader.o
+	${CXX} -o $@ $^ ${CXXFLAGS}
 
 test_VolHeader: VolHeader.C VolHeader.H
 	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS}
@@ -40,7 +42,7 @@ test_Density: Density.C Density.H VolHeader.o
 	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS} VolHeader.o
 
 test_DensityFlagged: DensityFlagged.C DensityFlagged.H Density.H Density.o VolHeader.o
-	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS} Density.o
+	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS} Density.o VolHeader.o
 
 test_SiteSigma: SiteSigma.C SiteSigma.H
 	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS} 
@@ -64,3 +66,15 @@ simpleview: simpleview.C
 
 volinfo: volinfo.C VolHeader.o
 	${CXX} -o $@ $^  ${CXXFLAGS}
+
+test: ${TEST_BINS}
+	@for file in ${TEST_BINS}; do \
+		echo ;\
+		echo $$file ;\
+		echo ;\
+		export TESTING=yes ;\
+		./$$file ;\
+		done
+	@echo 
+	@echo SUCCESS!!
+	@echo All tests passed in "${shell pwd}"
