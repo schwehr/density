@@ -370,6 +370,8 @@ INPUT                  =
 # *.c *.cc *.cxx *.cpp *.c++ *.java *.ii *.ixx *.ipp *.i++ *.inl *.h *.hh *.hxx *.hpp 
 # *.h++ *.idl *.odl *.cs *.php *.php3 *.inc
 
+#  Makefile *.bash  -- Can not handle these yet
+
 FILE_PATTERNS          = *.[CH]
 
 # The RECURSIVE tag can be used to turn specify whether or not subdirectories 
