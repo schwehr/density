@@ -260,97 +260,10 @@ int main (const int argc, char *argv[]) {
     if (ok && !DoS_Bootstrap(inFiles, o1,o2,o3, a.numout_arg, format, type, a.draw_arg)) {
       ok=false; cerr << "ERROR:  " << argv[0] << " failed in bootstrap routine." << endl;
     }
-
   }
-
-
-  //if (!DoS_Bootstrap(inFiles, string(a.out_arg), a.numout_arg, format, type)) {
 
   return (ok?EXIT_SUCCESS:EXIT_FAILURE);
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// OLD UI
-//////////////////////////////////////////////////////////////////////
-#if 0
-int main(int argc, char *argv[]) {
-  if (4!=argc) {
-    cerr << endl
-	 << "Usage: " << argv[0] << " -{P,p} sFile numSamples " << endl
-	 << endl
-	 << "  -p Sample parametric bootstrap" << endl
-	 << "  -P Site   parametric bootstrap" << endl
-	 << endl
-	 << "  e.g.:  " << argv[0] << " -P as1-crypt.s 500 > as1-bootPsite"<<endl
-	 << endl;
-      exit(EXIT_FAILURE);
-  }
-
-
-  gsl_rng * r;  /* global generator */
-  const gsl_rng_type *T;
-  gsl_rng_env_setup();
-  T = gsl_rng_default;
-  r = gsl_rng_alloc (T);
-  { unsigned long int s;  getDevRandom(s);  gsl_rng_set (r, s); } // Set the Seed
-
-  BootTypeEnum type;
-  {
-    string typestr(argv[1]);
-    if      (string::npos != typestr.find(string("-P"))) type=SITE_PARAMETRIC;
-    else if (string::npos != typestr.find(string("-p"))) type=SAMPLE_PARAMETRIC;
-    else {
-      cerr << "first argument must be either: " << endl
-	   << "  -p    sample paramtric" << endl
-	   << "  -P    site   paramtric" << endl;
-    }
-  }
-  const string filename(argv[2]);
-  const size_t numSamples(atoi(argv[3])); // how many samples to generate
-
-  vector<SVec> s;
-  vector<float> sigmas;
-  if (!LoadS(filename,s,sigmas)) {
-    cerr << "ERROR: can't load datafile.  Tough luck... goodbye" << endl;
-    exit(EXIT_FAILURE);
-  }
-
-  const float siteSigma = (SITE_PARAMETRIC==type)?SiteSigma(s):-666.;
-#if 0
-  switch (type) {
-  case SITE_PARAMETRIC:   cout << "SITE"   << endl; break;
-  case SAMPLE_PARAMETRIC: cout << "SAMPLE" << endl; break;
-  default:  assert(false);
-  }
-#endif
-
-  SVec newSample(6,0.);
-  cout << setiosflags(ios::fixed) /*<< setw(14)*/ << setprecision(10);
-  for (size_t i=0;i<numSamples; i++) {
-    switch (type) {
-    case SITE_PARAMETRIC:   BootstrapParametricSite   (s,siteSigma,newSample, r); Print(newSample);
-      cout << endl;
-      //cout << " 0.00000" << endl;
-      break;
-    case SAMPLE_PARAMETRIC: BootstrapParametricSample (s,sigmas   ,newSample, r); Print(newSample);
-      cout << endl;
-      //cout << " 0.00000" << endl;
-      break;
-    default:
-      assert(false);
-    }
-  }
-
-  return (EXIT_SUCCESS);
-}
-
-#endif // 0 old gui
-//////////////////////////////////////////////////////////////////////
-// OLD UI
-//////////////////////////////////////////////////////////////////////
-
-
+} // main
 
 #endif // !REGRESSION_TEST
 
