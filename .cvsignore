@@ -24,4 +24,5 @@ simpleview_bin
 [0-9].s
 density.info
 density-?.??
-
+bootvol-thesis.bash.html  eigs2xyz.py.html          makemovie.bash.html  regression.bash.html
+debug.bash.html           getgroups-ol92.bash.html  one.bash.html        splitdepth.py.html
