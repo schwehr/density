@@ -85,7 +85,7 @@ int debug_level=0;
 static const UNUSED char* RCSid ="$Id$";
 
 /***************************************************************************
- * KEYBOARD STUFF
+ * SCENEINFO - the big global variable
  ***************************************************************************/
 
 class SceneInfo {
@@ -115,72 +115,6 @@ SceneInfo::SceneInfo() {
   camera = 0; root = 0; draggerSwitch = 0; draggerSwitch = 0; a = 0;
   animating=false;
 }
-
-
-/// \brief Gets called whenever the user presses a key in interactive mode
-/// \param data This will be the SceneInfo structure.
-void
-keyPressCallback(void *data, SoEventCallback *cb) {
-  assert(data); assert(cb);
-
-  SceneInfo *si = (SceneInfo *)data;
-  assert(si->getMagicNumber()==SceneInfo::nominalMagicNumber());
-
-  assert (si);
-  assert (si->camera);
-  assert (si->root);
-
-  const SoKeyboardEvent *keyEvent = (const SoKeyboardEvent *)cb->getEvent();
-
-  cerr << "Keypressed: " << keyEvent->getPrintableCharacter() << endl;
-
-  if (SO_KEY_PRESS_EVENT(keyEvent, D)) {
-    DebugPrintf(TRACE,("Keyhit: D - render  %d %d\n",si->a->width_arg,si->a->height_arg));
-    cerr << "d" << endl;
-
-    SbViewportRegion viewport(si->a->width_arg,si->a->height_arg);
-    SoOffscreenRenderer *renderer = new SoOffscreenRenderer(viewport);
-
-    SbVec2s maxRes = renderer->getMaximumResolution();
-    DebugPrintf(VERBOSE,("maxRes: %d %d\n",maxRes[0], maxRes[1]));
-    
-    SbBool ok = renderer->render(si->root);
-    if (!ok) {
-      cerr << "Unable to render!" << endl;
-      return;
-    }
-    {
-      static int count=0;
-      char countBuf[12];
-      snprintf(countBuf,12,"%04d",count++);
-      //const string filename=string(si->a->basename_arg)+string(countBuf)+string(".rgb");
-      const string filename =
-	string(si->a->basename_arg)
-	+ string(countBuf)
-	+ string(".")
-	+ string(si->a->type_arg);
-#if 0
-      FILE *outFile=fopen(filename.c_str(),"wb");
-      if (!outFile) {
-	perror ("Unable to open output file");
-	return;
-      }
-#endif
-      //ok = renderer->writeToRGB(outFile);
-      SbName filetype(si->a->type_arg);
-      ok = renderer->writeToFile(filename.c_str(), filetype);
-      if (!ok) {
-	cerr << "Failed to render" << endl;
-      }
-
-    }
-    delete (renderer);
-
-    return;
-  } // KEY_PRESS D - dump screen
-
-
-} // keyPressCallback
 
 
 /***************************************************************************
@@ -216,17 +150,187 @@ void ListWriteFileTypes() {
 } // ListWriteFileTypes
 
 /// \brief Check with coin/simage to see if the image extension works
+/// \param type String of the file extension.  For example \a rgb, \a png, \a jpg
+/// \return \a false if something went really bad with the lookup.
 bool CheckTypeValid(const string &type) {
-  
   if (!SoDB::isInitialized()) SoDB::init();
+
   SbViewportRegion *viewport= new SbViewportRegion();
   SoOffscreenRenderer *r = new SoOffscreenRenderer(*viewport);
   SbName name(type.c_str());
+
   SbBool ok=r->isWriteSupported(name);
+
   delete r;
   delete viewport;
   return (ok);
 }
+
+/// \brief Load dragger/way points from a disk file
+/// \param filename Ascii file to load from
+/// \param root Where in the scene graph location to add the draggers
+/// \param draggerVec A vector in which to keep the way points handy
+/// \return \a false if trouble loading the draggers/waypoints
+bool
+LoadSpotLightDraggers (const string filename, SoSeparator *root, vector<SoSpotLightDragger *> &draggerVec) {
+  bool ok=true;
+  assert(root);
+  DebugPrintf(TRACE,("LoadSpotLightDraggers %s %d\n",filename.c_str(),int(draggerVec.size())));
+
+  // FIX: nuke the old waypoints
+
+  return (ok);
+}
+
+bool
+SaveSpotLightDraggers (const string filename, vector<SoSpotLightDragger *> &draggerVec) {
+  bool ok=true;
+  DebugPrintf(TRACE,("SaveSpotLightDraggers %s %d\n",filename.c_str(),int(draggerVec.size())));
+
+  if (0==draggerVec.size()) {
+    cerr << "WARNING: skipping save.  There are zero waypoints." << endl;
+    return(false);
+  }
+
+  ofstream o(filename.c_str(),ios::out);
+  if (!o.is_open()) {cerr<<"ERROR: unable to open waypoint file: "<<filename<<endl; return (false);}
+
+  o << "#waypoints" << endl
+    << "# rotaxis1 rotaxis2 rotaxis3 rotAngle x y z cutoffangle" << endl
+    << "# written by: " << RCSid << endl;
+
+  for (size_t i=0;i<draggerVec.size();i++) {
+    SoSpotLightDragger *d = draggerVec[i];
+    assert (d);
+    SbVec3f axis; float r_angle;
+    float a1,a2,a3;
+    axis.getValue(a1,a2,a3);
+    d->rotation.getValue(axis,r_angle);
+    SbVec3f xyz(d->translation.getValue());
+    float x, y, z;
+    xyz.getValue(x,y,z);
+    const float angle = d->angle.getValue(); // FIX: do not currently use angle for anything
+    o << a1 << " "<< a2 << " "<< a3 
+      << " " << r_angle
+      << " " << x << " " << y << " " << z
+      << " " << angle << endl;
+
+  }
+
+  return (ok);
+} 
+
+/***************************************************************************
+ * KEYBOARD STUFF
+ ***************************************************************************/
+
+/// \brief Send help on keyboard shortcuts to stdout
+void PrintKeyboardShorts() {
+  cout << endl
+       << "Keyboard shortcuts:" << endl << endl
+       << "\ta - Toggle animation -  Start/Stop" << endl
+       << "\td - Dump the current view to an image" << endl
+       << "\th - Print out this help list" << endl
+       << "\ts - Show/Hide way point markers" << endl
+       << "\tw - Write the current set of waypoints to a file" << endl
+       << endl
+       << "\tDo not forget to use the right mouse button or option-left mouse for more"<<endl
+       << endl;
+
+}
+
+/// \brief Gets called whenever the user presses a key in interactive mode
+/// \param data This will be the SceneInfo structure.
+void
+keyPressCallback(void *data, SoEventCallback *cb) {
+  assert(data); assert(cb);
+
+  SceneInfo *si = (SceneInfo *)data;
+  assert(si->getMagicNumber()==SceneInfo::nominalMagicNumber());
+
+  assert (si);
+  assert (si->camera);
+  assert (si->root);
+
+  const SoKeyboardEvent *keyEvent = (const SoKeyboardEvent *)cb->getEvent();
+
+  //cerr << "Keypressed: " << keyEvent->getPrintableCharacter() << endl;
+  DebugPrintf(VERBOSE,("keyPressCallback: '%c'\n",keyEvent->getPrintableCharacter()));
+
+  //
+  // A - toggle animating
+  //
+  if (SO_KEY_PRESS_EVENT(keyEvent, A)) {
+    si->animating = (si->animating?false:true); // flip
+    cout << "toggling animation to " << (si->animating?"true":"false") << endl;
+    //cout.flush();
+    return;
+  }
+
+  //
+  // D - Dump a rendering of the scene
+  //
+  if (SO_KEY_PRESS_EVENT(keyEvent, D)) {
+    DebugPrintf(TRACE,("Keyhit: D - render  %d %d\n",si->a->width_arg,si->a->height_arg));
+    cerr << "d" << endl;
+
+    SbViewportRegion viewport(si->a->width_arg,si->a->height_arg);
+    SoOffscreenRenderer *renderer = new SoOffscreenRenderer(viewport);
+
+    SbVec2s maxRes = renderer->getMaximumResolution();
+    DebugPrintf(VERBOSE,("maxRes: %d %d\n",maxRes[0], maxRes[1]));
+    
+    SbBool ok = renderer->render(si->root);
+    if (!ok) {  cerr << "Unable to render!" << endl;  return;   }
+    {
+      static int count=0;
+      char countBuf[12];
+      snprintf(countBuf,12,"%04d",count++);
+      const string filename =
+	string(si->a->basename_arg)
+	+ string(countBuf)
+	+ string(".")
+	+ string(si->a->type_arg);
+      SbName filetype(si->a->type_arg);
+      ok = renderer->writeToFile(filename.c_str(), filetype);
+      if (!ok) {cerr << "Failed to render" << endl; }
+    }
+    delete (renderer);
+    return;
+  } // KEY_PRESS D - dump screen
+
+  if (SO_KEY_PRESS_EVENT(keyEvent, H)) { PrintKeyboardShorts(); return; }
+
+  //
+  // S - show/hide waypoint markers
+  //
+  if (SO_KEY_PRESS_EVENT(keyEvent, H)) {
+    //cout << "(H)ide/show way points\n";
+    if (SO_SWITCH_ALL == si->draggerSwitch->whichChild.getValue())
+      si->draggerSwitch->whichChild = SO_SWITCH_NONE;
+    else si->draggerSwitch->whichChild = SO_SWITCH_ALL;
+    return;
+  }
+
+
+  //
+  // W - write waypoints to a file
+  //
+  if (SO_KEY_PRESS_EVENT(keyEvent, W)) {
+    const string filename("tmp.wpt");
+    DebugPrintf(TRACE,("Keyhit: W - write waypoints: %s\n",filename.c_str()));
+    if (!SaveSpotLightDraggers(filename, si->draggerVec))
+      cerr << "WARNING: waypoint save to " << filename << "failed." << endl;
+    return;
+  } // KEY_PRESS W - write waypoints
+
+  cout << "Add +/- for up and down on debug level" << endl;
+
+} // keyPressCallback
+
+
+
+
 
 /***************************************************************************
  * MAIN
@@ -259,6 +363,8 @@ int main(int argc, char *argv[])
     if (!CheckTypeValid(string(a.type_arg)))
       { cerr << "File type not valid: --type=" << a.type_arg << endl; return (EXIT_FAILURE); }
 
+  DebugPrintf(VERBOSE,("FIX: check the range on width and height!\n"));
+  // FIX: allow rendering without opening a window
 
   SceneInfo *si = new SceneInfo;
   si->a=&a;
@@ -317,6 +423,26 @@ int main(int argc, char *argv[])
     keyEventHandler->addEventCallback(SoKeyboardEvent::getClassTypeId(), keyPressCallback, si);
     si->root->addChild(keyEventHandler);
   }
+
+  {
+    SoSwitch *s = new SoSwitch(40); // We expect a lot of children.
+    assert(s);
+    s->setName ("draggerSwitch");
+    s->whichChild = SO_SWITCH_ALL; // SO_SWITCH_NONE
+    si->root->addChild(s);
+    si->draggerSwitch=s;
+  }
+
+  if (a.waypoints_given) {
+    // FIX: make load go under an soswitch?
+    if (!LoadSpotLightDraggers(string(a.waypoints_arg), (SoSeparator *)si->draggerSwitch, si->draggerVec)) {
+      cerr << "WARNING: failed to load waypoints.  Continuing anyways." << endl;
+    }
+  }
+
+  // Write out keyboard shortcuts
+  if (0<debug_level) PrintKeyboardShorts();
+
 
 
   SoQt::show(myWindow);
