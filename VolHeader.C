@@ -63,7 +63,6 @@ static const UNUSED char* RCSid ="@(#) $Id$";
 // VOLHEADER METHODS
 //####################################################################
 
-/// \brief Convert network byte order (Big Endian) to host byte order
 uint32_t  
 ntoh_uint32(const uint32_t value) {
 #ifdef BIGENDIAN
@@ -75,7 +74,6 @@ ntoh_uint32(const uint32_t value) {
 #endif
 }
 
-/// \brief Convert network byte order (Big Endian) to host byte order
 float
 ntoh_float(const float value) {
 #ifdef BIGENDIAN
@@ -87,7 +85,6 @@ ntoh_float(const float value) {
 #endif
 }
 
-/// \brief Convert host byte order to network byte order (Big Endian)
 uint32_t  
 hton_uint32(const uint32_t value)
 {
@@ -109,7 +106,7 @@ hton_uint32(const uint32_t value)
   // Cool idea:  assert(0 && "message to go with an assert");
 } 
 
-static float
+float
 hton_float(const float value)
 {
 #ifdef BIGENDIAN
