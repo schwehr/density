@@ -1,4 +1,5 @@
 #!/bin/bash
+# --verbose  print as lines are read
 
 # $Revision$  $Author$  $Date$
 
@@ -26,8 +27,8 @@
 # Owens Lake data.
 
 export PATH=${PATH}:.
-cells=10
-draw=100
+cells=20
+draw=10000
 declare -ar groups=( as1-crypt as2-slump as3-undef )
 declare -r w=0.5
 declare -r boundaries="-x -${w} -X ${w} -y -${w} -Y ${w} -z -${w} -Z ${w}"
@@ -50,10 +51,15 @@ if [ 1 == 1 ]; then
 	mv ${group}.xyz.2 ${group}-boot.xyz.vint
 	mv ${group}.xyz.3 ${group}-boot.xyz.vmin
 	echo Densifying
-	args="  --bpv=16 -w ${cells} -t ${cells} -d ${cells}"
-	xyzdensity --in=${group}-boot.xyz.vmax --out=${group}-vmax.vol -p 1 $args $boundaries
-	xyzdensity --in=${group}-boot.xyz.vint --out=${group}-vint.vol -p 1 $args $boundaries
-	xyzdensity --in=${group}-boot.xyz.vmin --out=${group}-vmin.vol -p 1 $args $boundaries
+	args="  --bpv=16 -w ${cells} -t ${cells} -d ${cells} --verbosity=7"
+	xyzdensity ${group}-boot.xyz.vmax --out=${group}-vmax.vol -p 1 $args $boundaries
+	xyzdensity ${group}-boot.xyz.vint --out=${group}-vint.vol -p 1 $args $boundaries
+	xyzdensity ${group}-boot.xyz.vmin --out=${group}-vmin.vol -p 1 $args $boundaries
+
+	xyzdensity --out=${group}-vmax.vol -p 1 $args $boundaries \
+	    ${group}-boot.xyz.vmax \
+	    ${group}-boot.xyz.vint \
+	    ${group}-boot.xyz.vmin 
 
 	scale="--xscale=0.5 --yscale=0.5 --zscale=0.5"
 	volhdr_edit --in=${group}-vmax.vol --out=tmp $scale && /bin/mv tmp ${group}-vmax.vol
@@ -63,3 +69,5 @@ if [ 1 == 1 ]; then
     done
 fi
 
+echo
+echo Done with $0
