@@ -119,8 +119,8 @@ public:
 
   gengetopt_args_info *a; ///< a for args.  These are the command line arguments
 
-  float  cur_percent; ///< how far between waypoints
-  size_t cur_mark;   //< Which waypoint are we on
+  //float  cur_percent; ///< how far between waypoints
+  //size_t cur_mark;   //< Which waypoint are we on
 
   /// Use magic numbers to make sure you actually get this class when you
   /// must do a cast to/from void pointer
@@ -137,8 +137,8 @@ SceneInfo::SceneInfo() {
   camera = 0; root = 0; draggerSwitch = 0; draggerSwitch = 0;
   a = 0;
   // Animation position
-  cur_percent=0; // how far between waypoints
-  cur_mark=0;   // Which waypoint are we on
+  //cur_percent=0; // how far between waypoints
+  //cur_mark=0;   // Which waypoint are we on
 }
 
 
@@ -512,14 +512,50 @@ int main(int argc, char *argv[])
 
   // FIX: make sure we have at least 2 waypoints!
 
-  // Setup a timer callback for animating...
+
+  //////////////////////////////
+  // ANIMATE - no timer needed!
+  //////////////////////////////
+
   // -1 cause we do not want to render past last waypoint
   // we are going from the current way point in wpt to the next waypoint
   // FIX: don't miss last frame
   for (size_t wpt=0;wpt<si->draggerVec.size()-1; wpt++) {
     cout << "Now at waypoint " << wpt << " going to " << wpt+1 << endl;
 
-    cout << "FIX: iterate between wpt and the next waypoint" << endl;
+    SoSpotLightDragger *d1 = si->draggerVec[wpt];
+    SoSpotLightDragger *d2 = si->draggerVec[wpt+1];
+    assert (d1); assert(d2);
+
+    for (float cur_percent=0.; cur_percent < 1.0; cur_percent += a.percent_arg) {
+      cout << "percent: " << cur_percent << endl;
+       SbVec3f pos1 = d1->translation.getValue();
+       SbVec3f pos2 = d2->translation.getValue();
+
+       vector<float> v1 = ToVector(pos1);
+       vector<float> v2 = ToVector(pos2);
+  
+       vector<float> v3 = InterpolatePos (v1,v2,cur_percent);
+       SbVec3f pos3 = ToSbVec3f (v3);
+ 
+       si->camera->position = pos3;
+
+       SbRotation rot1 = d1->rotation.getValue();
+       SbRotation rot2 = d2->rotation.getValue();
+       SbRotation newRot = SbRotation::slerp (rot1, rot2, cur_percent);
+       si->camera->orientation = newRot;
+
+       DebugPrintf (TRACE,("ANIMATION: Rendering frame to disk file\n"));
+       size_t frame_num;
+       if (!RenderFrameToDisk (string(si->a->basename_arg),string(si->a->type_arg),
+			       si->a->width_arg, si->a->height_arg,
+			       si->root, frame_num)
+	   ) {
+	 cerr << "ERROR: unable to write you artistic work.  You have been sensored.  Not my fault." << endl;
+       }
+       DebugPrintf(TRACE+1,("ANIMATION: Finished writing frame number %04d\n",int(frame_num)));
+
+    }
 
   }
 
