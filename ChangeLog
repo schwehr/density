@@ -1,3 +1,15 @@
+2004-11-27  Kurt Schwehr  <schwehr@catbox>
+
+	* version: Released 0.16
+	Draft fink package for density
+	Fink base path is configurable
+	Command version numbers now follow density's version
+	Now generate section 3 man pages from doxygen
+	Wrappers for simpleview and render to handle DYLD_LIBRARY_PATH problems
+	New make rule for releasing a new version of density
+	Much better tar release generation
+	BUG in xyzvol_cmp with bootvol
+
 2004-11-26  Kurt Schwehr  <schwehr@catbox>
 
 	* version: Released 0.15
