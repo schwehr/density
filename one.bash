@@ -32,29 +32,38 @@ declare -r w=0.5
 declare -r boundaries="-x -${w} -X ${w} -y -${w} -Y ${w} -z -${w} -Z ${w}"
 declare -r debug_level=2
 
-
-make targets-no-test
+if [ -e Makefile ]; then
+    make targets-no-test
+fi
 
 head -1 as2-slump.s > one.s
 
 echo Processing one.s
-s_bootstrap one.s -f xyz  -n 1 --out one-boot.xyz -p --draw ${draw}
-s_bootstrap one.s -f xyz  -n 3 --out one.xyz. -p --draw ${draw}
-mv one.xyz.1.vmax one-boot.xyz.vmax
-mv one.xyz.2.vint one-boot.xyz.vint
-mv one.xyz.3.vmin one-boot.xyz.vmin
+if [ ! -e one-boot.xyz ]; then 
+    s_bootstrap one.s -f xyz  -n 1 --out one-boot.xyz -p --draw ${draw}
+    s_bootstrap one.s -f xyz  -n 3 --out one.xyz. -p --draw ${draw}
+    mv one.xyz.1.vmax one-boot.xyz.vmax
+    mv one.xyz.2.vint one-boot.xyz.vint
+    mv one.xyz.3.vmin one-boot.xyz.vmin
+fi
+
 echo Densifying
 args="  --bpv=16 -w ${cells} -t ${cells} -d ${cells} --verbosity=$debug_level"
-xyzdensity one-boot.xyz.vmax --out=one-vmax.vol -p 1 $args $boundaries
-xyzdensity one-boot.xyz.vint --out=one-vint.vol -p 1 $args $boundaries
-xyzdensity one-boot.xyz.vmin --out=one-vmin.vol -p 1 $args $boundaries
 
-xyzdensity --out=one-all.vol -p 1 -b 8 -w ${cells} -t ${cells} -d ${cells} $boundaries \
-    one-boot.xyz.vmax \
-    one-boot.xyz.vint \
-    one-boot.xyz.vmin 
+if [ ! -e one-all.vol ]; then
+    xyzdensity one-boot.xyz.vmax --out=one-vmax.vol -p 1 $args $boundaries
+    xyzdensity one-boot.xyz.vint --out=one-vint.vol -p 1 $args $boundaries
+    xyzdensity one-boot.xyz.vmin --out=one-vmin.vol -p 1 $args $boundaries
 
-volmakecmap --cpt=rgba.cpt -o one.cmap --zero=0
+    xyzdensity --out=one-all.vol -p 1 -b 8 -w ${cells} -t ${cells} -d ${cells} $boundaries \
+	one-boot.xyz.vmax \
+	one-boot.xyz.vint \
+	one-boot.xyz.vmin 
+fi
+
+if [ ! -e one.cmap ]; then
+    volmakecmap --cpt=rgba.cpt -o one.cmap --zero=0
+fi
 
 # Make the bounding box at 1.05 to be just outside of the volume
 vol_iv --box=1.05 -c ALPHA_BLENDING --numslicescontrol=ALL -p NONE -C one.cmap -o one-all.iv one-all.vol
