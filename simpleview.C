@@ -73,18 +73,24 @@ int main(int argc, char *argv[])
   SoVolumeRendering::init();
   if ( myWindow==NULL ) return (EXIT_FAILURE);
 
+  SoSeparator *root = new SoSeparator;
+  root->ref();
+
   SoQtExaminerViewer* myViewer = new SoQtExaminerViewer(myWindow);
   for (size_t i=0;i<a.inputs_num;i++) {
+    DebugPrintf (TRACE,("Adding file: %s\n",a.inputs[i]));
     SoInput mySceneInput;
     if ( !mySceneInput.openFile( a.inputs[i] ))  return (EXIT_FAILURE);
 
-    SoSeparator* myGraph = SoDB::readAll(&mySceneInput);
-    if ( !myGraph ) return (EXIT_FAILURE);
+    SoSeparator* node = SoDB::readAll(&mySceneInput);
+    if ( !node ) {cerr << "failed to load iv file: "<<a.inputs[i] << endl; return (EXIT_FAILURE);}
     mySceneInput.closeFile();
-      
-    myViewer->setSceneGraph( myGraph );
-    myViewer->show();
+
+    root->addChild(node);
   }
+  myViewer->setSceneGraph( root );
+  myViewer->show();
+
   SoQt::show(myWindow);
   SoQt::mainLoop();
 
