@@ -78,6 +78,8 @@
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/nodes/SoPointLight.h>
 #include <Inventor/nodes/SoSeparator.h>
+#include <Inventor/nodes/SoLineSet.h>
+#include <Inventor/nodes/SoCoordinate3.h>
 
 // Draggers
 //#include <Inventor/draggers/SoTranslate1Dragger.h>
@@ -94,6 +96,10 @@ using namespace std;
 /***************************************************************************
  * MACROS, DEFINES, GLOBALS
  ***************************************************************************/
+
+// FIX: this needs to be a separate header
+SoSeparator *MakeSoLineSet (vector<SoSpotLightDragger *> &draggerVec);
+
 
 #include "debug.H" // provides FAILED_HERE, UNUSED, DebugPrintf
 int debug_level=0;
@@ -121,6 +127,9 @@ public:
   bool render_frames_to_disk;  ///< true, we write out each animated frame
   //float percent; ///< Where we are between the two current waypoints
 
+  bool connect_the_dots; ///< true if showing last path
+  SoSeparator *connect_sep;
+
 
   /// Use magic numbers to make sure you actually get this class when you
   /// must do a cast to/from void pointer
@@ -137,6 +146,9 @@ SceneInfo::SceneInfo() {
   camera = 0; root = 0; draggerSwitch = 0; draggerSwitch = 0;
   a = 0;
   animating=render_frames_to_disk=false;
+
+  connect_the_dots=false;
+  connect_sep=0;
 }
 
 
@@ -450,7 +462,7 @@ void PrintKeyboardShorts() {
        << "\t a - Toggle (A)nimation -  Start/Stop" << endl
     // FIX: implement these!
     // << "\t b - Jump to the (B)eginning of the animation sequence" << endl
-    // << "\t c - (C)onnect the dots.  Put lines between the waypoints" << endl
+       << "\t c - (C)onnect the dots.  Put lines between the waypoints" << endl
        << "\t d - (D)ump the current view to an image" << endl
        << "\t f - Write scene graph to a (F)File" << endl
        << "\t h - Print out this (H)elp list" << endl
@@ -499,6 +511,31 @@ keyPressCallback(void *data, SoEventCallback *cb) {
     //cout.flush();
     return;
   }
+
+  //
+  // C - (C)onnect the dots.  Put lines between the waypoints
+  //
+  if (SO_KEY_PRESS_EVENT(keyEvent, C)) {
+    DebugPrintf(TRACE,("Keyhit: C - Toggle connect the dots. Was %s\n",(si->connect_the_dots?"TR":"FL")));
+    si->connect_the_dots = (si->connect_the_dots?false:true); // flip
+    cout << "toggling connect_the_dots to " << (si->connect_the_dots?"true":"false") << endl;
+
+    // transition from false -> true
+    if (si->connect_the_dots) {
+      // create the chain and add it to the sep.
+      assert(0==si->connect_sep->getNumChildren ());
+      si->connect_sep->addChild(MakeSoLineSet(si->draggerVec));
+      assert(1==si->connect_sep->getNumChildren ());
+    } else {
+      // transition from true -> false
+      //assert(1==si->connect_sep->getNumChildren ());
+      if (1==si->connect_sep->getNumChildren ()) {
+	si->connect_sep->removeChild(0);
+      } else { DebugPrintf (VERBOSE,("No child to delete.  Must be first time?")); }
+      assert(0==si->connect_sep->getNumChildren ());
+    }
+    
+  }  
 
   //
   // D - Dump a rendering of the scene
@@ -723,11 +760,15 @@ void timerSensorCallback(void *data, SoSensor *sensor) {
 
 
 /// \brief Return a lineset that does through all the dragger waypoints
+///
+/// Would be better if I did what Alex did back in `98 and use engines with 
+/// the draggers so the line gets automatically updated with drags
 SoSeparator *MakeSoLineSet (vector<SoSpotLightDragger *> &draggerVec) {
-  SoLineset *lines = new SoLineSet;
+  DebugPrintf(TRACE,("MakeSoLineSet with %d waypoints\n",int(draggerVec.size())));
+  SoLineSet *lines = new SoLineSet;
   if (!lines) {cerr << "ERROR: Unable to allocate lines"<<endl;return 0;}
   SoCoordinate3 *coords = new SoCoordinate3;
-  if (!coords) {cerr << "ERROR: Unable to allocate lines"<<endl; delete lines; return 0;}
+  if (!coords) {cerr << "ERROR: Unable to allocate lines"<<endl; lines->ref(); lines->unref();return 0;}
   SoSeparator *sep = new SoSeparator;
   // FIX error check
 
@@ -843,6 +884,7 @@ int main(int argc, char *argv[])
     si->root->addChild(keyEventHandler);
   }
 
+  // Move this to the SceneInfo constructor
   {
     SoSwitch *s = new SoSwitch(40); // We expect a lot of children.
     assert(s);
@@ -851,6 +893,10 @@ int main(int argc, char *argv[])
     si->root->addChild(s);
     si->draggerSwitch=s;
   }
+  si->connect_sep = new SoSeparator; // Maybe this and the switch above should be in the constructor!
+  si->connect_sep->setName("connect_the_dots");
+  si->root->addChild(si->connect_sep);
+
 
   if (a.waypoints_given) {
     // FIX: make load go under an soswitch?
