@@ -22,6 +22,7 @@
 
 // Local includes
 #include "Density.H"
+#include "xyzdensity_cmd.h"  // gengetopt command line interface
 
 using namespace std;
 
@@ -57,11 +58,24 @@ using namespace std;
 /// Let the debugger find out which version is being used.
 static const UNUSED char* RCSid ="@(#) $Id$";
 
+
+bool LoadData(const string &filename, Density &d) {
+
+  ifstream in(filename.c_str(),ios::in);
+  cout << "FIX: check that file opened ok" << endl;
+
+  float _x,_y,_z;
+  while (in >> _x >> _y >> _z) d.addPoint(_x,_y,_z);
+
+  return(true);
+}
+
 //######################################################################
 // MAIN
 //######################################################################
 
 int main (int argc, char *argv[]) {
+#if 0
   cout << "Starting " << argv[0] << endl;
   assert(3==argc);
   const string filename(argv[1]);//("as2-slump.xyz");
@@ -82,5 +96,60 @@ int main (int argc, char *argv[]) {
   }
   //d.printCellCounts();
   d.writeVolScale(string("density.vol"));
+#endif
+
+
+  gengetopt_args_info a;
+  if (0!=cmdline_parser(argc,argv,&a)) {
+    cerr << "FIX: should never get here" << endl;
+    cerr << "Early exit" << endl;
+    return (EXIT_FAILURE);
+  }
+
+  
+  if (0!=a.pack_arg && 1!=a.pack_arg && 2!=a.pack_arg) {
+    cerr << endl 
+	 << "ERROR: Packing must be 0, 1, or 2!" << endl
+	 << endl
+	 << "  For usage info:" <<endl
+	 << "    " << argv[0] << " --help" << endl;
+    return (EXIT_FAILURE);
+  }
+
+  if (8!=a.bpv_arg && 16!=a.bpv_arg && 32!=a.bpv_arg) {
+    cerr << endl 
+	 << "ERROR: Bits per voxel must be 8, 16, or 32!" << endl
+	 << endl
+	 << "  For usage info:" <<endl
+	 << "    " << argv[0] << " --help" << endl;
+    return (EXIT_FAILURE);
+  }
+
+  const PackType packing=PackType(a.pack_arg);
+  const string infile (a.in_arg);
+  const string outfile(a.out_arg);
+
+  Density dens(a.width_arg,a.tall_arg,a.depth_arg,
+	       a.xmin_arg, a.xmax_arg,
+	       a.ymin_arg, a.ymax_arg,
+	       a.zmin_arg, a.zmax_arg
+	       );
+
+  if (!LoadData(infile,dens)) {
+    cerr << endl
+	 << "ERROR: Unable to read data from file." << endl
+	 << endl
+	 << "  Data must be ascii space separated positive tripples on each line like this" << endl
+	 << endl
+	 << "    10.2 999999.2 3200.1231235"
+	 << endl;
+  }
+
+  //if (!dens.writeVol(outfile,size_t(a.bpv_arg),packing,0.f,0.f,0.f)) {
+  if (!dens.writeVol(outfile,size_t(a.bpv_arg),packing)) {
+    cerr << " ERROR: Unable to correctly write out vol file" << endl;
+    return(EXIT_FAILURE);
+  }
+
   return (EXIT_SUCCESS);
 }
