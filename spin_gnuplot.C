@@ -94,11 +94,23 @@ AddFile(ofstream &out, const char *filename) {
 
 
 /// \brief Animate over a box path
+/// \param out Stream to write gnuplot commands to.
+/// \param plotCmd string to pass to splot
+/// \param stepSize How much to rotate for each step - for set view
+/// \param xmin,xmax Horizontal rotation
+/// \param ymin,ymax Vertical look range
+/// \param basename beginning of the frame filename
 /// \param ext Extension to add to the end of the frame name (please include the . if you want one)
+/// \return \a false if something bad happened
+///
+/// This is the first example of a path traversal algorithm.  Use it
+/// for an example if you would like to write some sort of new path.
+/// FIX: need to have a 2D way to step through plots too.  Maybe be able to set
+/// a different data file for each frame?
 bool
 BoxAnimation (ofstream &out, const string &plotCmd, const float stepSize,
 	      const float xmin, const float xmax, const float ymin, const float ymax,
-	      const string ext)
+	      const string basename, const string ext)
 {
   float rot_x, rot_y;
   size_t frameNum=0;
@@ -106,10 +118,30 @@ BoxAnimation (ofstream &out, const string &plotCmd, const float stepSize,
   char frameName[frameNameSize];
   rot_y=ymin;
   for (rot_x=xmin; rot_x<=xmax; rot_x+= stepSize) {
-    snprintf(frameName,frameNameSize,"%s%04d."
-    out << "set view " << rot_x << "," << rot_y << endl;
-    
+    if (0>snprintf(frameName,frameNameSize,"%s%04d.%s",basename.c_str(),int(frameNum++),ext.c_str())) {
+      perror ("snprintf failed in BoxAnimation");
+      FAILED_HERE;
+      return false;
+    }
+    //out << "set view " << rot_x << "," << rot_y << "\n"
+    // FIX: make sure that the xy order is right
+    out << "set view " << rot_y << "," << rot_x << "\n"
+	<< "set output '" << frameName << "'\n"
+	<< "splot " << plotCmd.c_str() << "\n"
+	<< endl;
+    // FIX: error check cout
   }
+  for (rot_y=ymin; rot_y<=ymax; rot_y+= stepSize) {
+    if (0>snprintf(frameName,frameNameSize,"%s%04d.%s",basename.c_str(),int(frameNum++),ext.c_str())) {
+      perror ("snprintf failed in BoxAnimation");
+      FAILED_HERE;
+      return false;
+    }
+    out << "set view " << rot_y << "," << rot_x << "\n"
+	<< "set output '" << frameName << "'\n"
+	<< "splot " << plotCmd.c_str() << "\n"
+	<< endl;
+ }
 
   return (true);
 }
@@ -159,8 +191,10 @@ int main (int argc, char *argv[]) {
     }
   }
 
+  out << "set terminal " << a.format_arg << endl;
 
-  string plotCmd("splot ");
+  //string plotCmd("splot ");
+  string plotCmd;
 
   if (a.FileInput_given) {
     bool result;
@@ -179,6 +213,12 @@ int main (int argc, char *argv[]) {
 
   DebugPrintf(TRACE,("Plot command: %s\n",plotCmd.c_str()));
 
+
+  if (!BoxAnimation (out, plotCmd, a.StepSize_arg, a.xmin_arg, a.xmax_arg, a.zmin_arg, a.zmax_arg,
+		     string(a.basename_arg), string(a.format_arg))) {
+    cerr << "ERROR: Failed to animate" << endl;
+    return (EXIT_FAILURE);
+  }
 
 
 
