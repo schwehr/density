@@ -119,6 +119,8 @@ public:
 
   bool animating;  ///< set to true to start animation;
   bool render_frames_to_disk;  ///< true, we write out each animated frame
+  float percent; ///< Where we are between the two current waypoints
+
 
   /// Use magic numbers to make sure you actually get this class when you
   /// must do a cast to/from void pointer
@@ -446,6 +448,9 @@ void PrintKeyboardShorts() {
   cout << endl
        << "Keyboard shortcuts:" << endl << endl
        << "\t a - Toggle (A)nimation -  Start/Stop" << endl
+    // FIX: implement these!
+    // << "\t b - Jump to the (B)eginning of the animation sequence" << endl
+    // << "\t c - (C)onnect the dots.  Put lines between the waypoints" << endl
        << "\t d - (D)ump the current view to an image" << endl
        << "\t f - Write scene graph to a (F)File" << endl
        << "\t h - Print out this (H)elp list" << endl
@@ -716,6 +721,15 @@ void timerSensorCallback(void *data, SoSensor *sensor) {
   return;
 }
 
+/// \brief Tell if a value is between 2 numbers, inclusive
+/// \return \a true if v1<=check<=v2  or v2<=check<=v1
+bool InRange (const float check, const float v1, const float v2) {
+  float a,b;
+  if (v1<v2) {a=v1;b=v2;} else {a=v2;b=v1;}
+  if (check < a || check > b) return (false);
+  return (true);
+}
+
 /***************************************************************************
  * MAIN
  ***************************************************************************/
@@ -738,7 +752,17 @@ int main(int argc, char *argv[])
 
 
   if (a.list_given) { ListWriteFileTypes();  return (EXIT_SUCCESS); }
+  //
+  // Check range of arguments
+  //
+  if (a.interval_given) 
+    if (!InRange(a.interval_arg,0.001,10.0)) {cerr<<"ERROR: Interval must be 0.001<=i<=10.0"<<endl; return (EXIT_FAILURE);}
+  if (a.percent_given)
+    if (!InRange(a.percent_arg,0.0,1.0)) {cerr<<"ERROR: Interval must be 0.0<=i<=1.0"<<endl; return (EXIT_FAILURE);}
 
+  //
+  // Init the SoDB and SimVoleon
+  //
   QWidget* myWindow = SoQt::init(argv[0]);
   if ( myWindow==NULL ) return (EXIT_FAILURE);
   SoVolumeRendering::init();
@@ -818,7 +842,9 @@ int main(int argc, char *argv[])
   {
     SoTimerSensor *timer = new SoTimerSensor (timerSensorCallback,si);
     assert (timer);
-    timer->setInterval(.25);
+    //timer->setInterval(.25);
+    DebugPrintf(TRACE+1,("Setting animation timer to %f seconds\n",a.interval_arg));
+    timer->setInterval(a.interval_arg);
     timer->schedule();
   }
 
