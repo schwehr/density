@@ -5,6 +5,16 @@
 #include <vector>
 #include <string>
 
+/// \brief How to squeeze data into the output sample size
+/// If the counts are greater than the max value of the output
+/// bitsPerPixel, this is how we should handle the values.
+/// Additionally PACK_SCALE will scale no mater what.
+/// You can control the color scheme of these points on load time
+/// in SIM Voleon using a \a colorMap in an SoTransferFunction node
+
+enum PackType {PACK_SCALE, PACK_CLIP, PACK_WRAP};
+
+
 /// \brief Voxel density handling class.  How many points per cell.
 ///
 ///        Points loose their actual xyz when added to the grid
@@ -103,17 +113,8 @@ public:
   /// This write scales the data between min/max
   bool writeVolScale(const std::string &filename) const;
 
-  /// \brief How to squeeze data into the output sample size
-  /// If the counts are greater than the max value of the output
-  /// bitsPerPixel, this is how we should handle the values.
-  /// Additionally PACK_SCALE will scale no mater what.
-  /// You can control the color scheme of these points on load time
-  /// in SIM Voleon using a \a colorMap in an SoTransferFunction node
-
-  enum PackType {PACK_SCALE, PACK_CLIP, PACK_WRAP};
-
   /// Compress data based on PackType
-  size_t ScaleValue(const size_t value, const PackType p, const size_t bitsPerVoxel) const;
+  size_t scaleValue(const size_t value, const PackType p, const size_t bitsPerVoxel) const;
 
   /// \brief Write out a Voleon style voxel 3D cell file.
   /// \return \a true if success or \a false if there was some trouble
