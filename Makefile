@@ -242,7 +242,7 @@ tar: ${GEN_CFILES} ${GENGETOPT_BINS} test
 	rm -rf ${TARNAME} ${TARNAME}.tar ${TARNAME}.tar.bz2
 	mkdir ${TARNAME}
 	@echo
-	cp *.{C,H,ggo,c,h,help2man,bash} ${TARNAME}/
+	cp *.{C,H,ggo,c,h,help2man,help2man.in,bash} ${TARNAME}/
 	@echo
 	cp AUTHOR ChangeLog Doxyfile INSTALL LICENSE.LGPL ${TARNAME}/
 	cp Makefile Makefile.endian README.txt TODO VERSION ${TARNAME}/
