@@ -199,7 +199,6 @@ VolHeader::VolHeader(const std::string filename, bool &ok) {
     perror("stat to get file size FAILED");
     ok=false; return;
   }
-  cout << "File size: " << sb.st_size << endl;
 
   if (8> sb.st_size) {
     cerr << "File too small to be a valid volume/voxel file" << endl;
