@@ -21,7 +21,9 @@ algorithm which requires two calls to the random number generator r.
 #include <gsl/gsl_randist.h>
 
 #include <iostream>
+#include <iomanip>
 #include <fstream>
+#include <string>
 
 #include "kdsPmagL.H" // L is for local
 #include "SiteSigma.H"
@@ -54,43 +56,75 @@ LoadS(const string filename,vector <SVec> &s,vector<float> &sigmas) {
 void Print(const SVec &sv) {
   assert(6==sv.size());
   for(size_t i=0;i<sv.size();i++) cout << sv[i] << " ";
-  cout << endl;
 }
 
 //////////////////////////////////////////////////////////////////////
 // MAIN
 //////////////////////////////////////////////////////////////////////
-
 #ifndef REGRESSION_TEST  // NOT testing
 
-int main(int argc, char *argv) {
+enum BootTypeEnum { SITE_PARAMETRIC, SAMPLE_PARAMETRIC };
+
+int main(int argc, char *argv[]) {
   gsl_rng * r;  /* global generator */
-  const gsl_rng_type * T;
-
+  const gsl_rng_type *T;
   gsl_rng_env_setup();
-
   T = gsl_rng_default;
   r = gsl_rng_alloc (T);
-  
-  //printf ("generator type: %s\n", gsl_rng_name (r));
-  //printf ("seed = %lu\n", gsl_rng_default_seed);
+  { unsigned long int s;  getDevRandom(s);  gsl_rng_set (r, s); } // Set the Seed
+
+  assert (4==argc);
+  BootTypeEnum type;
   {
-    FILE * devRandom = fopen ("/dev/random", "r");
-    assert (devRandom);
-    unsigned long int s;
-    fread (&s,sizeof(unsigned long int),1,devRandom);
-    //cout << "devRandom = "  << s << endl;
-    gsl_rng_set (r, s);
-    fclose (devRandom);
+    string typestr(argv[1]);
+    if      (string::npos != typestr.find(string("-P"))) type=SITE_PARAMETRIC;
+    else if (string::npos != typestr.find(string("-p"))) type=SAMPLE_PARAMETRIC;
+    else {
+      cerr << "first argument must be either: " << endl
+	   << "  -p    sample paramtric" << endl
+	   << "  -P    site   paramtric" << endl;
+    }
+  }
+  const string filename(argv[2]);
+  const size_t numSamples(atoi(argv[3])); // how many samples to generate
+
+  vector<SVec> s;
+  vector<float> sigmas;
+  if (!LoadS(filename,s,sigmas)) {
+    cerr << "ERROR: can't load datafile.  Tough luck... goodbye" << endl;
+    exit(EXIT_FAILURE);
   }
 
-  //printf ("first value = %lu\n", gsl_rng_get (r));
+  const float siteSigma = (SITE_PARAMETRIC==type)?SiteSigma(s):-666.;
+#if 0
+  switch (type) {
+  case SITE_PARAMETRIC:   cout << "SITE"   << endl; break;
+  case SAMPLE_PARAMETRIC: cout << "SAMPLE" << endl; break;
+  default:  assert(false);
+  }
+#endif
 
-  //cout << "gausian: " <<  gsl_ran_gaussian (r, 1.0) << endl; 
-  for (int i=0; i<10000; i++) cout << gsl_ran_gaussian (r, 1.0) << endl; 
+  SVec newSample(6,0.);
+  cout << setprecision(12);
+  for (size_t i=0;i<numSamples; i++) {
+    switch (type) {
+    case SITE_PARAMETRIC:   BootstrapParametricSite   (s,siteSigma,newSample, r); Print(newSample);
+      cout << endl;
+      //cout << " 0.00000" << endl;
+      break;
+    case SAMPLE_PARAMETRIC: BootstrapParametricSample (s,sigmas   ,newSample, r); Print(newSample);
+      cout << endl;
+      //cout << " 0.00000" << endl;
+      break;
+    default:
+      assert(false);
+    }
+  }
 
-  return 0;
+  return (EXIT_SUCCESS);
 }
+
+
 #endif // !REGRESSION_TEST
 
 //////////////////////////////////////////////////////////////////////
