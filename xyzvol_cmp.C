@@ -75,7 +75,12 @@ float findmax(vector<size_t> &d, size_t &position) {
 }
 
 /// \brief Search for the best z axis rotation fit
-
+/// \param d Volume density to search
+/// \param search_steps How many chunks to break 360 degrees into
+/// \param x,y,z Location of the point to rotation around
+/// \param best_count Returns the number of counts at the best cell
+/// \param best_angle Returns the angle to get the best count
+/// \bug has a case where there is nothing foung by find max.  What to do?
 void find_best_zrot(const Density &d, const size_t search_steps, const float x, const float y, const float z,
 		    size_t &best_count, float &best_angle) {
   DebugPrintf(VERBOSE+1,("Starting rotation compare\n"));
@@ -92,12 +97,20 @@ void find_best_zrot(const Density &d, const size_t search_steps, const float x, 
       countCircle.push_back(d.getCellCount(cellIndex));
       countAngle.push_back(angle);
       lastCell=cellIndex;
-      cout << i << ": " << angle << " " << countCircle[countCircle.size()-1] << endl;
+      //cout << i << ": " << angle << " " << countCircle[countCircle.size()-1] << endl;
+      DebugPrintf(VERBOSE,("find_best_zrot: %d - %f %d\n", int(i), angle, int(countCircle[countCircle.size()-1])));
     }
   } // for steps
   size_t pos;
   findmax(countCircle, pos);
 
+  if (std::numeric_limits<size_t>::max() == pos) {
+    cerr << "WARNING: No max for this position.\n  Not handled.  FIX" << endl;
+    cout << "  params: search_steps " << search_steps << " xyz: " << x << " " << y << " " << z <<endl
+	 << "  sizes: " << countCircle.size() << " " << countAngle.size() << endl;
+    return;
+  }
+  // FIX: Failing here with a pos of 4294967295
   best_count = countCircle[pos];
   best_angle = countAngle[pos];
 } // find_best_zrot
@@ -206,7 +219,6 @@ int main (int argc, char *argv[]) {
 
       out << endl;
     } // While new samples in the input file
-
 
   } // for filenum
   return (ok?EXIT_SUCCESS:EXIT_FAILURE);
