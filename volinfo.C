@@ -103,7 +103,6 @@ int main (const int argc, char *argv[]) {
 
     cout << "range given " << a.range_given << endl; cout.flush();
     if (0!=a.range_given) {
-      cout << "here goes..." << endl; cout.flush();
       Density d(filename,r);
       if (!r) {ok=false; cerr << "Failed to read file: " << filename << endl; continue;}
       cout << "minVal = " << d.getMinCount() << endl
