@@ -75,9 +75,10 @@ CFLAGS := ${CXXFLAGS} -Wimplicit-int -Wimplicit-function-declaration -Wnested-ex
 GENGETOPT_BINS := s_bootstrap
 GENGETOPT_BINS += xyzdensity
 GENGETOPT_BINS += xyzvol_cmp
-GENGETOPT_BINS += volinfo
 GENGETOPT_BINS += vol2vol
 GENGETOPT_BINS += volhdr_edit
+GENGETOPT_BINS += volinfo
+GENGETOPT_BINS += vol_iv
 
 BINS := ${GENGETOPT_BINS}
 BINS += makeCDF
@@ -109,21 +110,23 @@ targets: ${TARGETS} test
 s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o s_bootstrap_cmd.o Eigs.o
 	${CXX} -o $@ $^ ${CXXFLAGS} -Wno-long-double -lgsl -lgslcblas
 
+xyzdensity: xyzdensity.C Density.o VolHeader.o xyzdensity_cmd.o
+	${CXX} -o $@ $^ ${CXXFLAGS}
+
+xyzvol_cmp: xyzvol_cmp.C Density.o VolHeader.o xyzvol_cmp_cmd.o
+	${CXX} -o $@ $^ ${CXXFLAGS}
+
 vol2vol: vol2vol.C VolHeader.o vol2vol_cmd.o Density.o
 	${CXX} -o $@ $^  ${CXXFLAGS}
 
 volinfo: volinfo.C VolHeader.o volinfo_cmd.o Density.o
 	${CXX} -o $@ $^  ${CXXFLAGS}
 
-xyzdensity: xyzdensity.C Density.o VolHeader.o xyzdensity_cmd.o
-	${CXX} -o $@ $^ ${CXXFLAGS}
-
 volhdr_edit: volhdr_edit.C VolHeader.o volhdr_edit_cmd.o
 	${CXX} -o $@ $^ ${CXXFLAGS}
 
-xyzvol_cmp: xyzvol_cmp.C Density.o VolHeader.o xyzvol_cmp_cmd.o
+vol_iv: vol_iv.C vol_iv_cmd.o
 	${CXX} -o $@ $^ ${CXXFLAGS}
-
 
 ######################################################################
 # Regular commands sans GENGETOPT
