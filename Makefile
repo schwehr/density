@@ -99,13 +99,14 @@ BINS += ${SIMPLE_BINS}
 
 
 # TESTING TARGETS:
-TEST_BINS += test_s_bootstrap
-TEST_BINS += test_SiteSigma
-TEST_BINS += test_VolHeader
+TEST_BINS := test_Cdf
 TEST_BINS += test_Density
 TEST_BINS += test_DensityFlagged
-TEST_BINS += test_Cdf
 TEST_BINS += test_Eigs
+TEST_BINS += test_s_bootstrap
+TEST_BINS += test_SiteSigma
+TEST_BINS += test_VecAngle
+TEST_BINS += test_VolHeader
 
 TARGETS := ${BINS} ${TEST_BINS}
 
@@ -120,7 +121,7 @@ targets: ${TARGETS} test
 %.c: %.ggo
 	gengetopt --input=$< --file-name=${<:.ggo=} --unamed-opts
 
-s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o s_bootstrap_cmd.o Eigs.o
+s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o s_bootstrap_cmd.o Eigs.o VecAngle.o
 	${CXX} -o $@ $^ ${CXXFLAGS} -Wno-long-double -lgsl -lgslcblas
 
 simpleview: simpleview_cmd.o simpleview.C
@@ -132,7 +133,7 @@ xyzdensity: xyzdensity.C Density.o VolHeader.o xyzdensity_cmd.o
 xyz_iv: xyz_iv_cmd.o xyz_iv.C
 	${CXX} -o $@ $^ ${CXXFLAGS}
 
-xyzvol_cmp: xyzvol_cmp.C Density.o VolHeader.o xyzvol_cmp_cmd.o
+xyzvol_cmp: xyzvol_cmp.C Density.o VolHeader.o xyzvol_cmp_cmd.o VecAngle.o
 	${CXX} -o $@ $^ ${CXXFLAGS}
 
 vol2vol: vol2vol.C VolHeader.o vol2vol_cmd.o Density.o
@@ -158,13 +159,7 @@ volmakecmap: volmakecmap.C volmakecmap_cmd.o
 ######################################################################
 # Test Programs
 
-test_Eigs: Eigs.C 
-	${CXX} -o $@ $< -Wno-long-double -DREGRESSION_TEST ${CXXFLAGS}  -lgsl -lgslcblas
-
 test_Cdf: Cdf.C Cdf.H
-	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS}
-
-test_VolHeader: VolHeader.C VolHeader.H
 	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS}
 
 test_Density: Density.C Density.H VolHeader.o
@@ -173,12 +168,20 @@ test_Density: Density.C Density.H VolHeader.o
 test_DensityFlagged: DensityFlagged.C DensityFlagged.H Density.H Density.o VolHeader.o
 	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS} Density.o VolHeader.o
 
+test_Eigs: Eigs.C VecAngle.o
+	${CXX} -o $@ $^ -Wno-long-double -DREGRESSION_TEST ${CXXFLAGS}  -lgsl -lgslcblas
+
 test_SiteSigma: SiteSigma.C SiteSigma.H
 	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS} 
 
 test_s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o
 	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS} SiteSigma.o Bootstrap.o -lgsl -lgslcblas
 
+test_VecAngle: VecAngle.C
+	${CXX} -o $@ $^ -Wno-long-double -DREGRESSION_TEST ${CXXFLAGS}
+
+test_VolHeader: VolHeader.C VolHeader.H
+	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS}
 
 ######################################################################
 # Weird tweaks
