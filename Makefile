@@ -206,7 +206,7 @@ man: ${GENGETOPT_BINS}
 man2html: man
 	cd doc/man/man1 && for file in *.1; do groff -Tascii -man $$file | man2html > $${file%%.1}.html; done
 
-install-web: install-web install-web-man2html
+install-web: install-web-doxy install-web-man2html
 install-web-doxy: docs
 	scp doc/html/* kds:www/software/density/html
 install-web-man2html: man2html
@@ -229,7 +229,7 @@ tar: ${GEN_CFILES} ${GENGETOPT_BINS} test
 	cp *.{C,H,ggo,c,h,help2man,bash} ${TARNAME}/
 	@echo
 	cp AUTHOR ChangeLog Doxyfile INSTALL LICENSE.LGPL ${TARNAME}/
-	cp Makefile README.txt TODO VERSION ${TARNAME}/
+	cp Makefile Makefile.endian README.txt TODO VERSION ${TARNAME}/
 	@echo
 	tar cf ${TARNAME}.tar ${TARNAME}
 	bzip2 -9 ${TARNAME}.tar
@@ -246,19 +246,22 @@ check:
 	@echo
 	@grep -n FIX *.{C,H,ggo,help2man} Makefile | grep -v grep
 
-clean:
-	rm -rf blah* foo* *~ ${TARGETS} *.o *.xyz *.eigs *.cdf [0-9]x[0-9]*test?.vol
+clean: clean-runs
+	rm -rf ${TARGETS} *~ *.o
 	rm -f *_cmd.[ch]
 	rm -f .*~
+
+# Stuff that running make test or a bash script leaves behind
+clean-runs:
+	rm -rf blah* foo* *.xyz *.eigs *.cdf [0-9]x[0-9]*test?.vol
+	rm -f .*~
 	rm -f as*.xyz* as*.vol
-	rm -f ${BINS}
 	rm -f [0-9].{vol,s,xyz}
 	rm -f [0-9][0-9].{vol,s,xyz*}
 	rm -f one.xyz* one-* one.cmap one.s
 	rm -f current.cmap as[0-9]-*all-1.0.iv as?-?????-????-8.iv vol.iv
 	rm -f *.vol.cmp
 	rm -f test3.vol*
-
 
 real-clean: clean
 	rm -rf doc
