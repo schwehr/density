@@ -1,3 +1,10 @@
+2004-10-26  Kurt Schwehr  <schwehr@catbox>
+
+	* version: Released 0.13
+	Added a rotation fit to xyzvol_cmp
+	Fixed up licensing
+	Added VecAngle.[CH]
+
 2004-10-19  Kurt Schwehr  <schwehr@catbox>
 
 	* version: Released 0.12
