@@ -330,7 +330,7 @@ bool Density::writeVolScale(const string &filename) const {
   return (true);
 } // writeVolScale
 
-size_t Density::ScaleValue(const size_t value, const PackType p, const size_t bitsPerVoxel) const {
+size_t Density::scaleValue(const size_t value, const PackType p, const size_t bitsPerVoxel) const {
   size_t maxVox;
   switch (bitsPerVoxel) {
   case  8: maxVox=std::numeric_limits<uint8_t >::max(); break;
@@ -380,7 +380,7 @@ bool Density::writeVol(const std::string &filename,
     switch (bitsPerVoxel) {
     case 8: // 1 byte
       {
-	uint8_t uBuf=uint8_t(ScaleValue(counts[i],p,bitsPerVoxel));
+	uint8_t uBuf=uint8_t(scaleValue(counts[i],p,bitsPerVoxel));
 	if (sizeof(uint8_t) != fwrite(&uBuf,1,sizeof(uint8_t),o)) {
 	  perror ("failed to write vol data"); fclose (o); return (false);
 	}
@@ -388,7 +388,7 @@ bool Density::writeVol(const std::string &filename,
       break;
     case 16: // 2 bytes
       {
-	uint16_t uBuf=uint16_t(ScaleValue(counts[i],p,bitsPerVoxel));
+	uint16_t uBuf=uint16_t(scaleValue(counts[i],p,bitsPerVoxel));
 	if (sizeof(uint16_t) != fwrite(&uBuf,1,sizeof(uint16_t),o)) {
 	  perror ("failed to write vol data"); fclose (o); return (false);
 	}
@@ -398,6 +398,8 @@ bool Density::writeVol(const std::string &filename,
       assert(false && "Can not handle this byte size");
     }
   }
+
+  if (0!=fclose (o)) {perror("closed failed");return(false);}
 
   return (ok);
 } // writeVol
@@ -567,6 +569,21 @@ bool test5() {
   {
     Density d(1,1,1, 0.,1, 0.,1, 0.,1); d.addPoints(0,1);
     d.writeVol(string("1x1x1-1x1x1")+suffix,8,Density::PACK_WRAP);
+  }
+  {
+    const string filename(string("3x1x1-1x1x1")+suffix);
+    Density d(3,1,1, 0.,1, 0.,1, 0.,1);
+    d.addPoints(0,1600);
+    d.addPoints(1,30001);    if (30001!=d.getCellCount(1)) {FAILED_HERE;return(false);}
+    d.addPoints(2,50002);
+
+    d.writeVol(filename,16,Density::PACK_WRAP);
+    bool r;
+    Density d2(filename,r);
+    if (!r) {FAILED_HERE;return(false);}
+    if ( 1600!=d2.getCellCount(0)) {FAILED_HERE;return(false);}
+    if (30001!=d2.getCellCount(1)) {FAILED_HERE;return(false);}
+    if (50002!=d2.getCellCount(2)) {FAILED_HERE;return(false);}
   }
 
 
