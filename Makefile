@@ -84,9 +84,10 @@ GENGETOPT_BINS += vol_iv
 GENGETOPT_BINS += volmakecmap
 
 BINS := ${GENGETOPT_BINS}
-BINS += makeCDF
-BINS += histogram
 BINS += endian
+BINS += histogram
+BINS += is_equal
+BINS += makeCDF
 #BINS+= AMScrunch
 
 # TESTING TARGETS:
@@ -183,6 +184,8 @@ test: ${TEST_BINS}
 		./$$file ;\
 		done
 	@echo 
+	./regression.bash
+	@echo 
 	@echo SUCCESS!!
 	@echo All tests passed in "${shell pwd}"
 
@@ -236,6 +239,12 @@ clean:
 	rm -f .*~
 	rm -f as*.xyz* as*.vol
 	rm -f ${BINS}
+	rm -f [0-9].{vol,s,xyz}
+	rm -f [0-9][0-9].{vol,s,xyz*}
+	rm -rf one.xyz* one-* one.cmap
+	rm -rf current.cmap as[0-9]-*all-1.0.iv
+	rm -rf *.vol.cmp
+
 
 real-clean: clean
 	rm -rf doc
