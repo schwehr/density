@@ -273,7 +273,7 @@ int main (int argc, char *argv[]) {
     // file:///sw/share/SIMVoleon/html/classSoVolumeRender.html
     o << "\tSoVolumeRender {" << endl;
     if (a.interpolation_given)    o << "\t\tinterpolation "    << a.interpolation_arg << endl;
-    if (a.composition_given)      o << "\t\tcompsition "       << a.composition_arg << endl;
+    if (a.composition_given)      o << "\t\tcomposition "      << a.composition_arg << endl;
     if (a.numslicescontrol_given) o << "\t\tnumSlicesControl " << a.numslicescontrol_arg << endl;
     if (a.numslices_given)        o << "\t\tnumSlices "        << a.numslices_arg << endl;
     o << "\t}" << endl;
