@@ -276,7 +276,7 @@ install-web-doxy: docs
 install-web-man2html: man2html
 	scp doc/man/man1/*.html kds:www/software/density/man
 install-web-html: html
-	scp [a-z]*.html kds:www/software/density/files
+	scp [a-z]*.html Makefile.html kds:www/software/density/files
 	scp HEADER-files.html kds:www/software/density/files/HEADER.html
 
 
