@@ -5,6 +5,17 @@
 #include <vector>
 #include <string>
 
+/// \brief Convert host byte order to network byte order (Big Endian)
+uint32_t hton_uint32(const uint32_t value);
+/// \brief Convert network byte order (Big Endian) to host byte order
+uint32_t ntoh_uint32(const uint32_t value);
+
+/// \brief Convert host byte order to network byte order (Big Endian)
+float hton_float(const float value);
+/// \brief Convert network byte order (Big Endian) to host byte order
+float ntoh_float(const float value);
+
+
 /// \brief Header for the Vol format file
 ///
 /// Same definition as in raw2vol.C
