@@ -1,3 +1,13 @@
+2004-11-26  Kurt Schwehr  <schwehr@catbox>
+
+	* version: Released 0.15
+	Now checks for DYLD_LIBRARY_PATH - Thanks to Kyrah for figuring this out
+	Added InventorUtilities.C so render and simpleview do not duplicate so much
+	histogram now has command line options
+	better processing in bootvol... does Owens Lake
+	simpleview can now set the background color
+	better s file parsing in s_bootstrap
+
 2004-11-02  Kurt Schwehr  <schwehr@catbox>
 
 	* version: Released 0.14
