@@ -21,9 +21,39 @@ algorithm which requires two calls to the random number generator r.
 #include <gsl/gsl_randist.h>
 
 #include <iostream>
+#include <fstream>
+
+#include "kdsPmagL.H" // L is for local
+#include "SiteSigma.H"
 
 using namespace std;
 
+// return true if all went well.
+// false if trouble of any kind
+
+// Unlike Lisa's code, this one does NOT alter the sigmas on loading
+// which is what her adread subroutine did.
+bool
+LoadS(const string filename,vector <SVec> &s,vector<float> &sigmas) {
+  ifstream in(filename.c_str(),ios::in);
+  if (!bool(in)) {cerr << "failed to open file: " << filename << endl; return false; }
+
+  // FIX: detect formats -  {s[6]}, {s[6],sigma}, {name, sigma, s[6]}
+  // FIX: only do {s[6],sigma} for now
+  SVec tmp(6,0.);
+  float tmpSigma;
+  while (in >> tmp[0] >> tmp[1] >> tmp[2] >> tmp[3] >> tmp[4] >> tmp[5] >> tmpSigma) {
+    //{static int i=0; cout << i++ << ": ";}
+    //for (size_t i=0;i<6;i++) cout << tmp[i] << " ";
+    //cout << endl; // cout << sigma << endl;
+    s.push_back(tmp);
+    sigmas.push_back(tmpSigma);
+  }
+  return (true);
+}
+
+
+#ifndef REGRESSION_TEST
 int main(int argc, char *argv) {
   gsl_rng * r;  /* global generator */
   const gsl_rng_type * T;
@@ -51,3 +81,37 @@ int main(int argc, char *argv) {
 
   return 0;
 }
+#endif // !REGRESSION_TEST
+
+//////////////////////////////////////////////////////////////////////
+// REGRESSION TESTS
+//////////////////////////////////////////////////////////////////////
+
+#ifdef REGRESSION_TEST
+static bool
+isEqual (const float a, const float b, const float del) {
+  return ( ( a<b+del && a > b-del) ? true : false );
+}
+
+bool Test1 (void) {
+  vector<SVec> s;
+  vector<float> sigmas;
+  if (!LoadS(string("as1-crypt.s"),s,sigmas)) {FAILED_HERE; return false;};
+  const float siteSigma = SiteSigma(s);
+  const float expectedSiteSigma = 0.00133387523;
+  if (!isEqual(siteSigma, expectedSiteSigma, 0.000001)) {FAILED_HERE; return false;}
+  
+  return (true);
+}
+
+
+
+int main(UNUSED int argc, char *argv[]) {
+  bool ok=true;
+
+  if (!Test1()) {FAILED_HERE;ok=false;};
+
+  cout << argv[0] << " :" << (ok?"ok":"FAILED") << endl;
+  return (ok?EXIT_SUCCESS:EXIT_FAILURE);
+}
+#endif // REGRESSION_TEST
