@@ -227,8 +227,8 @@ bool DoS_Bootstrap(const vector<string> &inFiles,
       }
 
       switch (numout_arg) {
-      case 1: out1Max << endl; break;
-      case 3: out1Max << endl; out2Int << endl; out3Min << endl; break;
+      case 1: out1Max << "\n"; break;
+      case 3: out1Max << "\n"; out2Int << "\n"; out3Min << "\n"; break;
       default: assert(false && "What are we gonna do now, man?!?!");
       }
     } // for draws
