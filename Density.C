@@ -230,7 +230,7 @@ Density::addPoint(const float x, const float y, const float z) {
   const size_t cellNum=getCell(x,y,z);
   if (cellNum==badValue()) {
     totalPointsOutside++;
-    DebugPrintf (BOMBASTIC,("Point outside volume: %f %f %f",x,y,z));
+    DebugPrintf (BOMBASTIC,("Point outside volume: %f %f %f\n",x,y,z));
 #ifdef REGRESSION_TEST
     cout << "         Point outside volume: " << x << " " << y << " " << z << endl;
 #endif    
