@@ -36,7 +36,7 @@ declare -r boundaries="-x -${w} -X ${w} -y -${w} -Y ${w} -z -${w} -Z ${w}"
 echo $boundaries
 
 # FIX: remove this make
-make s_bootstrap xyzdensity xyzvol_cmp
+make s_bootstrap xyzdensity xyzvol_cmp volhdr_edit
 
 
 
@@ -46,7 +46,7 @@ make s_bootstrap xyzdensity xyzvol_cmp
 if [ 1 == 1 ]; then
     for group in "${groups[@]}"; do
 	echo Processing $group
-	s_bootstrap --in=${group}.s -f xyz  -n 3 --out ${group}.xyz. -p --draw ${draw}
+	s_bootstrap ${group}.s -f xyz  -n 3 --out ${group}.xyz. -p --draw ${draw}
 	mv ${group}.xyz.1 ${group}-boot.xyz.vmax
 	mv ${group}.xyz.2 ${group}-boot.xyz.vint
 	mv ${group}.xyz.3 ${group}-boot.xyz.vmin
@@ -62,9 +62,9 @@ if [ 1 == 1 ]; then
 	    ${group}-boot.xyz.vmin 
 
 	scale="--xscale=0.5 --yscale=0.5 --zscale=0.5"
-	volhdr_edit --in=${group}-vmax.vol --out=tmp $scale && /bin/mv tmp ${group}-vmax.vol
-	volhdr_edit --in=${group}-vint.vol --out=tmp $scale && /bin/mv tmp ${group}-vint.vol
-	volhdr_edit --in=${group}-vmin.vol --out=tmp $scale && /bin/mv tmp ${group}-vmin.vol
+	volhdr_edit ${group}-vmax.vol --out=tmp $scale && /bin/mv tmp ${group}-vmax.vol
+	volhdr_edit ${group}-vint.vol --out=tmp $scale && /bin/mv tmp ${group}-vint.vol
+	volhdr_edit ${group}-vmin.vol --out=tmp $scale && /bin/mv tmp ${group}-vmin.vol
     #volinfo -r -i ${group}-vmax.vol
     done
 fi
