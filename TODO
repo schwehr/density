@@ -17,3 +17,5 @@
 * command line option to get a cdf from a volume  w/ and w/out empty nodes
 * Add a headlight to the offscreen render!
 
+* nana design by contract for any further coding
+* unit testing which "check" or CUnit
