@@ -125,9 +125,86 @@ size_t DensityFlagged::getLargestNeighbor(const size_t index) const {
 
 size_t DensityFlagged::getLargestUnflaggedNeighbor(const size_t index) const {
   assert(isValidCell(index));
-  assert(false);
+  size_t maxVal=0;
+  size_t maxIndex=badValue(); // send out a badValue if 1x1x1 cells
+  for (size_t i=0;i<NUM_NEIGHBORS;i++) {
+    const size_t neighbor=getCellNeighbor(index,NeighborEnum(i));
+    if (!isValidCell(neighbor)||isFlagged(neighbor)) continue;
+    const size_t cts = getCellCount(neighbor);
+    if (cts>maxVal) {maxVal=cts; maxIndex=neighbor;}
+  } // for
+    
+  return (maxIndex);
+
 }
 
+size_t DensityFlagged::getLargestNeighborOfFlagged() const {
+  size_t max=0;
+  size_t maxIndex=badValue();
+  for (size_t i=0;i<used.size();i++) {
+    const size_t localMax=getLargestUnflaggedNeighbor(used[i]);
+    if (localMax==badValue()) continue;
+    if (counts[localMax]>max) {
+      max = counts[localMax];
+      maxIndex=localMax;
+    }
+  } // for
+  return(maxIndex);
+}
+
+size_t DensityFlagged::getNumFlagged() const {
+  size_t cnt=0;
+  // FIX: use an algorithm?
+  for (size_t i=0;i<counts.size();i++) if (isFlagged(i)) cnt++;
+  assert(used.size()==cnt);
+  return (cnt);
+}
+
+// FIX: count be optimized to sum everytime we add a voxel
+size_t DensityFlagged::getFlaggedCount() const {
+#ifndef NDEBUG
+  size_t cnt1=0;
+  for (size_t i=0;i<counts.size();i++) if (isFlagged(i)) cnt1+=counts[i];
+#endif
+  size_t cnt=0;
+  for (size_t i=0;i<used.size();i++) cnt+=counts[used[i]];
+  assert(cnt==cnt1);
+  return (cnt);
+}
+
+
+
+void DensityFlagged::buildBlob(const float percent) {
+  assert(0==getNumFlagged());
+
+  // Set our finishing threshold
+  const size_t maxCount=size_t(percent*getCountInside());
+
+  // Get started with the highest density
+  const size_t start = getLargest();
+  setFlag(start);
+  used.push_back(start);
+
+  while (maxCount > getFlaggedCount()) {
+    const size_t next = getLargestNeighborOfFlagged();
+    if (badValue()==next) break; // no more found
+    setFlag(next);
+    used.push_back(next);
+  }
+  cout << "all done:  cells=" << getNumUsed() << "  counts=" << getFlaggedCount() << endl;
+}
+
+
+void DensityFlagged::printBlob() const {
+  cout << "  *** BLOB OF DOOM ***" << endl <<endl;
+  const float total=float(getCountInside());
+  size_t cnts; // Running total
+  for (size_t i=0;i<used.size();i++) {
+    cnts += counts[used[i]];
+    cout << i << ":  cell=" << used[i] << "  cnts=" << counts[used[i]] 
+	 << "  percent="<< cnts/total << endl;
+  }
+}
 
 //####################################################################
 // TEST CODE
@@ -164,6 +241,9 @@ bool test1() {
   if (1!=df.getLargestUnflagged())  {ok=false; FAILED_HERE;}
   df.setFlag(0,false);
   if (0!=df.getLargest())  {ok=false; FAILED_HERE;}
+
+  df.buildBlob(0.7); // % conf
+  df.printBlob();
 
   return(ok);
 } // test1
