@@ -15,3 +15,4 @@
     see http://netpbm.sourceforge.net/doc/pamscale.html
 * Use something like GD to title each slide and the whole movie
 * command line option to get a cdf from a volume  w/ and w/out empty nodes
+* Add a headlight to the offscreen render!
