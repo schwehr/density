@@ -109,12 +109,24 @@ int main (const int argc, char *argv[]) {
 	 << "rotZ           = " << v.getRotZ() << endl
       ;
 
-    if (0!=a.range_given) {
+    // Add any command that needs to load the data here
+    if (a.range_given || a.counts_given) {
       Density d(filename,r);
-      if (!r) {ok=false; cerr << "Failed to read file: " << filename << endl; continue;}
-      cout << "minVal         = " << d.getMinCount() << endl
-	   << "maxVal         = " << d.getMaxCount() << endl;
-    }
+      if (!r) {
+	ok=false;
+	cerr << "Failed to read file: " << filename << endl;
+	continue;
+      }
+
+      if (a.range_given)
+	cout << "minVal         = " << d.getMinCount() << endl
+	     << "maxVal         = " << d.getMaxCount() << endl;
+
+      if (a.counts_given) 
+	cout << "total counts   = " << d.getCountInside() << endl;
+
+    } // if need to load the density data
+
   } // for a.in_given
 
 
