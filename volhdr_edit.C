@@ -56,6 +56,48 @@ int debug_level;
 /// Let the debugger find out which version is being used.
 static const UNUSED char* RCSid ="@(#) $Id$";
 
+/***************************************************************************
+ * LOCAL FUNCTIONS
+ ***************************************************************************/
+
+/// \brief using fread and fwrite, copy a file from in to out
+///
+
+bool FileCopy (FILE *in, FILE *out, const size_t len) {
+  const size_t blockSize=1024;
+  DebugPrintf(TRACE,("FileCopy: len=%d blockSize=%d\n",int(len),int(blockSize)));
+
+  assert(in);
+  assert(out);
+  assert(std::numeric_limits<size_t>::max() != len); // same as -1
+  assert(1==sizeof(char));
+
+  size_t cur;
+  char buf[blockSize];
+  for (cur=0; (cur/blockSize) < (len/blockSize); cur+=blockSize) {
+    if (blockSize != fread(buf,sizeof(char),blockSize,in)) { 
+      perror ("Failed read data block\n"); return (false);
+    }
+
+    DebugPrintf(BOMBASTIC,("writing block: cur=%d\n",int(cur)));
+    if (blockSize != fwrite (buf,sizeof(char),blockSize,out)) {
+      perror ("Failed to copy data block\n"); return (false);
+    }
+  }
+  const size_t remain=len-cur;
+  if ( 0 < remain ) {
+    if (remain != fread(buf,sizeof(char),remain,in)) { 
+      perror ("Failed read data block\n"); return (false);
+    }
+
+    DebugPrintf(BOMBASTIC,("wt last block: cur=%d remain=%d\n",int(cur),int(remain)));
+    if (remain!=fwrite(buf,sizeof(char),remain,out)) {
+      perror ("Failed to copy tail data block"); return (false);
+    }
+  }
+  return (true);
+}
+
 //######################################################################
 // MAIN
 //######################################################################
@@ -76,8 +118,62 @@ int main (int argc, char *argv[]) {
   }
 #else // debugging
   debug_level = a.verbosity_arg;
-  DebugPrintf(TRACE,("Debug level = %d",debug_level));
+  DebugPrintf(TRACE,("Debug level = %d\n",debug_level));
 #endif
+
+  if (a.in_given) {
+    //
+    // Use the input file as a template
+    //
+    bool r;
+    DebugPrintf(TRACE,("Loading file\n"));
+    VolHeader hdr(string(a.in_arg),r);
+    if (!r) {cerr << "Unable to open file." <<endl<<"   "<<a.in_arg<<endl; return (EXIT_FAILURE); }
+    VolHeader hdrOrig(string(a.in_arg),r);
+    if (!r) {cerr << "Unable to open file." <<endl<<"   "<<a.in_arg<<endl; return (EXIT_FAILURE); }
+    FILE *orig = fopen(a.in_arg,"rb");
+    if (!orig) {perror("failed to open file");cerr<<"   "<<a.in_arg<<endl;exit(EXIT_FAILURE);}
+
+    if (a.magic_given) hdr.setMagicNumber(a.magic_arg);
+    if (a.header_len_given) hdr.setHeaderLength(a.header_len_arg);
+    if (a.width_given) hdr.setWidth(a.width_arg);
+    if (a.tall_given) hdr.setHeight(a.tall_arg);
+    if (a.depth_given) hdr.setImages(a.depth_arg);
+    if (a.bpv_given) hdr.setBitsPerVoxel(a.bpv_arg);
+    if (a.index_bits_given) hdr.setIndexBits(a.index_bits_arg);
+
+    if (a.xscale_given) hdr.setScaleX(a.xscale_arg);
+    if (a.yscale_given) hdr.setScaleY(a.yscale_arg);
+    if (a.zscale_given) hdr.setScaleZ(a.zscale_arg);
+
+    if (a.xrot_given) hdr.setRotX(a.xrot_arg);
+    if (a.yrot_given) hdr.setRotY(a.yrot_arg);
+    if (a.zrot_given) hdr.setRotZ(a.zrot_arg);
+
+    FILE *o = fopen(a.out_arg,"wb");
+    if (!o) {perror("failed to open output file");cerr << "   " <<a.out_arg<< endl;exit(EXIT_FAILURE);}
+
+    hdr.write(o);
+    if (0 != fseek(orig,hdrOrig.getHeaderLength(), SEEK_SET)) {
+      perror ("Unable to seek to the data"); exit(EXIT_FAILURE);
+    }
+
+    if (!a.nodata_given) {
+      if (!FileCopy (orig, o, hdrOrig.getDataSize())) {
+	ok=false; cerr << "ERROR: Unable to copy data from src to dest" << endl;
+      }
+    }
+
+    if (0!=fclose(orig)) {perror("Failed to close src "); ok=false;}
+    if (0!=fclose(o))    {perror("Failed to close dest"); ok=false;}
+
+  } else {
+    //
+    // Start from scratch
+    //
+    cerr << "FIX: does not handle not reading starting header from file.  Must use -i"<< endl;
+    return (EXIT_FAILURE);
+  }
 
 
   return (ok?EXIT_SUCCESS:EXIT_FAILURE);
