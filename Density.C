@@ -517,7 +517,10 @@ unsigned char Density::scaleCount(const size_t i, const size_t min, const size_t
 
 
 bool Density::buildCDF(vector<float> &cdfpercent) const {
-  if (0==getCountInside()) return(false);
+  if (0==getCountInside()) {	
+    DebugPrintf(TRACE,("buildCDF WARNING: no points in the volume!\n"));
+    return(false);
+  }
 
   vector<size_t> sumcounts(getMaxCount()+1,0); // # cells that have each count (count is the index)
   for (vector<size_t>::const_iterator i=counts.begin();i!=counts.end();i++) {
