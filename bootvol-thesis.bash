@@ -73,6 +73,10 @@ if [ 1 == 1 ]; then
 	DebugEcho $TERSE $LINENO "Processing $group"
 
 	if [ ! -e ${group}-boot.xyz.vmax ]; then 
+	    if [ ! -e ${group}.s ]; then
+		echo "ERROR: ${group}.s is missing.  Goodbye."
+		exit $EXIT_FAILURE
+	    fi
 	    s_bootstrap ${group}.s -f xyz  -n 3 --out ${group}.xyz. -p --draw ${draw} -v $debugLevel
 	    mv ${group}.xyz.1.vmax ${group}-boot.xyz.vmax
 	    mv ${group}.xyz.2.vint ${group}-boot.xyz.vint
