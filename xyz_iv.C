@@ -109,8 +109,6 @@ bool Boxes(ofstream &o,
 /// too slow.
 ///
 ///  Complexity { value .10 }
-
-
 bool Spheres(ofstream &o, 
 	 const vector<float> &x, const vector<float> &y, const vector<float> &z,
 	 const float r)
@@ -121,6 +119,44 @@ bool Spheres(ofstream &o,
     o << "\tSeparator{ Translation { translation " << x[i] << " " << y[i] << " " << z[i]
       << " } Sphere { radius "<<r<<" } }"<<endl;
   }
+  return (true);
+}
+
+
+/// \brief Use SoLineSet to connect the dots
+bool Linked(ofstream &o, 
+	 const vector<float> &x, const vector<float> &y, const vector<float> &z)
+{
+  DebugPrintf(TRACE,("Linked: %d points\n",int(x.size())));
+  if (x.size() != y.size() || y.size()!=z.size()) return (false);
+  o << "\tCoordinate3 { point ["<<endl;
+  for (size_t i=0;i<x.size();i++) {
+    o << "\t\t"<<x[i]<<" "<<y[i]<<" "<<z[i]<<","<<endl;
+  }
+  o << "\t] } # Coordinate3" << endl;
+  o << "\tLineSet { numVertices [ "<<x.size()<< " ] }" << endl;
+  return (true);
+}
+
+/// \brief Use SoLineSet to connect the dots
+bool PolarLines(ofstream &o, 
+	 const vector<float> &x, const vector<float> &y, const vector<float> &z)
+{
+  DebugPrintf(TRACE,("PolarLines: %d points\n",int(x.size())));
+  if (x.size() != y.size() || y.size()!=z.size()) return (false);
+  o << "\tCoordinate3 { point ["<<endl
+    << "\t\t0. 0. 0.,"<<endl;
+  for (size_t i=0;i<x.size();i++) {
+    o << "\t\t"<<x[i]<<" "<<y[i]<<" "<<z[i]<<","<<endl;
+  }
+  o << "\t] } # Coordinate3" << endl;
+
+  o << "\tIndexedLineSet { coordIndex [ " << endl;
+  for (size_t i=0;i<x.size();i++) {
+    o << "\t\t0,"<<i<<",-1,"<<endl;
+  }
+  o << "\t] } # IndexedLineSet" << endl;
+
   return (true);
 }
 
@@ -166,7 +202,12 @@ int main (int argc, char *argv[]) {
   ofstream o(a.out_arg,ios::out);
 
   o << "#Inventor V2.1 ascii" << endl<<endl;
-  o << "# Written by " << RCSid << endl;
+  o << "# Written by " << RCSid << endl << endl;
+
+  o << "# cmdline: ";
+  for (int i=0;i < argc;i++) o << argv[i] << " ";
+  o << endl << endl;
+
   o << "Separator {"  << endl;
 
   if (a.color_given) {
@@ -180,27 +221,23 @@ int main (int argc, char *argv[]) {
     }
   }
 
-#if 0
   if (a.linked_given) {
-    if (!(o,x,y,z)) {
+    if (!Linked(o,x,y,z)) {
       ok=false; cerr << "WARNING: failed to write linked. Continuing." << endl;
     }
   }
 
   if (a.polarlines_given) {
-    if (!(o,x,y,z,a.polarlines_arg)) {
+    if (!PolarLines(o,x,y,z)) {
       ok=false; cerr << "WARNING: failed to write polarlines. Continuing." << endl;
     }
   }
-#endif
 
   if (a.sphere_given) {
     if (!Spheres(o,x,y,z,a.sphere_arg)) {
       ok=false; cerr << "WARNING: failed to write sphere. Continuing." << endl;
     }
   }
-
-
 
   o << "} # Separator - EOF"  << endl;
   return (ok?EXIT_SUCCESS:EXIT_FAILURE);
