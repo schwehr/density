@@ -18,43 +18,77 @@
 
 */
 
+// C++ includes
+#include <iostream>
+
+// Inventor and Voleon Includes
 #include <Inventor/Qt/SoQt.h>
 #include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
 #include <Inventor/nodes/SoSeparator.h>
 
 #include <VolumeViz/nodes/SoVolumeRendering.h>
 
+// local includes
+#include "simpleview_cmd.h"
 
-#include <iostream>
+
 using namespace std;
 
-int
-main( int narg, char* argv[] )
+/***************************************************************************
+ * MACROS, DEFINES, GLOBALS
+ ***************************************************************************/
+
+#include "debug.H" // provides FAILED_HERE, UNUSED, DebugPrintf
+int debug_level=0;
+
+/// Let the debugger find out which version is being used.
+static const UNUSED char* RCSid ="$Id$";
+
+/***************************************************************************
+ * MAIN
+ ***************************************************************************/
+
+int main(int argc, char *argv[])
 {
-    QWidget* myWindow = SoQt::init(argv[0]);
-    SoVolumeRendering::init();
-    if ( myWindow==NULL ) return (EXIT_FAILURE);
-    if ( narg != 2 ) {
-      cerr << " USAGE: " << argv[0]<< " <filename>" << endl <<endl;
-      return (EXIT_FAILURE);
-    }
+  bool ok=true;
 
-    SoQtExaminerViewer* myViewer = new SoQtExaminerViewer(myWindow);
-    {
-      SoInput mySceneInput;
-      if ( !mySceneInput.openFile( argv[1] ))  return (EXIT_FAILURE);
-
-      SoSeparator* myGraph = SoDB::readAll(&mySceneInput);
-      if ( !myGraph ) return (EXIT_FAILURE);
-      mySceneInput.closeFile();
-      
-      myViewer->setSceneGraph( myGraph );
-      myViewer->show();
-    }
-    SoQt::show(myWindow);
-    SoQt::mainLoop();
-
-    // probably can never reach here.
+  gengetopt_args_info a;
+  if (0!=cmdline_parser(argc,argv,&a)) {
+    cerr << "FIX: should never get here" << endl;
+    cerr << "Early exit" << endl;
     return (EXIT_FAILURE);
+  }
+
+#ifdef NDEBUG
+  if (a.verbosity_given) {
+    cerr << "Verbosity is totally ignored for optimized code.  Continuing in silent mode" << endl;
+  }
+#else // debugging
+  debug_level = a.verbosity_arg;
+  DebugPrintf(TRACE,("Debug level = %d\n",debug_level));
+#endif
+
+
+  QWidget* myWindow = SoQt::init(argv[0]);
+  SoVolumeRendering::init();
+  if ( myWindow==NULL ) return (EXIT_FAILURE);
+
+  SoQtExaminerViewer* myViewer = new SoQtExaminerViewer(myWindow);
+  for (size_t i=0;i<a.inputs_num;i++) {
+    SoInput mySceneInput;
+    if ( !mySceneInput.openFile( a.inputs[i] ))  return (EXIT_FAILURE);
+
+    SoSeparator* myGraph = SoDB::readAll(&mySceneInput);
+    if ( !myGraph ) return (EXIT_FAILURE);
+    mySceneInput.closeFile();
+      
+    myViewer->setSceneGraph( myGraph );
+    myViewer->show();
+  }
+  SoQt::show(myWindow);
+  SoQt::mainLoop();
+
+  // probably can never reach here.
+  return (ok?EXIT_SUCCESS:EXIT_FAILURE);
 }
 
