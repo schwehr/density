@@ -1,5 +1,15 @@
 2004-10-11  Kurt Schwehr  <schwehr@catbox>
 
+	* version: Released 0.7
+	Changed project name to density
+	simpleview how has a getopt interface
+	Added xyz_iv and volmakecmap programs
+	voliv can now show the filename in front of each parameter
+	Makefile now forces the gengetopt derived files to be present
+	Input files not specified without --in
+
+2004-10-11  Kurt Schwehr  <schwehr@catbox>
+
 	* version: Released 0.6
 	Added vol_iv program
 	Makefile is MUCH cleaner
