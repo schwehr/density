@@ -25,6 +25,8 @@
 /// This describes how to do animation:
 /// file:///sw/share/Coin/html/classSoOffscreenRenderer.html
 
+/// \bug Need to breakup simpleview info support libraries that can be
+/// used to render a flight path without having SoQt/SoXt/SoWin
 
 
 /***************************************************************************
@@ -309,60 +311,6 @@ bool CheckTypeValid(const string &type) {
 /// \param draggerVec A vector in which to keep the way points handy
 /// \return \a false if trouble loading the draggers/waypoints
 bool
-LoadSpotLightDraggersBroken (const string filename, SoSeparator *root, vector<SoSpotLightDragger *> &draggerVec)
-{
-  bool ok=true;
-  assert(root);
-  DebugPrintf(TRACE,("LoadSpotLightDraggers %s %d\n",filename.c_str(),int(draggerVec.size())));
-
-  ifstream in(filename.c_str(),ios::in);
-  if (!in.is_open()){cerr<<"ERROR opening "<<filename<<endl; return(false);}
-  const size_t bufSize=256;
-  char buf[bufSize];
-#ifndef NDEBUG
-  memset(buf,0,bufSize);
-#endif
-  while (in.getline(buf,bufSize)) {
-    if ('#'==buf[0]) continue;
-    istringstream istr(buf);
-    float a1,a2,a3,r_angle,x,y,z,angle;
-    istr >> a1 >> a2 >> a3 >> r_angle >> x >> y >> z >> angle;
-
-    SoSpotLightDragger *wpt = new SoSpotLightDragger;
-    draggerVec.push_back(wpt);
-    {
-      SbRotation rot(SbVec3f(a1,a2,a3),r_angle);
-      //SbRotation rot(SbVec3f(a3,a2,a1),r_angle); cout << "Swapped?\n";
-      
-      SbVec3f pos(x,y,z);
-      wpt->translation.setValue(pos);
-      wpt->rotation.setValue(rot);
-      wpt->angle=angle;
-    }
-    {
-      static int num=0;  char buf[128];
-      snprintf(buf, 128,"_%d",num++); // name can't start with a number
-      wpt->setName (buf);
-    }
-    SoSeparator *s = new SoSeparator;
-    s->addChild(wpt);
-    root->addChild(s); // draggerSwitch
-  }	
-
-  return (ok);
-}	
-
-
-//
-// USE THE QUATERNIAN
-//
-
-/// \brief Load dragger/way points from a disk file
-/// \param filename Ascii file to load from
-/// \param root Where in the scene graph location to add the draggers  (should be draggerSwitch
-/// \param draggerVec A vector in which to keep the way points handy
-/// \return \a false if trouble loading the draggers/waypoints
-bool
 LoadSpotLightDraggers (const string filename, SoSeparator *root, vector<SoSpotLightDragger *> &draggerVec)
 {
   bool ok=true;
@@ -386,7 +334,6 @@ LoadSpotLightDraggers (const string filename, SoSeparator *root, vector<SoSpotLi
     draggerVec.push_back(wpt);
     {
       SbRotation rot(SbVec3f(a1,a2,a3),r_angle);
-      //SbRotation rot(SbVec3f(a3,a2,a1),r_angle); cout << "Swapped?\n";
       
       SbVec3f pos(x,y,z);
       wpt->translation.setValue(pos);
@@ -404,15 +351,14 @@ LoadSpotLightDraggers (const string filename, SoSeparator *root, vector<SoSpotLi
   }	
 
   return (ok);
-}	
+} // LoadSpotLightDraggers	
+
 
 
 /// \brief Save an ascii file of all the draggers for editing and reloading
 /// \param filename file to write to
 /// \param draggerVec pointers to all the SoSpotLightDragger way points
 /// \return \a false if had trouble writing the file
-///
-/// \bug Does not seem to save the correct orientation or load ascii is buggy
 bool
 SaveSpotLightDraggersAscii (const string &filename, vector<SoSpotLightDragger *> &draggerVec) {
   bool ok=true;
@@ -432,8 +378,8 @@ SaveSpotLightDraggersAscii (const string &filename, vector<SoSpotLightDragger *>
     assert (d);
     SbVec3f axis; float r_angle;
     float a1,a2,a3;
-    axis.getValue(a1,a2,a3);
     d->rotation.getValue(axis,r_angle);
+    axis.getValue(a1,a2,a3);
     SbVec3f xyz(d->translation.getValue());
     float x, y, z;
     xyz.getValue(x,y,z);
@@ -445,12 +391,15 @@ SaveSpotLightDraggersAscii (const string &filename, vector<SoSpotLightDragger *>
   }
 
   return (ok);
-} 
+} // SaveSpotLightDraggersAscii
 
+#if 0
 /// \brief Save an ascii file of all the draggers for editing and reloading
 /// \param filename file to write to
 /// \param draggerVec pointers to all the SoSpotLightDragger way points
 /// \return \a false if had trouble writing the file
+///
+/// \bug FIX: am not able to load these scene graphs in without crashing coin
 bool
 SaveSpotLightDraggersIV(const string &filename, SoSwitch *sw) {
   assert(sw);
@@ -466,10 +415,9 @@ SaveSpotLightDraggersIV(const string &filename, SoSwitch *sw) {
     DebugPrintf(BOMBASTIC,("Writing switch child # %d\n",i));
     wa.apply(sw->getChild(i));
   }
-  
-
   return (true);
-}
+} // SaveSpotLightDraggersIV
+#endif
 
 /// \brief Write a scene graph to disk as ascii
 /// \param filename File to write ascii IV file to
@@ -647,11 +595,12 @@ keyPressCallback(void *data, SoEventCallback *cb) {
     const string filenameIV("tmp.wpt.iv");
 
     DebugPrintf(TRACE,("Keyhit: W - write waypoints: %s %s\n",filenameAscii.c_str(),filenameIV.c_str()));
+#if 0
     if (!SaveSpotLightDraggersIV(filenameIV, si->draggerSwitch))
       cerr << "WARNING: waypoint save to " << filenameIV << "failed." << endl;
-
-     if (!SaveSpotLightDraggersAscii(filenameAscii, si->draggerVec))
-       cerr << "WARNING: waypoint save to " << filenameAscii << "failed." << endl;
+#endif
+    if (!SaveSpotLightDraggersAscii(filenameAscii, si->draggerVec))
+      cerr << "WARNING: waypoint save to " << filenameAscii << "failed." << endl;
     return;
   } // KEY_PRESS W - write waypoints
 
@@ -855,16 +804,12 @@ int main(int argc, char *argv[])
     si->draggerSwitch=s;
   }
 
-#if 0
   if (a.waypoints_given) {
     // FIX: make load go under an soswitch?
     if (!LoadSpotLightDraggers(string(a.waypoints_arg), (SoSeparator *)si->draggerSwitch, si->draggerVec)) {
       cerr << "WARNING: failed to load waypoints.  Continuing anyways." << endl;
     }
   }
-#else
-  cerr <<"FIX: loading draggers is disabled" <<endl;
-#endif
 
   // Write out keyboard shortcuts
   if (0<debug_level) PrintKeyboardShorts();
