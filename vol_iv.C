@@ -247,6 +247,7 @@ int main (int argc, char *argv[]) {
 			 << "} " << endl;
 
     if (a.box_given)
+      DebugPrintf(TRACE,("Doing wireframe box: %f\n",a.box_arg));
       o << "\tSeparator {" << endl
 	<< "\t\tDrawStyle { style LINES }" << endl
 	<< "\t\tPickStyle { style UNPICKABLE }" << endl
