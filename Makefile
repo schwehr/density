@@ -100,37 +100,44 @@ TARGETS:=${BINS} ${TEST_BINS}
 targets: ${TARGETS} test
 
 
+######################################################################
+# GENGETOPT programs to build
+
 %.c: %.ggo
 	gengetopt --input=$< --file-name=${<:.ggo=} --unamed-opts
 
+s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o s_bootstrap_cmd.o Eigs.o
+	${CXX} -o $@ $^ ${CXXFLAGS} -Wno-long-double -lgsl -lgslcblas
 
-xyzdensity_cmd.c: xyzdensity_cmd.ggo
-xyzdensity_cmd.o: xyzdensity_cmd.c xyzdensity_cmd.o
-	${CXX} -c $< ${CXXFLAGS}
+vol2vol: vol2vol.C VolHeader.o vol2vol_cmd.o Density.o
+	${CXX} -o $@ $^  ${CXXFLAGS}
+
+volinfo: volinfo.C VolHeader.o volinfo_cmd.o Density.o
+	${CXX} -o $@ $^  ${CXXFLAGS}
 
 xyzdensity: xyzdensity.C Density.o VolHeader.o xyzdensity_cmd.o
 	${CXX} -o $@ $^ ${CXXFLAGS}
 
-volhdr_edit_cmd.c: volhdr_edit_cmd.h
-volhdr_edit_cmd.h: volhdr_edit_cmd.ggo
-	gengetopt --input=$< --file-name=${<:.ggo=}
-volhdr_edit_cmd.o: volhdr_edit_cmd.c volhdr_edit_cmd.ggo
-	${CXX} -c $< ${CXXFLAGS}
-
 volhdr_edit: volhdr_edit.C VolHeader.o volhdr_edit_cmd.o
 	${CXX} -o $@ $^ ${CXXFLAGS}
 
-
-
-xyzvol_cmp_cmd.c: xyzvol_cmp_cmd.h
-xyzvol_cmp_cmd.h: xyzvol_cmp_cmd.ggo
-	gengetopt --input=$< --file-name=${<:.ggo=}
-xyzvol_cmp_cmd.o: xyzvol_cmp_cmd.c xyzvol_cmp_cmd.ggo
-	${CXX} -c $< ${CXXFLAGS}
 xyzvol_cmp: xyzvol_cmp.C Density.o VolHeader.o xyzvol_cmp_cmd.o
 	${CXX} -o $@ $^ ${CXXFLAGS}
 
-#Eigs.H
+
+######################################################################
+# Regular commands sans GENGETOPT
+
+simpleview: simpleview.C
+	${CXX} -o $@ $<  -I/sw/include/qt ${CXXFLAGS} -lsimage -lCoin -lSoQt -lSimVoleon -lqt-mt
+
+endian: endian.C
+	${CXX} -g -Wall $< -o $@
+
+
+######################################################################
+# Test Programs
+
 test_Eigs: Eigs.C 
 	${CXX} -o $@ $< -Wno-long-double -DREGRESSION_TEST ${CXXFLAGS}  -lgsl -lgslcblas
 
@@ -152,41 +159,8 @@ test_SiteSigma: SiteSigma.C SiteSigma.H
 test_s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o
 	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS} SiteSigma.o Bootstrap.o -lgsl -lgslcblas
 
-s_bootstrap_cmd.c: s_bootstrap_cmd.h
-s_bootstrap_cmd.h: s_bootstrap_cmd.ggo
-	gengetopt --input=$< --file-name=${<:.ggo=}
-s_bootstrap_cmd.o: s_bootstrap_cmd.c s_bootstrap_cmd.ggo
-	${CXX} -c $< ${CXXFLAGS}
 
-s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o s_bootstrap_cmd.o Eigs.o
-	${CXX} -o $@ $^ ${CXXFLAGS} -Wno-long-double -lgsl -lgslcblas
-
-endian: endian.C
-	${CXX} -g -Wall $< -o $@
-
-Density.o: endian
-
-simpleview: simpleview.C
-	${CXX} -o $@ $<  -I/sw/include/qt ${CXXFLAGS} -lsimage -lCoin -lSoQt -lSimVoleon -lqt-mt
-
-volinfo_cmd.c: volinfo_cmd.h
-volinfo_cmd.h: volinfo_cmd.ggo
-	gengetopt --input=$< --file-name=${<:.ggo=}
-volinfo_cmd.o: volinfo_cmd.c volinfo_cmd.ggo
-	${CXX} -c $< ${CXXFLAGS}
-
-volinfo: volinfo.C VolHeader.o volinfo_cmd.o Density.o
-	${CXX} -o $@ $^  ${CXXFLAGS}
-
-
-vol2vol_cmd.c: vol2vol_cmd.h
-vol2vol_cmd.h: vol2vol_cmd.ggo
-	gengetopt --input=$< --file-name=${<:.ggo=}
-vol2vol_cmd.o: vol2vol_cmd.c vol2vol_cmd.ggo
-	${CXX} -c $< ${CXXFLAGS}
-
-vol2vol: vol2vol.C VolHeader.o vol2vol_cmd.o Density.o
-	${CXX} -o $@ $^  ${CXXFLAGS}
+######################################################################
 
 
 test: ${TEST_BINS}
@@ -254,6 +228,10 @@ real-clean: clean
 ############################################################
 # Dependencies - FIX: do a real depend with gcc/g++
 ############################################################
+
+# Thses endian ones are special
+Density.o: endian
+VolHeader.o: endian
 
 xyzdensity: debug.H
 VolHeader.o: VolHeader.C VolHeader.H
