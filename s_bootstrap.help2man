@@ -1,0 +1,21 @@
+[DESCRIPTION]
+.PP
+Write a description of of s_bootstrap here.
+
+[EXAMPLES]
+.PP
+Describe the example here
+
+.PT
+  Give the command line here
+
+[AUTHOR]
+Kurt Schwehr
+
+[SEE ALSO]
+xyzdensity, s_eigs
+
+FIX: get the reference right
+"Paleomagnetic: Principles and Practice," L. Tauxe, 1998, Klewer.
+
+or http://sorcerer.ucsd.edu for Lisa's latest source and online book.
