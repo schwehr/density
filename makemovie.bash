@@ -38,9 +38,36 @@
 # Local tuning
 ######################################################################
 
-# simpleview -i 0.1 -p 0.05 as2-slump-all.iv ../axes.iv -w main.wpt -n -b as2-slump-all -W 750 -H 750
-# simpleview -i 0.1 -p 0.05 as2-slump-vmax-8.iv ../axes.iv -w main.wpt -n -b as2-slump-vmax -W 750 -H 750 -v 9
-# simpleview -i 0.1 -p 0.05 as2-slump-vint-8.iv ../axes.iv -w main.wpt -n -b as2-slump-vint -W 750 -H 750 -v 9
+# simpleview -i 0.1 -p 0.05 as1-crypt-all.iv ../axes.iv -w main.wpt -n -b as1-crypt-all -W 750 -H 750 -v 6
+
+# simpleview -i 0.1 -p 0.05 as1-crypt-vmax-8.iv ../axes.iv -w main.wpt -n -b as1-crypt-vmax -W 750 -H 750 -v 6
+# simpleview -i 0.1 -p 0.05 as1-crypt-vint-8.iv ../axes.iv -w main.wpt -n -b as1-crypt-vint -W 750 -H 750 -v 6
+# simpleview -i 0.1 -p 0.05 as1-crypt-vmin-8.iv ../axes.iv -w main.wpt -n -b as1-crypt-vmin -W 750 -H 750 -v 6
+
+# makemovie.bash as1-crypt-all as1-crypt-vmax as1-crypt-vint as1-crypt-vmin as1-crypt- 99
+
+
+
+# simpleview -i 0.1 -p 0.05 as2-slump-all.iv ../axes.iv -w main.wpt -n -b as2-slump-all -W 750 -H 750 -v 6
+
+# simpleview -i 0.1 -p 0.05 as2-slump-vmax-8.iv ../axes.iv -w main.wpt -n -b as2-slump-vmax -W 750 -H 750 -v 6
+# simpleview -i 0.1 -p 0.05 as2-slump-vint-8.iv ../axes.iv -w main.wpt -n -b as2-slump-vint -W 750 -H 750 -v 6
+# simpleview -i 0.1 -p 0.05 as2-slump-vmin-8.iv ../axes.iv -w main.wpt -n -b as2-slump-vmin -W 750 -H 750 -v 6
+
+# makemovie.bash as2-slump-all as2-slump-vmax as2-slump-vint as2-slump-vmin as2-slump- 99
+
+
+
+# simpleview -i 0.1 -p 0.05 as3-undef-all.iv ../axes.iv -w main.wpt -n -b as3-undef-all -W 750 -H 750 -v 6
+
+# simpleview -i 0.1 -p 0.05 as3-undef-vmax-8.iv ../axes.iv -w main.wpt -n -b as3-undef-vmax -W 750 -H 750 -v 6
+# simpleview -i 0.1 -p 0.05 as3-undef-vint-8.iv ../axes.iv -w main.wpt -n -b as3-undef-vint -W 750 -H 750 -v 6
+# simpleview -i 0.1 -p 0.05 as3-undef-vmin-8.iv ../axes.iv -w main.wpt -n -b as3-undef-vmin -W 750 -H 750 -v 6
+
+# makemovie.bash as3-undef-all as3-undef-vmax as3-undef-vint as3-undef-vmin as3-undef- 99
+
+
+
 
 #export PATH=${PATH}:.:..:../..
 
@@ -71,16 +98,23 @@ declare -i max=$6
 declare -i fileNum=1
 
 # image size
-declare -i s=300
+declare -i s=200
 
 while [ $max != $fileNum ]; do
     f=`printf "%04d" $fileNum`
     echo $f
 
-    pngtopnm ${b1}${f}.png | pnmscale -xysize $s $s > ${b1}${f}.pnm
-    pngtopnm ${b2}${f}.png | pnmscale -xysize $s $s > ${b2}${f}.pnm
-    pngtopnm ${b3}${f}.png | pnmscale -xysize $s $s > ${b3}${f}.pnm
-    pngtopnm ${b4}${f}.png | pnmscale -xysize $s $s > ${b4}${f}.pnm
+    if [ 1 == 1 ]; then 
+	pngtopnm ${b1}${f}.png > ${b1}${f}.pnm
+	pngtopnm ${b2}${f}.png > ${b2}${f}.pnm
+	pngtopnm ${b3}${f}.png > ${b3}${f}.pnm
+	pngtopnm ${b4}${f}.png > ${b4}${f}.pnm
+    else
+	pngtopnm ${b1}${f}.png | pnmscale -xysize $s $s > ${b1}${f}.pnm
+	pngtopnm ${b2}${f}.png | pnmscale -xysize $s $s > ${b2}${f}.pnm
+	pngtopnm ${b3}${f}.png | pnmscale -xysize $s $s > ${b3}${f}.pnm
+	pngtopnm ${b4}${f}.png | pnmscale -xysize $s $s > ${b4}${f}.pnm
+    fi
 
     # FIX: can this be done without writing tmp files?
     pnmcat -lr ${b1}${f}.pnm ${b2}${f}.pnm > left2.pnm
