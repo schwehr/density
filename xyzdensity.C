@@ -131,6 +131,14 @@ int main (int argc, char *argv[]) {
   if (a.ymin_arg>=a.ymax_arg) {cerr<<"ERROR: ymax must be greater than ymin" << endl; return(EXIT_FAILURE);}
   if (a.zmin_arg>=a.zmax_arg) {cerr<<"ERROR: zmax must be greater than zmin" << endl; return(EXIT_FAILURE);}
 
+
+  if (a.autoscale_given)
+    if ( a.xscale_given || a.yscale_given || a.zscale_given) {
+      cerr << "ERROR: can not specify autoscale and specify scales too" << endl;
+      return (EXIT_FAILURE);
+    }
+
+
   const PackType packing=PackType(a.pack_arg);
   const string infile (a.in_arg);
   const string outfile(a.out_arg);
@@ -152,10 +160,14 @@ int main (int argc, char *argv[]) {
   }
 
   // FIX: add rotation handling
-  if (!dens.writeVol(outfile,size_t(a.bpv_arg),packing)) {
-    cerr << " ERROR: Unable to correctly write out vol file" << endl;
-    return(EXIT_FAILURE);
-  }
+  bool r;
+  if (a.autoscale_given) 
+    r = dens.writeVol(outfile,size_t(a.bpv_arg),packing);
+  else
+    r = dens.writeVol(outfile,size_t(a.bpv_arg),packing,a.xscale_arg,a.yscale_arg,a.zscale_arg);
 
-  return (EXIT_SUCCESS);
+  if (!r) cerr << " ERROR: Unable to correctly write out vol file" << endl;
+
+
+  return (r?EXIT_SUCCESS:EXIT_FAILURE);
 }
