@@ -61,6 +61,10 @@ if [ -e Makefile ]; then
     make targets-no-test
 fi
 
+DebugEcho $TERSE $LINENO "################"
+DebugEcho $TERSE $LINENO "# Ardath Slump #"
+DebugEcho $TERSE $LINENO "################"
+
 #
 # Bootstrap each of the groups to produce Vmin (V3), Vint(V2), Vmax(V1) volumes
 #
