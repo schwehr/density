@@ -1,4 +1,4 @@
-2005-12-01  Kurt Schwehr  <schwehr@catboxII>
+2005-01-01  Kurt Schwehr  <schwehr@catboxII>
 
 	* version: Released 0.17
 	Added eigs2xyz.py, spin_gnuplot, split_depth.py
