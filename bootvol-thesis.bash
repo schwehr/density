@@ -39,7 +39,6 @@
 ######################################################################
 
 
-
 export PATH=${PATH}:.:..
 declare -ir cells=100
 if [ -z "$DENSITY_DRAW" ]; then
@@ -53,13 +52,12 @@ DebugEcho $TRACE $LINENO "draw = $draw"
 declare -ar groups=( as1-crypt as2-slump as3-undef )
 declare -r w=0.5
 declare -r boundaries="-x -${w} -X ${w} -y -${w} -Y ${w} -z -${w} -Z ${w}"
-#declare -r debug_level=11
 
 # Make all volumes be a unit cube
 declare -r scale="--xscale=0.5 --yscale=0.5 --zscale=0.5"
 
 DebugEcho $TERSE $LINENO "Cells = $cells   Draw = $draw "
-DebugEcho $VERBOSE $LINENO $boundaries
+DebugEcho $VERBOSE $LINENO "boundaries are $boundaries"
 
 if [ -e Makefile ]; then
     make targets-no-test
@@ -83,26 +81,25 @@ if [ 1 == 1 ]; then
 	    DebugEcho $TERSE $LINENO "Using existing bootstrapped xyz's"
 	fi
 
-	DebugEcho $TRACE $LINENO  Densifying
+	DebugEcho $TRACE $LINENO  Densifying:  calling xyzdensity 4 times
 
 	args=" -p 1  --bpv=16 -w ${cells} -t ${cells} -d ${cells} --verbosity=$debugLevel"
 	
-	xyzdensity ${group}-boot.xyz.vmax --out=${group}-vmax.vol $args $boundaries
-	xyzdensity ${group}-boot.xyz.vint --out=${group}-vint.vol $args $boundaries
-	xyzdensity ${group}-boot.xyz.vmin --out=${group}-vmin.vol $args $boundaries
-	xyzdensity --out=${group}-all.vol -p 1 -b 8 -w ${cells} -t ${cells} -d ${cells} $boundaries \
-	    ${group}-boot.xyz.vmax \
-	    ${group}-boot.xyz.vint \
-	    ${group}-boot.xyz.vmin 
+ 	xyzdensity ${group}-boot.xyz.vmax --out=${group}-vmax.vol $args $boundaries
+ 	xyzdensity ${group}-boot.xyz.vint --out=${group}-vint.vol $args $boundaries
+ 	xyzdensity ${group}-boot.xyz.vmin --out=${group}-vmin.vol $args $boundaries
+ 	xyzdensity --out=${group}-all.vol -p 1 -b 8 -w ${cells} -t ${cells} -d ${cells} $boundaries \
+ 	    ${group}-boot.xyz.vmax \
+ 	    ${group}-boot.xyz.vint \
+ 	    ${group}-boot.xyz.vmin 
 	
-
 	if [ ! -e current.cmap ]; then 
 	    volmakecmap --cpt=rgba.cpt -o current.cmap --zero=0
 	fi
 
-
 	volhdr_edit ${group}-all.vol --out=tmp.vol $scale && /bin/mv tmp.vol ${group}-all.vol
-	vol_iv -b=2 -c ALPHA_BLENDING --numslicescontrol=ALL -p NONE -C current.cmap -o ${group}-all.iv ${group}-all.vol
+	# --box=2.0
+	vol_iv -c ALPHA_BLENDING --numslicescontrol=ALL -p NONE -C current.cmap -o ${group}-all.iv ${group}-all.vol
 
 	volhdr_edit ${group}-vmax.vol --out=tmp.vol $scale && /bin/mv tmp.vol ${group}-vmax.vol
 	volhdr_edit ${group}-vint.vol --out=tmp.vol $scale && /bin/mv tmp.vol ${group}-vint.vol
@@ -111,11 +108,13 @@ if [ 1 == 1 ]; then
 	#
 	# Make each component viewable... scale them to min max
 	#
-	vol2vol -o ${group}-vmax-8.vol ${group}-vmax.vol  -p 0 --bpv=8 -j 0.5 -k 0.5 -l 0.5
-	vol2vol -o ${group}-vint-8.vol ${group}-vint.vol  -p 0 --bpv=8 -j 0.5 -k 0.5 -l 0.5
-	vol2vol -o ${group}-vmin-8.vol ${group}-vmin.vol  -p 0 --bpv=8 -j 0.5 -k 0.5 -l 0.5
+	vol2vol_args="  -p 0 --bpv=8 -j 0.5 -k 0.5 -l 0.5 -v $debugLevel"
+	vol2vol -o ${group}-vmax-8.vol ${group}-vmax.vol $vol2vol_args
+	vol2vol -o ${group}-vint-8.vol ${group}-vint.vol $vol2vol_args
+	vol2vol -o ${group}-vmin-8.vol ${group}-vmin.vol $vol2vol_args
 
-	ivargs="-b=2 -c ALPHA_BLENDING --numslicescontrol=ALL -p NONE -C current.cmap"
+	# -b=2
+	ivargs=" -c ALPHA_BLENDING --numslicescontrol=ALL -p NONE -C current.cmap -v $debugLevel"
 	vol_iv -o ${group}-vmax-8.iv ${group}-vmax-8.vol $ivargs
 	vol_iv -o ${group}-vint-8.iv ${group}-vint-8.vol $ivargs
 	vol_iv -o ${group}-vmin-8.iv ${group}-vmin-8.vol $ivargs
