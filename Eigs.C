@@ -35,6 +35,10 @@
 #include <iomanip>
 #include <fstream>
 
+// STL Headers
+#include <vector>
+
+#include "Eigs.H"
 
 using namespace std;
 /***************************************************************************
@@ -73,9 +77,6 @@ static const UNUSED char* RCSid ="@(#) $Id$";
  * EIGS
  ***************************************************************************/
 
-// inline
-double rad2deg (const float &rad) {return(rad/M_PI * 180.);}
-double deg2rad (const float &deg) {return(deg/180. * M_PI);}
 
 // convert xyz to theta (t) and phi(p) in radians
 // go polar
@@ -95,9 +96,6 @@ void xyz2tpr (const double x, const double y, const double z, double &theta, dou
 
 
 
-
-/// Use K when you don't know if they are talking about value or vector.
-enum EigsEnum {KMIN, KINT, KMAX};
 
 size_t GetIndex(const EigsEnum which, const gsl_vector *v) {
   const double a=gsl_vector_get(v,0),b=gsl_vector_get(v,1),c=gsl_vector_get(v,2);
@@ -125,14 +123,13 @@ size_t GetIndex(const EigsEnum which, const gsl_vector *v) {
   return (0); // FIX: replace with badValue
 }
 
+
+
 bool GetEig(const EigsEnum which, const gsl_matrix *eigenvecs, const gsl_vector *eigenvals,
 	    float vec[3], float &val) {
   assert (eigenvecs);
   assert (eigenvals);
   size_t index=GetIndex(which,eigenvals);
-  //vec[0] = gsl_matrix_get(eigenvecs,index,0);
-  //vec[1] = gsl_matrix_get(eigenvecs,index,1);
-  //  vec[2] = gsl_matrix_get(eigenvecs,index,2);
   vec[0] = - gsl_matrix_get(eigenvecs,0,index);
   vec[1] = - gsl_matrix_get(eigenvecs,1,index);
   vec[2] = - gsl_matrix_get(eigenvecs,2,index);
@@ -180,6 +177,50 @@ GetEigs(const gsl_matrix *eigenvec, const gsl_vector *eigenval, float newEigs[9]
 
   return(ok);
 }
+
+// Takes a triple that comes from the output of s_eigs
+/// \param len Eigen value
+/// \param dec Declination in degrees
+/// \param inc Inclination in degrees
+void ldi2xyz( const float len, const float dec, const float inc, vector<float> &xyz) {
+  assert(xyz.size()==3);
+  const float incRad = deg2rad(inc);
+  const float decRad = deg2rad(dec);
+  const float x = len * cos(incRad) * sin(decRad);
+  const float y = len * cos(incRad) * cos(decRad);
+  const float z = -sin(incRad)*len;
+  xyz[0] = x; xyz[1]=y; xyz[2]=z;
+}
+
+
+///// FIX:  Create a class that takes an s and returns eigs
+///// or xyz or ptr
+// Idea is to cache the workspace so we don't have to keep constructing and destroying workspaces
+// Put don't have to keep one.
+class S_Engine {
+public:
+  S_Engine();
+  S_Engine(const std::vector<float> &s);
+  bool setS(const std::vector<float> &s);
+  bool getS(std::vector<float> &s);
+  bool getEigs(std::vector<float> &V, vector<float> &T); ///< min, int, max sorted
+  bool getEig(const EigsEnum which, std::vector<float> &V, float &T);
+  bool getTau(const EigsEnum which, float &T);
+  bool getXYZ(std::vector<float> &xyz);
+  bool getXYZ(float &x, float &y, float &z);
+  bool getPTR(std::vector<float> &ptr);
+  bool getPTR(float &phi, float &theta, float &radius);
+private:
+  bool isValid; ///< True if an s value has been set
+  vector<float> s; ///< see seigs.  Store 6 or 7
+  vector<float> xyz; ///< size==9, min, int, max triples
+  vector<float> ptr; ///< size==9, min, int, max triples
+  vector<float> eigs; ///< same format as s_eigs
+};
+
+// Calculate eigs when an S is set
+// then eigs to xyz ... see python code eigs2xyz.py
+// xyztoptr
 
 
 //####################################################################
@@ -322,13 +363,59 @@ bool test2() {
 } // test2
 
 
+bool test3() {
+  bool ok=true;
+  cout << "      test3" << endl;
+
+  // head -1 as1-crypt.s
+  float s7[7] = {0.34406993,0.34145042,0.31447965,-.00168017,0.00414139,0.00152699,0.00052489};
+  float eigs[9] = {0.31375569, 248.97, 80.68,
+		   0.34134611, 62.79, 9.26,
+		   0.34489819, 152.96,   0.99};
+  float xyzs[9] = {-0.0474277317059,-0.0182342984952,-0.309613878292,
+		   0.299615527636,0.154047575992,-0.0549276500731,
+		   0.156771598472,-0.307151292216,-0.00595911637815};
+
+  // test length dec inc to xyz.  Same as eigs2xyz.py
+  {
+    vector<float> xyz(3,0); // set to length 3
+
+    // North = + y
+    ldi2xyz(1,0,0,xyz);
+    //for (size_t i=0;i<3;i++) cout << i << " " << xyz[i] << endl;
+    if (!isEqual(xyz[0],0,0.001)) {FAILED_HERE;ok=false;}
+    if (!isEqual(xyz[1],1,0.001)) {FAILED_HERE;ok=false;}
+    if (!isEqual(xyz[2],0,0.001)) {FAILED_HERE;ok=false;}
+
+    // East == +x
+    ldi2xyz(1.,90.,0.,xyz);
+    if (!isEqual(xyz[0],1,0.001)) {FAILED_HERE;ok=false;}
+    if (!isEqual(xyz[1],0,0.001)) {FAILED_HERE;ok=false;}
+    if (!isEqual(xyz[2],0,0.001)) {FAILED_HERE;ok=false;}
+
+    // Straight down
+    ldi2xyz(1,0,90,xyz);
+    if (!isEqual(xyz[0],0,0.001)) {FAILED_HERE;ok=false;}
+    if (!isEqual(xyz[1],0,0.001)) {FAILED_HERE;ok=false;}
+    if (!isEqual(xyz[2],-1,0.001)) {FAILED_HERE;ok=false;}
+
+    ldi2xyz(eigs[0],eigs[1],eigs[2],xyz);
+    for (size_t i=0;i<3;i++) cout << i << " " << xyz[i] << " " << xyzs[i] << endl;
+    if (!isEqual(xyz[0],xyzs[0],0.001)) {FAILED_HERE;ok=false;}
+    if (!isEqual(xyz[1],xyzs[1],0.001)) {FAILED_HERE;ok=false;}
+    if (!isEqual(xyz[2],xyzs[2],0.001)) {FAILED_HERE;ok=false;}
+  }
+
+  return(ok);
+}
+
 int main (UNUSED int argc, char *argv[]) {
   // Put test code here
   bool ok=true;
 
-
   if (!test1()) {FAILED_HERE;ok=false;}
   if (!test2()) {FAILED_HERE;ok=false;}
+  if (!test3()) {FAILED_HERE;ok=false;}
 
   cout << "  " << argv[0] << " test:  " << (ok?"ok":"failed")<<endl;
   return (ok?EXIT_SUCCESS:EXIT_FAILURE);
