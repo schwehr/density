@@ -46,7 +46,7 @@ help:
 
 
 CXXFLAGS := -Wall -Wimplicit -pedantic -W -Wstrict-prototypes -Wredundant-decls
-CXXFLAGS += -I/sw/include -L/sw/lib
+CXXFLAGS += -I/sw/include -L/sw/lib -I/sw/include/qt
 
 
 # FIX: gcc can tell us the endian 
@@ -61,8 +61,8 @@ CXXFLAGS += -D${shell ./endian}
 
 FFLAGS := -g -Wall
 
-# Make is shut up about GSL using long double
-CXXFLAGS += -Wno-long-double
+# Make is shut up about GSL using long double or qt use of long long
+CXXFLAGS += -Wno-long-double  -Wno-long-long
 
 ifdef OPTIMIZE
   CXXFLAGS += -O3 -funroll-loops -fexpensive-optimizations -DNDEBUG
@@ -134,7 +134,7 @@ render: render_cmd.o render.C
 s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o s_bootstrap_cmd.o Eigs.o VecAngle.o
 	${CXX} -o $@ $^ ${CXXFLAGS} -Wno-long-double -lgsl -lgslcblas
 
-simpleview: simpleview_cmd.o simpleview.C
+simpleview: simpleview_cmd.o simpleview.C InventorUtilities.o
 	${CXX} -o $@ $^  -I/sw/include/qt ${CXXFLAGS} -lsimage -lCoin -lSoQt -lSimVoleon -lqt-mt -bind_at_load -Wno-long-long
 
 xyzdensity: xyzdensity.C Density.o VolHeader.o xyzdensity_cmd.o
