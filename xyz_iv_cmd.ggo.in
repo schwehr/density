@@ -27,7 +27,10 @@ purpose "Convert xyz points to OpenInventor Models"
 
 option "verbosity" v "Set the verbosity level (0=quiet 10=verbose 20=bombastic)" int default="0" no
 
+option "out" o "Ouput the OpenInventor model here" string typestr="filename" yes
+
 option "box" b "Draw a box around each point" float typestr="width" default="0.1" no argoptional
-option "color" c "Select the color (each channel 0..1)" string typestr="r,g,b" no
+option "color" c "Select the color with each channel [0..1].  Make sure to put quotes around your r g b's " string typestr="r g b" no
+option "linked" l "Draw lines between each of the points" no
 option "polarlines" p "Draw lines from the origin to each point" flag off
-option "sphere" s "Draw a box around each point" float typestr="radius" default="0.1" no argoptional
+option "sphere" s "Draw a sphere around each point" float typestr="radius" default="0.1" no argoptional
