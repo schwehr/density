@@ -1,0 +1,11 @@
+*.xyz
+*.eigs
+Voleon
+Away
+test*.vol
+*_test?.vol
+simpleview makeCDF histogram s_bootstrap xyzdensity endian volinfo AMScrunch
+test_*
+doc
+.gdb_history
+.gmtcommands
