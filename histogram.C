@@ -25,7 +25,11 @@
 using namespace std;
 
 int main (int argc, char *argv[]) {
-  assert(3==argc);
+  if (3!=argc) {
+    cerr << "USAGE:" << endl << endl
+	 << "\t" << argv[0] << " filename numBins" << endl;
+    return (EXIT_FAILURE);
+  }
   string filename(argv[1]);
   const size_t numBins(atoi(argv[2]));
   assert (100000>numBins);
