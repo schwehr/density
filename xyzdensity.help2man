@@ -1,0 +1,16 @@
+[DESCRIPTION]
+.PP
+Write a description of xyzdensity here.
+
+[EXAMPLES]
+.PP
+Create a volume of 16 bit unsigned data with clipping if more than 2^16 samples per cell:
+
+.PT
+  xyzdensity --in my.xyz --out my.vol -p 1 --bpv=16 
+
+[AUTHOR]
+Kurt Schwehr
+
+[SEE ALSO]
+s_bootstrap, xyzdensity
