@@ -79,6 +79,10 @@ endif
 
 CFLAGS := ${CXXFLAGS} -Wimplicit-int -Wimplicit-function-declaration -Wnested-externs
 
+# Need simage in library path.  Have a bin in GENGETOPT_BINS that is a shell script
+WRAPPED_BINS := render_bin simpleview_bin
+
+
 # These are programs that give --help for help2man
 GENGETOPT_BINS := histogram
 GENGETOPT_BINS += render
@@ -99,8 +103,10 @@ SIMPLE_BINS += is_equal
 SIMPLE_BINS += makeCDF
 #SIMPLE_BINS+= AMScrunch
 
+
 BINS := ${GENGETOPT_BINS}
 BINS += ${SIMPLE_BINS}
+BINS += 
 
 
 # TESTING TARGETS:
@@ -123,6 +129,10 @@ density.info: density.info.in
 	make tar
 	perl -pe "s/\@VERSION\@/`cat VERSION`/g" density.info.in > d.tmp
 
+# e.g. make simpleview FINK='/sw'
+FINK:=/sw
+FINK_SAFE:=${subst /,\\/,${FINK}}
+
 ######################################################################
 # GENGETOPT programs to build
 
@@ -135,13 +145,23 @@ density.info: density.info.in
 histogram: histogram_cmd.o histogram.C
 	${CXX} -o $@ $^  ${CXXFLAGS}
 
-render: render_cmd.o InventorUtilities.o render.C
+# Handle need for simage in DYLD_LIBRARY_PATH on osx
+render: render.in
+	perl -pe "s/\@FINK\@/${FINK_SAFE}/g" $< > $@
+	chmod +x $@
+
+render_bin: render_cmd.o InventorUtilities.o render.C
 	${CXX} -o $@ $^  ${CXXFLAGS} -lsimage -lCoin -lSimVoleon -bind_at_load
 
 s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o s_bootstrap_cmd.o Eigs.o VecAngle.o
 	${CXX} -o $@ $^ ${CXXFLAGS} -Wno-long-double -lgsl -lgslcblas
 
-simpleview: simpleview_cmd.o InventorUtilities.o simpleview.C
+# Handle need for simage in DYLD_LIBRARY_PATH on osx
+simpleview: simpleview.in
+	perl -pe "s/\@FINK\@/${FINK_SAFE}/g" $< > $@
+	chmod +x $@
+
+simpleview_bin: simpleview_cmd.o InventorUtilities.o simpleview.C
 	${CXX} -o $@ $^  -I/sw/include/qt ${CXXFLAGS} -lsimage -lCoin -lSoQt -lSimVoleon -lqt-mt -bind_at_load -Wno-long-long
 
 xyzdensity: xyzdensity.C Density.o VolHeader.o xyzdensity_cmd.o
@@ -251,7 +271,8 @@ install-web-man2html: man2html
 
 
 # Need these so we can make sure the *_cmd.[ch] files exist so do not need gengetopt
-GGOS:=${wildcard *.ggo}
+GGOS_IN    := ${wildcard *.ggo.in}
+GGOS       := ${GGOS_IN:.ggo.in=.ggo}
 GEN_CFILES := ${GGOS:.ggo=.c}
 GEN_HFILES := ${GGOS:.ggo=.h}
 
@@ -259,17 +280,14 @@ GEN_HFILES := ${GGOS:.ggo=.h}
 VERSION := ${shell cat VERSION}
 NAME := density
 TARNAME := ${NAME}-${VERSION}
-tar: ${GEN_CFILES} ${GENGETOPT_BINS} test
+#tar: ${GEN_CFILES} ${GENGETOPT_BINS} test
+tar: ${GEN_CFILES} ${BINS} test
 	rm -rf ${TARNAME} ${TARNAME}.tar ${TARNAME}.tar.bz2
 	mkdir ${TARNAME}
 	@echo
 	cp *.{C,H,ggo.in,c,h,help2man,help2man.in,bash} ${TARNAME}/
 	@echo
-	rm -f HEADER.html HEADER-${VERSION}.hmtl
-	wget http://schwehr.org/software/density/HEADER.html
-	mv HEADER.html ${TARNAME}/HEADER.html
-	@echo
-	cp AUTHOR ChangeLog Doxyfile INSTALL LICENSE.GPL ${TARNAME}/
+	cp AUTHOR ChangeLog Doxyfile INSTALL LICENSE.GPL HEADER.html ${TARNAME}/
 	cp Makefile Makefile.endian README.txt TODO VERSION axes.iv ${TARNAME}/
 	@echo Copying example data for one.bash and bootvolume-thesis.bash
 	@echo Leaving out rosenbaum-ams-stripped.dat until published
