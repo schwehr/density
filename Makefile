@@ -244,6 +244,10 @@ tar: ${GEN_CFILES} ${GENGETOPT_BINS} test
 	@echo
 	cp *.{C,H,ggo,c,h,help2man,help2man.in,bash} ${TARNAME}/
 	@echo
+	rm -f HEADER.html HEADER-${VERSION}.hmtl
+	wget http://schwehr.org/software/density/HEADER.html
+	mv HEADER.html ${TARNAME}/HEADER.html
+	@echo
 	cp AUTHOR ChangeLog Doxyfile INSTALL LICENSE.LGPL ${TARNAME}/
 	cp Makefile Makefile.endian README.txt TODO VERSION ${TARNAME}/
 	@echo Copying example data for one.bash and bootvolume-thesis.bash
