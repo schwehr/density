@@ -66,7 +66,7 @@ endif
 
 CFLAGS := ${CXXFLAGS} -Wimplicit-int -Wimplicit-function-declaration -Wnested-externs
 
-BINS := makeCDF histogram s_bootstrap xyzdensity endian
+BINS := makeCDF histogram s_bootstrap xyzdensity endian xyzvol_cmp
 BINS += volinfo
 BINS += simpleview
 #BINS+= AMScrunch
@@ -92,6 +92,16 @@ xyzdensity_cmd.o: xyzdensity_cmd.c xyzdensity_cmd.ggo
 	${CXX} -c $< ${CXXFLAGS}
 
 xyzdensity: xyzdensity.C Density.o VolHeader.o xyzdensity_cmd.o
+	${CXX} -o $@ $^ ${CXXFLAGS}
+
+
+
+xyzvol_cmp_cmd.c: xyzvol_cmp_cmd.h
+xyzvol_cmp_cmd.h: xyzvol_cmp_cmd.ggo
+	gengetopt --input=$< --file-name=${<:.ggo=}
+xyzvol_cmp_cmd.o: xyzvol_cmp_cmd.c xyzvol_cmp_cmd.ggo
+	${CXX} -c $< ${CXXFLAGS}
+xyzvol_cmp: xyzvol_cmp.C Density.o VolHeader.o xyzvol_cmp_cmd.o
 	${CXX} -o $@ $^ ${CXXFLAGS}
 
 #Eigs.H
