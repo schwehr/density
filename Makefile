@@ -74,6 +74,7 @@ CFLAGS := ${CXXFLAGS} -Wimplicit-int -Wimplicit-function-declaration -Wnested-ex
 # These are programs that give --help for help2man
 GENGETOPT_BINS := s_bootstrap
 GENGETOPT_BINS += xyzdensity
+GENGETOPT_BINS += xyz_iv
 GENGETOPT_BINS += xyzvol_cmp
 GENGETOPT_BINS += vol2vol
 GENGETOPT_BINS += volhdr_edit
@@ -111,6 +112,9 @@ s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o s_bootstrap_cmd.o Eigs.o
 	${CXX} -o $@ $^ ${CXXFLAGS} -Wno-long-double -lgsl -lgslcblas
 
 xyzdensity: xyzdensity.C Density.o VolHeader.o xyzdensity_cmd.o
+	${CXX} -o $@ $^ ${CXXFLAGS}
+
+xyz_iv: xyz_iv_cmd.o xyz_iv.C
 	${CXX} -o $@ $^ ${CXXFLAGS}
 
 xyzvol_cmp: xyzvol_cmp.C Density.o VolHeader.o xyzvol_cmp_cmd.o
