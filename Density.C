@@ -103,6 +103,93 @@ Density::Density(const size_t _width, const size_t _height, const size_t _depth,
   resize(_width, _height, _depth,  minX,maxX,   minY,maxY,   minZ,maxZ);
 }
 
+#include <fcntl.h>   /* File control definitions */
+#include <errno.h>   /* Error number definitions */
+#include <termios.h> /* POSIX terminal control definitions */
+#include <term.h>
+#include <sys/select.h>
+#include <unistd.h>  // Select 
+
+#include <sys/mman.h>	// mmap
+#include <sys/types.h>
+#include <sys/stat.h>
+
+/// @param pointer to the next data item
+/// @param bitsPerVoxel yada yada... NOT bytes
+/// @param val Returns value read here
+/// @param readOK bool set to false if trouble
+/// @return Pointer to the next data item or 0 if an error
+/// @bug Would be nice to handle 1, 2, and 4 bit voxels for huge grids
+/// Just need to add a new arg of the bit index
+char *ReadDataUnsigned(char *data, const size_t bitsPerVoxel, size_t &val, bool &ok) {
+  assert(data);
+#ifndef NDEBUG
+  if (0==(bitsPerVoxel/8)) {ok=false;return (0);}
+  if (4<(bitsPerVoxel/8)) {ok=false;return (0);}
+  if (0!=(bitsPerVoxel%8)) {ok=false;return (0);}
+#endif
+
+  switch (bitsPerVoxel) {
+  case  8: {uint8_t  *uPtr=(uint8_t *)data; val = *uPtr;} break;
+  case 16: {uint16_t *uPtr=(uint16_t *)data; val = *uPtr;} break;
+  case 32: {uint32_t *uPtr=(uint32_t *)data; val = *uPtr;} break;
+  default:
+    assert(false && "Bailey yells when you step on his tail");
+  }
+
+  return (data+(bitsPerVoxel/8));
+}
+
+
+Density::Density(const std::string &filename, bool &ok) {
+  ok=true;  // Be optimistic that we will kick butt
+  bool r; // temp result code
+  VolHeader v(filename,r);
+  if (!r) {
+    ok=false;
+    cerr << "Density could not load the header."<< endl
+	 << "  What kind of crap are you trying to feed me?" << endl;
+    return;
+  }
+
+  // Validate file size
+  struct stat sb;
+  {
+    int r = stat (filename.c_str(), &sb);
+    if (0 != r) {perror("stat to get file size FAILED");ok=false; return; }
+  }
+  const size_t numCells = v.getWidth()*v.getHeight()*v.getImages();
+  const size_t bitsPerVoxel = v.getBitsPerVoxel();
+  if (bitsPerVoxel%8 != 0) {cerr << "ERROR: Can NOT handle non-byte-aligned data!"<<endl;ok=false;return;}
+  if ((v.getHeaderLength() + numCells*(bitsPerVoxel/8)) != sb.st_size)
+    {FAILED_HERE;cerr << "ERROR: File size invalid!!"<<endl;ok=false;return;}
+
+
+  cout << "FIX: use the scale to set the x,y, and z ranges" << endl;
+  resize(v.getWidth(),v.getHeight(),v.getImages(), -0.5,0.5, -0.5,0.5, -0.5,0.5);
+
+  int fd = open (filename.c_str(), O_RDONLY, 0);
+  if (-1==fd) { perror ("open failed"); return ;  }
+  char *file = (char *)mmap (0, sb.st_size, PROT_READ,  MAP_FILE, fd, 0);
+  if ((char *)(-1)==file) { perror ("mmap FAILED");  return ;  }
+  close(fd); // Close does not munmap
+
+  char *next=file+v.getHeaderLength();
+  for (size_t i=0;i<numCells && next ;i++) {
+    bool readOK;
+    size_t val;
+    next = ReadDataUnsigned(next, v.getBitsPerVoxel(), val, readOK);
+    if (!readOK) {cerr<<"Data read error!" << endl;ok=false; break;}
+    addPoints(i,val);
+  }
+
+
+  {int r = munmap(file,sb.st_size); if (-1==r) {perror ("munmap failed");ok=false; return;}}
+  return; // ok is the return code
+} // Density - load from a file
+
+
+
 bool
 Density::addPoint(const float x, const float y, const float z) {
   const size_t cellNum=getCell(x,y,z);
@@ -348,13 +435,24 @@ bool test2() {
 
 bool test3() {
   cout << "      test3" << endl;
+  const string filename("test3.vol");
+  {
+    // Test writing a file
+    Density d(2,2,2,  0.,2.,  0.,2.,  0.,2.);
+    d.addPoint(0.1,0.1,0.1);  d.addPoint(0.1,0.1,0.1);
+    d.addPoint(1.5,0.1,0.1);  d.addPoint(0.1,1.5,0.1);
+    for (size_t i=0;i<10;i++) d.addPoint(1.5,1.5,1.5);
 
-  Density d(2,2,2,  0.,2.,  0.,2.,  0.,2.);
-  d.addPoint(0.1,0.1,0.1);  d.addPoint(0.1,0.1,0.1);
-  d.addPoint(1.5,0.1,0.1);  d.addPoint(0.1,1.5,0.1);
-  for (size_t i=0;i<10;i++) d.addPoint(1.5,1.5,1.5);
+    if (!d.writeVol(filename)) {FAILED_HERE;return(false);}
+  }
+  {
+    // FIX: Would be better to read someone elses file.
+    bool result;
+    Density d(filename,result);
+    if (!result) {FAILED_HERE;return(FALSE);}
+    if (!d.writeVol(filename+string("2"))) {FAILED_HERE;return(false);}
+  }
 
-  if (!d.writeVol(string("test3.vol"))) {FAILED_HERE;return(false);}
 
   return(true);
 }
