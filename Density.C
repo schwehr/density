@@ -1,3 +1,4 @@
+// $Revision$  $Author$  $Date$
 
 /// \brief Convert an xyz point set into a volume density
 ///        Uses a voxel representation
@@ -62,6 +63,30 @@ static const UNUSED char* RCSid ="@(#) $Id$";
 // VOLHEADER METHODS
 //####################################################################
 
+/// \brief Convert network byte order (Big Endian) to host byte order
+uint32_t  
+ntoh_uint32(const uint32_t value) {
+#ifdef BIGENDIAN
+  return(value);
+#elif LITTLEENDIAN
+  return(hton_uint32(value));
+#else
+#  error UNKOWN ENDIAN TYPE
+#endif
+}
+
+/// \brief Convert network byte order (Big Endian) to host byte order
+float
+ntoh_float(const float value) {
+#ifdef BIGENDIAN
+  return(value);
+#elif LITTLEENDIAN
+  return(hton_float(value));
+#else
+#  error UNKOWN ENDIAN TYPE
+#endif
+}
+
 /// \brief Convert host byte order to network byte order (Big Endian)
 uint32_t  
 hton_uint32(const uint32_t value)
@@ -78,7 +103,7 @@ hton_uint32(const uint32_t value)
   t2[2]=t1[1];
   t2[3]=t1[0];
   return(tmp);
-#elif
+#else
 #  error UNKNOWN ENDIAN TYPE!
 #endif
   // Cool idea:  assert(0 && "message to go with an assert");
@@ -99,7 +124,7 @@ hton_float(const float value)
   t2[2]=t1[1];
   t2[3]=t1[0];
   return(tmp);
-#elif
+#elsex
 #  error UNKNOWN ENDIAN TYPE!
 #endif
 }
@@ -121,6 +146,25 @@ VolHeader::VolHeader(const size_t _width, const size_t _height, const size_t dep
   rotX=rotY=rotZ=(hton_float(1.f));
 }
 
+VolHeader::VolHeader(const std::string filename, bool &ok) {
+  ok=true;
+  assert (false);
+}
+
+uint32_t VolHeader::getMagicNumber() const { return (ntoh_uint32(magic_number)); }
+uint32_t VolHeader::getHeaderLength() const { return (ntoh_uint32(header_length)); }
+uint32_t VolHeader::getWidth() const { return (ntoh_uint32(width)); }
+uint32_t VolHeader::getHeight() const { return (ntoh_uint32(height)); }
+uint32_t VolHeader::getImages() const { return (ntoh_uint32(images)); }
+uint32_t VolHeader::getBitsPerVoxel() const { return (ntoh_uint32(bits_per_voxel)); }
+uint32_t VolHeader::getIndexBits() const { return (ntoh_uint32(index_bits)); }
+
+float VolHeader::getScaleX() const { return (ntoh_float(scaleX)); }
+float VolHeader::getScaleY() const { return (ntoh_float(scaleY)); }
+float VolHeader::getScaleZ() const { return (ntoh_float(scaleZ)); }
+float VolHeader::getRotX() const { return (ntoh_float(rotX)); }
+float VolHeader::getRotY() const { return (ntoh_float(rotY)); }
+float VolHeader::getRotZ() const { return (ntoh_float(rotZ)); }
 
 
 
