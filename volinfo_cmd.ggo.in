@@ -1,0 +1,10 @@
+# -*- shell-script -*-
+# (c) Copyright 2004 Kurt Schwehr.  Released under LGPL
+# See also: http://www.gnu.org/software/gengetopt/gengetopt.html
+
+
+package "volinfo"
+version "0.1"
+
+option "in" i "Input file name\n Must be a Voleon vol file" string typestr="filename" yes multiple
+option "range" r "Show the range of data.  May take a long time." no
