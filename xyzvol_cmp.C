@@ -127,7 +127,7 @@ int main (int argc, char *argv[]) {
     istr >> x >> y >> z;
     const size_t cellIndex = d.getCell(x,y,z);
     const size_t count = d.getCellCount(cellIndex);
-    cout << x << " " << y << " " << z << "    " << cellIndex << "     "
+    cout << x << " " << y << " " << z << "    "
 	 << count << " " << float(count)/d.getCountInside() << " " << cdf[count] << endl;
 
   }
