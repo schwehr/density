@@ -13,13 +13,36 @@
 ///
 /// This is kind of close:
 ///
-/// http://www.cs.purdue.edu/homes/sun/Teach/530_01S/Assignments/Data/FORMAT.TXT
+/// http://www.cs.purdue.edu/homes/sun/Teach/530_01S/Assignments/Data/FORMAT.TXT///
+/// Stores data internally in network byte order
 
 class  VolHeader {
 public:
   /// Everything accept dimensions set to defaults
   VolHeader(const size_t width, const size_t height, const size_t depth);
+  /// \brief Read a volume header from a file.
+  /// \param filename File to read from
+  /// \param ok Passes back \a true if file read ok
+  VolHeader(const std::string filename, bool &ok);
+
   //size_t getSize() const {return(sizeof(VolHeader));}
+
+  uint32_t getMagicNumber() const; ///< Return value in host byte order
+  uint32_t getHeaderLength() const; ///< Return value in host byte order
+  uint32_t getWidth() const; ///< Return in host byte order
+  uint32_t getHeight() const; ///< Return in host byte order
+  uint32_t getImages() const; ///< Return in host byte order
+  uint32_t getBitsPerVoxel() const; ///< Return in host byte order
+  uint32_t getIndexBits() const; ///< Return in host byte order
+
+  float getScaleX() const; ///< Return in host byte order
+  float getScaleY() const; ///< Return in host byte order
+  float getScaleZ() const; ///< Return in host byte order
+
+  float getRotX() const; ///< Return in host byte order
+  float getRotY() const; ///< Return in host byte order
+  float getRotZ() const; ///< Return in host byte order
+
 private:
   // WARNING: Do NOT add or remove data members to this class!!!
   uint32_t magic_number;  ///< hton_uint32(0x0b7e7759)
@@ -67,7 +90,7 @@ public:
 	  );
 
   /// Load a vol file from disk
-  Density(const std::string &filename) {assert(false);}  // FIX: Implement
+  Density(const std::string &filename, bool &ok);
 
   /// \brief Change the volumes size.  Dumps all counts. Does not shrink memory footprint if smaller
   /// @param width Number of cells wide/x
