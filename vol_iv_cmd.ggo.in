@@ -27,6 +27,22 @@ purpose "Generate iv files that load up a vol/voxel file."
 option "verbosity" v "Set the verbosity level (0=quiet 10=verbose 20=bombastic)" int default="0" no
 
 option "box" b "Add a bounding box" float default="1.0" no argoptional
-option "colormap" c "Ascii color map file to use (red green blue alpha)" string typestr="filename" no
+option "cmap" C "Ascii color map file to use (red green blue alpha)" string typestr="filename" no
+option "scale" s "Uniform scale node" float no
+
+
+#
+# SoVolumeRender
+#
+option "interpolation" i "How to interpret voxel colors (NEAREST or LINEAR)" string no
+option "composition" c "How to handle translucent volumes (MAX_INTENSITY, SUM_INDENSITY, or ALPHA_BLENDING" string no
+option "numslicescontrol" - "How to render slices of the volume (ALL, MANUAL, or AUTOMATIC)" string no
+option "numslices" - "How many slices if control is MANUAL or AUTOMATIC" int no
+
+#
+# SoTransferFunction
+#
+option "predefcmap" p "Predefined color map (NONE, GREY, TEMPERATURE, PHYSICS, STANDARD, GLOW, BLUE_RED, SEISMIC" string no
+option "cmaptype" t "Color map type (ALPHA, LUM_ALPHA, RGBA)" string no
 
 option "out" o "Output file name" string typestr="filename" yes
