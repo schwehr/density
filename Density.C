@@ -114,10 +114,11 @@ Density::Density(const size_t _width, const size_t _height, const size_t _depth,
 #include <sys/types.h>
 #include <sys/stat.h>
 
-/// @param pointer to the next data item
+/// \brief Read unsigned data from memory give a bitsPerVoxel
+/// @param data Pointer to the current data item
 /// @param bitsPerVoxel yada yada... NOT bytes
 /// @param val Returns value read here
-/// @param readOK bool set to false if trouble
+/// @param ok bool set to false if trouble
 /// @return Pointer to the next data item or 0 if an error
 /// @bug Would be nice to handle 1, 2, and 4 bit voxels for huge grids
 /// Just need to add a new arg of the bit index
@@ -566,18 +567,41 @@ bool test4() {
 bool test5() {
   cout << "      test 5" << endl;
   const string suffix("-test5.vol");
-  {
-    Density d(1,1,1, 0.,1, 0.,1, 0.,1); d.addPoints(0,1);
-    d.writeVol(string("1x1x1-1x1x1")+suffix,8,Density::PACK_WRAP);
+  { // PIECE OF CAKE
+    const string filename(string("1x1x1-1x1x1")+suffix);
+    Density d(1,1,1, 0.,1, 0.,1, 0.,1); d.addPoints(0,9);
+    d.writeVol(filename,8,PACK_WRAP);
+    bool r; Density d2(filename,r);  if (!r) {FAILED_HERE;return(false);}
+    if (9!=d2.getCellCount(0)) {FAILED_HERE;return(false);}
   }
-  {
+  { // TEST SCALE
+    const string filename(string("2x1x1-1x1x1")+suffix);
+    Density d(2,1,1, 0.,1, 0.,1, 0.,1);
+    d.addPoints(0,2);
+    d.addPoints(1,4);
+    d.writeVol(filename,8,PACK_SCALE);
+    bool r; Density d2(filename,r);  if (!r) {FAILED_HERE;return(false);}
+    if (0!=d2.getCellCount(0)) {FAILED_HERE;return(false);}
+    if (255!=d2.getCellCount(1)) {FAILED_HERE;return(false);}
+  }
+  { // TEST CLIP
+    const string filename(string("1x1x2-1x1x1")+suffix);
+    Density d(1,1,2, 0.,1, 0.,1, 0.,1);
+    d.addPoints(0,240);
+    d.addPoints(1,500);
+    d.writeVol(filename,8,PACK_CLIP);
+    bool r; Density d2(filename,r);  if (!r) {FAILED_HERE;return(false);}
+    if (240!=d2.getCellCount(0)) {FAILED_HERE;return(false);}
+    if (255!=d2.getCellCount(1)) {FAILED_HERE;return(false);}
+  }
+  { // TEST 16 BIT
     const string filename(string("3x1x1-1x1x1")+suffix);
     Density d(3,1,1, 0.,1, 0.,1, 0.,1);
     d.addPoints(0,1600);
     d.addPoints(1,30001);    if (30001!=d.getCellCount(1)) {FAILED_HERE;return(false);}
     d.addPoints(2,50002);
 
-    d.writeVol(filename,16,Density::PACK_WRAP);
+    d.writeVol(filename,16,PACK_WRAP);
     bool r;
     Density d2(filename,r);
     if (!r) {FAILED_HERE;return(false);}
@@ -594,7 +618,6 @@ int main (UNUSED int argc, char *argv[]) {
   // Put test code here
   bool ok=true;
 
-#if 0 // ASDF
   cout << "      Size of Density   (in bytes): " << sizeof(Density) << endl;
   cout << "      Size of VolHeader (in bytes): " << sizeof(VolHeader) << endl;
 
@@ -616,7 +639,6 @@ int main (UNUSED int argc, char *argv[]) {
   if (!test2()) {FAILED_HERE;ok=false;}
   if (!test3()) {FAILED_HERE;ok=false;} // test writing
   if (!test4()) {FAILED_HERE;ok=false;}
-#endif // ASDF
   if (!test5()) {FAILED_HERE;ok=false;}
 
   cout << "  " << argv[0] << " test:  " << (ok?"ok":"failed")<<endl;
