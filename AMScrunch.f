@@ -14,7 +14,13 @@ c       	- added sigma to output of tensor file (used in findH.f)
 c  3/30/02	- v2.0 
 c 		- replaced rand function with ran2 from Num. Recipes
 c 		- still requires "fold to upper case"
+c  9/13/04      - Given to Kurt Schwehr by Jeff Gee.
 c***********************************************************************
+
+c Kent distribution stuff by Cathy.
+c Comments and docs by Peter Selkin and Jeff Gee
+
+c This version is setup for Mac OS 9 with the Absoft fortran compiler
 
 	parameter(maxaz=3000)
 	parameter(maxraw=3000)
