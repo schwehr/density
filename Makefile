@@ -82,7 +82,13 @@ Density.o: endian
 simpleview: simpleview.C
 	${CXX} -o $@ $<  -I/sw/include/qt ${CXXFLAGS} -lsimage -lCoin -lSoQt -lSimVoleon -lqt-mt
 
-volinfo: volinfo.C VolHeader.o
+volinfo_cmd.c: volinfo_cmd.h
+volinfo_cmd.h: volinfo_cmd.ggo
+	gengetopt --input=$< --file-name=${<:.ggo=}
+volinfo_cmd.o: volinfo_cmd.c volinfo_cmd.ggo
+	${CXX} -c $< ${CXXFLAGS}
+
+volinfo: volinfo.C VolHeader.o volinfo_cmd.o Density.o
 	${CXX} -o $@ $^  ${CXXFLAGS}
 
 test: ${TEST_BINS}
