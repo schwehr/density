@@ -342,8 +342,9 @@ check:
 	@echo
 	@grep -n FIX *.{C,H,ggo,help2man} Makefile | grep -v grep
 
+# _bin are programs that have wrapper scripts with the TARGET name
 clean: clean-runs
-	rm -rf ${TARGETS} *~ *.o
+	rm -rf ${TARGETS} *~ *.o *_bin
 	rm -f *_cmd.[ch]
 	rm -f .*~
 
