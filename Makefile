@@ -233,6 +233,7 @@ man2html: man
 	cd doc/man/man1 && for file in *.1; do groff -Tascii -man $$file | man2html > $${file%%.1}.html; done
 
 install-web: install-web-doxy install-web-man2html
+	scp ChangeLog kds:www/software/density
 install-web-doxy: docs
 	scp doc/html/* kds:www/software/density/html
 install-web-man2html: man2html
@@ -258,10 +259,10 @@ tar: ${GEN_CFILES} ${GENGETOPT_BINS} test
 	wget http://schwehr.org/software/density/HEADER.html
 	mv HEADER.html ${TARNAME}/HEADER.html
 	@echo
-	cp AUTHOR ChangeLog Doxyfile INSTALL LICENSE.LGPL ${TARNAME}/
+	cp AUTHOR ChangeLog Doxyfile INSTALL LICENSE.GPL ${TARNAME}/
 	cp Makefile Makefile.endian README.txt TODO VERSION ${TARNAME}/
 	@echo Copying example data for one.bash and bootvolume-thesis.bash
-	cp as1-crypt.s as2-slump.s as3-undef.s ${TARNAME}/
+	cp sample.wpt as1-crypt.s as2-slump.s as3-undef.s ${TARNAME}/
 	@echo
 	tar cf ${TARNAME}.tar ${TARNAME}
 	bzip2 -9 ${TARNAME}.tar
