@@ -24,7 +24,10 @@
 using namespace std;
 
 int main (int argc, char *argv[]) {
-  assert(2==argc);
+  if (2!=argc) {
+    cerr << "USAGE: " << argv[0] << " FILE " << endl;
+    return (EXIT_FAILURE);
+  }
   string filename(argv[1]);
   vector<float> data;
 
@@ -41,8 +44,6 @@ int main (int argc, char *argv[]) {
   for (size_t i=0;i<data.size();i++) {
     cout << data[i] << " " << i/float(data.size()) << endl;
   }
-
-
 
   return (EXIT_SUCCESS);
 }
