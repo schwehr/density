@@ -129,13 +129,13 @@ hton_float(const float value)
 
 VolHeader::VolHeader(const size_t _width, const size_t _height, const size_t depth)
 {
-  magic_number=hton_uint32(0x0b7e7759);
-  header_length=hton_uint32(sizeof(VolHeader));
+  magic_number=hMagicNum(); //hton_uint32(0x0b7e7759);
+  header_length=requiredSize();//hton_uint32(sizeof(VolHeader));
   assert(52==header_length);
 
-  width=hton_uint32(uint32_t(_width));
-  height=hton_uint32(uint32_t(_height));
-  images=hton_uint32(uint32_t(depth));
+  width=_width;
+  height=_height;
+  images=depth;
 
   bits_per_voxel=hton_uint32(8);
   index_bits=0;  // 0==hton_uint32(0) no matter what
@@ -203,22 +203,22 @@ VolHeader::VolHeader(const std::string filename, bool &ok) {
   if (nMagicNum() != *mnPtr) {ok=false;cerr<<"bad magic number"<<endl;}
   if (requiredSize() != ntoh_uint32(*hlPtr)) {ok=false;cerr<<"bad header size"<<endl;}
 
-  magic_number = *mnPtr;
-  header_length = *hlPtr;
+  magic_number = ntoh_uint32(*mnPtr);
+  header_length = ntoh_uint32(*hlPtr);
 
-  width = *wPtr;
-  height = *hPtr;
-  images = *iPtr;
-  bits_per_voxel = *bpvPtr;
-  index_bits = *ibPtr;
+  width = ntoh_uint32(*wPtr);
+  height = ntoh_uint32(*hPtr);
+  images = ntoh_uint32(*iPtr);
+  bits_per_voxel = ntoh_uint32(*bpvPtr);
+  index_bits = ntoh_uint32(*ibPtr);
 
-  scaleX = *sxPtr;
-  scaleY = *syPtr;
-  scaleZ = *szPtr;
+  scaleX = ntoh_float(*sxPtr);
+  scaleY = ntoh_float(*syPtr);
+  scaleZ = ntoh_float(*szPtr);
 
-  rotX = *rxPtr;
-  rotY = *ryPtr;
-  rotZ = *rzPtr;
+  rotX = ntoh_float(*rxPtr);
+  rotY = ntoh_float(*ryPtr);
+  rotZ = ntoh_float(*rzPtr);
 
   {
     int r = munmap(file,sb.st_size);
@@ -227,20 +227,60 @@ VolHeader::VolHeader(const std::string filename, bool &ok) {
   return;
 } // VolHeader(filename)
 
-uint32_t VolHeader::getMagicNumber() const { return (ntoh_uint32(magic_number)); }
-uint32_t VolHeader::getHeaderLength() const { return (ntoh_uint32(header_length)); }
-uint32_t VolHeader::getWidth() const { return (ntoh_uint32(width)); }
-uint32_t VolHeader::getHeight() const { return (ntoh_uint32(height)); }
-uint32_t VolHeader::getImages() const { return (ntoh_uint32(images)); }
-uint32_t VolHeader::getBitsPerVoxel() const { return (ntoh_uint32(bits_per_voxel)); }
-uint32_t VolHeader::getIndexBits() const { return (ntoh_uint32(index_bits)); }
+size_t VolHeader::write(FILE *o) {
+  assert (o);   if (!o) return(0);
+  size_t bytes=0;
+  uint32_t uBuf;
+  size_t r;  // Number of bytes for each write
+  uBuf = hton_uint32(getMagicNumber()); bytes += (r=fwrite(&uBuf,1,sizeof(uint32_t),o));
+  if (sizeof(uint32_t)!=r) {perror("header write trouble"); return(bytes);}
+  uBuf = hton_uint32(getHeaderLength()); bytes += (r=fwrite(&uBuf,1,sizeof(uint32_t),o));
+  if (sizeof(uint32_t)!=r) {perror("header write trouble"); return(bytes);}
 
-float VolHeader::getScaleX() const { return (ntoh_float(scaleX)); }
-float VolHeader::getScaleY() const { return (ntoh_float(scaleY)); }
-float VolHeader::getScaleZ() const { return (ntoh_float(scaleZ)); }
-float VolHeader::getRotX() const { return (ntoh_float(rotX)); }
-float VolHeader::getRotY() const { return (ntoh_float(rotY)); }
-float VolHeader::getRotZ() const { return (ntoh_float(rotZ)); }
+  uBuf = hton_uint32(getWidth()); bytes += (r=fwrite(&uBuf,1,sizeof(uint32_t),o));
+  if (sizeof(uint32_t)!=r) {perror("header write trouble"); return(bytes);}
+  uBuf = hton_uint32(getHeight()); bytes += (r=fwrite(&uBuf,1,sizeof(uint32_t),o));
+  if (sizeof(uint32_t)!=r) {perror("header write trouble"); return(bytes);}
+  uBuf = hton_uint32(getImages()); bytes += (r=fwrite(&uBuf,1,sizeof(uint32_t),o));
+  if (sizeof(uint32_t)!=r) {perror("header write trouble"); return(bytes);}
+  uBuf = hton_uint32(getBitsPerVoxel()); bytes += (r=fwrite(&uBuf,1,sizeof(uint32_t),o));
+  if (sizeof(uint32_t)!=r) {perror("header write trouble"); return(bytes);}
+  uBuf = hton_uint32(getIndexBits()); bytes += (r=fwrite(&uBuf,1,sizeof(uint32_t),o));
+  if (sizeof(uint32_t)!=r) {perror("header write trouble"); return(bytes);}
+
+  float fBuf;
+  fBuf = hton_float(getScaleX()); bytes += (r=fwrite(&uBuf,1,sizeof(float),o));
+  if (sizeof(float)!=r) {perror("header write trouble"); return(bytes);}
+  fBuf = hton_float(getScaleY()); bytes += (r=fwrite(&uBuf,1,sizeof(float),o));
+  if (sizeof(float)!=r) {perror("header write trouble"); return(bytes);}
+  fBuf = hton_float(getScaleZ()); bytes += (r=fwrite(&uBuf,1,sizeof(float),o));
+  if (sizeof(float)!=r) {perror("header write trouble"); return(bytes);}
+
+  fBuf = hton_float(getRotX()); bytes += (r=fwrite(&uBuf,1,sizeof(float),o));
+  if (sizeof(float)!=r) {perror("header write trouble"); return(bytes);}
+  fBuf = hton_float(getRotY()); bytes += (r=fwrite(&uBuf,1,sizeof(float),o));
+  if (sizeof(float)!=r) {perror("header write trouble"); return(bytes);}
+  fBuf = hton_float(getRotZ()); bytes += (r=fwrite(&uBuf,1,sizeof(float),o));
+  if (sizeof(float)!=r) {perror("header write trouble"); return(bytes);}
+
+
+  return(bytes);
+}
+
+uint32_t VolHeader::getMagicNumber() const { return (magic_number); }
+uint32_t VolHeader::getHeaderLength() const { return (header_length); }
+uint32_t VolHeader::getWidth() const { return (width); }
+uint32_t VolHeader::getHeight() const { return (height); }
+uint32_t VolHeader::getImages() const { return (images); }
+uint32_t VolHeader::getBitsPerVoxel() const { return (bits_per_voxel); }
+uint32_t VolHeader::getIndexBits() const { return (index_bits); }
+
+float VolHeader::getScaleX() const { return (scaleX); }
+float VolHeader::getScaleY() const { return (scaleY); }
+float VolHeader::getScaleZ() const { return (scaleZ); }
+float VolHeader::getRotX() const { return (rotX); }
+float VolHeader::getRotY() const { return (rotY); }
+float VolHeader::getRotZ() const { return (rotZ); }
 
 
 
