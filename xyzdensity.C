@@ -70,6 +70,23 @@ using namespace std;
 #define FAILED_HERE // Empty
 #endif
 
+
+/*** Debugging levels... the higher the # the more output you get. ***/
+const int ALWAYS=0;	/* Hint: if you use always, it won't work without -g */
+const int TERSE=1;
+const int TRACE=4;
+const int VERBOSE=8;
+const int BOMBASTIC=20;	/* Major spew... when life sucks. */
+
+#ifdef NDEBUG
+#  define DebugPrintf(n,s)		/* expand to nothing */
+#else
+   int debug_level;
+#  define DebugPrintf(n,s)  (((n) <= debug_level) ? printf s :0)
+#endif
+
+
+
 /***************************************************************************
  * GLOBALS
  ***************************************************************************/
@@ -108,6 +125,14 @@ int main (int argc, char *argv[]) {
     return (EXIT_FAILURE);
   }
 
+#ifdef NDEBUG
+  if (a.verbosity_given) {
+    cerr << "Verbosity is totally ignored for optimized code.  Continuing in silent mode" << endl;
+  }
+#else // debugging
+  debug_level = a.verbosity_arg;
+  DebugPrintf(TRACE,("Debug level = %d",debug_level));
+#endif
   
   if (0!=a.pack_arg && 1!=a.pack_arg && 2!=a.pack_arg) {
     cerr << endl 
