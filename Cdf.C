@@ -128,7 +128,7 @@ float Cdf::getCDF(const size_t val, float &bottom, float &top) {
   else if (val==value[offset]) result=percent[offset];
   else if (0==offset && val < value[offset]) result = 0.f;
   else if (val < value[offset]) result = value[offset-1];
-  else {assert(false);}
+  else {result = -666.0f; assert(false);}
 
   if (0==offset) {bottom=0.; top=result;}
   else {
