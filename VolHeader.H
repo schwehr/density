@@ -54,6 +54,13 @@ public:
   float getRotY() const; ///< Return in host byte order
   float getRotZ() const; ///< Return in host byte order
 
+  /// This is the expected size of the header.
+  static size_t requiredSize() {assert(52==sizeof(VolHeader));return(sizeof(VolHeader));}
+  /// Host byte order magic number
+  static uint32_t hMagicNum() {return(0x0b7e7759);}
+  /// Network byte order magic number
+  static uint32_t nMagicNum() {return(hton_uint32(hMagicNum()));}
+
 private:
   // WARNING: Do NOT add or remove data members to this class!!!
   uint32_t magic_number;  ///< hton_uint32(0x0b7e7759)
