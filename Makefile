@@ -194,7 +194,6 @@ simpleview.help2man: simpleview simpleview.help2man.in
 ######################################################################
 # Worker Bees
 
-
 # TARGETS includes TEST_BINS
 test: ${TARGETS}
 	@for file in ${TEST_BINS}; do \
@@ -215,6 +214,7 @@ docs:
 
 # to view a man page:
 # groff -Tascii -man xyzdensity.1 | less
+# Arg... this fails with the fink groff installed.  Gets weird escape sequences
 man: ${GENGETOPT_BINS} simpleview.help2man
 	mkdir -p doc/man/man1
 	for file in ${GENGETOPT_BINS}; do echo Processing $$file;help2man -N ./$$file --opt-include $$file.help2man > doc/man/man1/$$file.1; done
