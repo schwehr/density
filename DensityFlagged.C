@@ -1,3 +1,4 @@
+// $Revision$  $Author$  $Date$
 
 /// \brief Implementation of flagged density/traversal by largest neighbor
 
@@ -63,15 +64,59 @@ static const UNUSED char* RCSid ="@(#) $Id$";
 // DENSITYFLAGGED METHODS
 //####################################################################
 
+
+DensityFlagged::DensityFlagged(const size_t _width, const size_t _height, const size_t _depth,
+		 const float minX, const float maxX,
+		 const float minY, const float maxY,
+		 const float minZ, const float maxZ)
+{
+  Density(_width,_height,_depth, minX,maxX, minY,maxY, minZ,maxZ);
+
+  flags.resize(getSize(),false);
+  //for (vector<bool>::iterator i=flags.begin();i!=flags.end();i++) *i=false;
+
+  return;
+} // DensityFlagged constructor
+
+// Won't return an empty cell
+size_t DensityFlagged::getLargestNeighbor(const size_t index) {
+  assert(isValidCell(index));
+  //size_t n[NUM_NEIGHBORS];
+  //size_t cts[NUM_NEIGHBORS];
+  size_t maxVal=0;
+  size_t maxIndex=badValue(); // send out a badValue if 1x1x1 cells
+  for (size_t i=0;i<NUM_NEIGHBORS;i++) {
+    const size_t n=getCellCount(getCellNeighbor(index,NeighborEnum(i)));
+    if (isValidCell(n)) {
+      //cts[i] = getCellCount(n[i]);
+      const size_t cts = getCellCount(n);
+      if (cts>maxVal) {maxVal=cts; maxIndex=n;}
+    } // if
+  } // for
+    
+  return (maxIndex);
+}
+
+size_t DensityFlagged::getLargestUnflaggedNeighbor(const size_t index) {
+  assert(isValidCell(index));
+  assert(false);
+}
+
+
 //####################################################################
 // TEST CODE
 //####################################################################
 #ifdef REGRESSION_TEST
 
 bool test1() {
+  bool ok=true;
   cout << "      test1" << endl;
 
-  return(true);
+  DensityFlagged df(2,2,2, 0.,2., 0.,2., 0.,2.);
+  for (size_t i=0;i<df.getSize();i++)
+    if (df.isFlagged(i)) {ok=false; FAILED_HERE;}
+
+  return(ok);
 } // test1
 
 int main (UNUSED int argc, char *argv[]) {
