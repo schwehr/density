@@ -31,3 +31,4 @@ option "out" o "Ouput the cmap model here" string typestr="filename" yes
 
 option "cpt" c "Use a GMT style Color Pallet Table" string typestr="cpt_filename" no
 
+option "zero" z "Zero out a color table entry [0..255].  Makes it transparent" int typestr="index" no multiple
