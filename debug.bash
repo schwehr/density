@@ -69,3 +69,14 @@ DebugEcho $BOMBASTIC  $LINENO  "Bombastic is on"
 DebugEcho $TERSE $LINENO "debugLevel           = $debugLevel"
 
 
+
+######################################################################
+# Like perl's die command
+######################################################################
+die()
+{
+    declare -ir line=$1
+    echo "ERROR: Command failed at line $line"
+    exit $EXIT_FAILURE
+}
+
