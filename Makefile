@@ -16,8 +16,17 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+#
+# FIX: assumes we are on Mac OSX 10.3 using fink with the following installed:
+# 
+#  simvoleon21, soqt21, gengetopt (>=2.12.1), gsl
+#
 
-
+# USAGE:
+#
+#  make              - Build with debugging enabled and then test
+#  make OPTIMIZE=1   - Build with optimizations enabled and then test
+#
 
 CXXFLAGS := -Wall -Wimplicit -pedantic -W -Wstrict-prototypes -Wredundant-decls
 CXXFLAGS += -I/sw/include -L/sw/lib
@@ -96,6 +105,7 @@ endian: endian.C
 clean:
 	rm -f blah* foo* *~ ${TARGETS} *.o *.xyz *.eigs *.cdf [0-9]x[0-9]*test?.vol
 	rm -f *_cmd.[ch]
+	rm -f .*~
 
 Density.o: endian
 
