@@ -213,7 +213,7 @@ install-web-man2html: man2html
 	scp doc/man/man1/*.html kds:www/software/density/man
 
 
-# Need these so we can make sure the 
+# Need these so we can make sure the *_cmd.[ch] files exist so do not need gengetopt
 GGOS:=${wildcard *.ggo}
 GEN_CFILES := ${GGOS:.ggo=.c}
 GEN_HFILES := ${GGOS:.ggo=.h}
@@ -228,17 +228,15 @@ tar: ${GEN_CFILES} ${GENGETOPT_BINS} test
 	@echo
 	cp *.{C,H,ggo,c,h,help2man,bash} ${TARNAME}/
 	@echo
-	cp ChangeLog AUTHOR Makefile Doxyfile LICENSE.LGPL README.txt VERSION good.iv ${TARNAME}/
+	cp AUTHOR ChangeLog Doxyfile LICENSE.LGPL Makefile README.txt TODO VERSION ${TARNAME}/
 	@echo
 	tar cf ${TARNAME}.tar ${TARNAME}
 	bzip2 -9 ${TARNAME}.tar
 	rm -rf ${TARNAME}
 
-
 coffee:
-	@echo Get your own.
+	@echo Go make your own!
 
-# Credit to Dan Goldman my programming partner for compilers many years ago
 check:
 	@echo
 	@echo "**************************************"
