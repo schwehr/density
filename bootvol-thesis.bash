@@ -87,6 +87,9 @@ declare -r w=0.5
 declare -r boundaries="-x -${w} -X ${w} -y -${w} -Y ${w} -z -${w} -Z ${w}"
 #declare -r debug_level=11
 
+# Make all volumes be a unit cube
+declare -r scale="--xscale=0.5 --yscale=0.5 --zscale=0.5"
+
 DebugEcho $TERSE $LINENO "Cells = $cells   Draw = $draw "
 DebugEcho $VERBOSE $LINENO $boundaries
 
@@ -108,6 +111,8 @@ if [ 1 == 1 ]; then
 	    mv ${group}.xyz.1.vmax ${group}-boot.xyz.vmax
 	    mv ${group}.xyz.2.vint ${group}-boot.xyz.vint
 	    mv ${group}.xyz.3.vmin ${group}-boot.xyz.vmin
+	else
+	    DebugEcho $TERSE $LINENO "Using existing bootstrapped xyz's"
 	fi
 
 	DebugEcho $TRACE $LINENO  Densifying
@@ -117,29 +122,27 @@ if [ 1 == 1 ]; then
 	xyzdensity ${group}-boot.xyz.vmax --out=${group}-vmax.vol $args $boundaries
 	xyzdensity ${group}-boot.xyz.vint --out=${group}-vint.vol $args $boundaries
 	xyzdensity ${group}-boot.xyz.vmin --out=${group}-vmin.vol $args $boundaries
-	xyzdensity --out=${group}-all-1.0.vol -p 1 -b 8 -w ${cells} -t ${cells} -d ${cells} $boundaries \
+	xyzdensity --out=${group}-all.vol -p 1 -b 8 -w ${cells} -t ${cells} -d ${cells} $boundaries \
 	    ${group}-boot.xyz.vmax \
 	    ${group}-boot.xyz.vint \
 	    ${group}-boot.xyz.vmin 
 	
-	#volhdr_edit ${group}-all-1.0.vol --out=${group}-all-0.5.vol --xscale=0.5 --yscale=0.5 --zscale=0.5
-	#volhdr_edit ${group}-all-1.0.vol --out=${group}-all-2.0.vol --xscale=2.0 --yscale=2.0 --zscale=2.0
 
 	if [ ! -e current.cmap ]; then 
 	    volmakecmap --cpt=rgba.cpt -o current.cmap --zero=0
 	fi
 
-	vol_iv -b=2 -c ALPHA_BLENDING --numslicescontrol=ALL -p NONE -C current.cmap -o ${group}-all-1.0.iv ${group}-all-1.0.vol
 
-	scale="--xscale=0.5 --yscale=0.5 --zscale=0.5"
-	volhdr_edit ${group}-vmax.vol --out=tmp $scale && /bin/mv tmp ${group}-vmax.vol
-	volhdr_edit ${group}-vint.vol --out=tmp $scale && /bin/mv tmp ${group}-vint.vol
-	volhdr_edit ${group}-vmin.vol --out=tmp $scale && /bin/mv tmp ${group}-vmin.vol
+	volhdr_edit ${group}-all.vol --out=tmp.vol $scale && /bin/mv tmp.vol ${group}-all.vol
+	vol_iv -b=2 -c ALPHA_BLENDING --numslicescontrol=ALL -p NONE -C current.cmap -o ${group}-all.iv ${group}-all.vol
+
+	volhdr_edit ${group}-vmax.vol --out=tmp.vol $scale && /bin/mv tmp.vol ${group}-vmax.vol
+	volhdr_edit ${group}-vint.vol --out=tmp.vol $scale && /bin/mv tmp.vol ${group}-vint.vol
+	volhdr_edit ${group}-vmin.vol --out=tmp.vol $scale && /bin/mv tmp.vol ${group}-vmin.vol
 
 	#
 	# Make each component viewable... scale them to min max
 	#
-
 	vol2vol -o ${group}-vmax-8.vol ${group}-vmax.vol  -p 0 --bpv=8 -j 0.5 -k 0.5 -l 0.5
 	vol2vol -o ${group}-vint-8.vol ${group}-vint.vol  -p 0 --bpv=8 -j 0.5 -k 0.5 -l 0.5
 	vol2vol -o ${group}-vmin-8.vol ${group}-vmin.vol  -p 0 --bpv=8 -j 0.5 -k 0.5 -l 0.5
@@ -155,20 +158,23 @@ fi
 # Now we need to make a compatability matrix.
 
 # convert them all to xyz files
-for group in "${groups[@]}"; do
-    s_eigs < $group.s > $group.eigs
-    eigs2xyz.py $group.eigs > $group.xyz
-    awk '{print $1,$2,$3}' $group.xyz > $group-vmin.xyz
-    awk '{print $4,$5,$6}' $group.xyz > $group-vint.xyz
-    awk '{print $7,$8,$9}' $group.xyz > $group-vmax.xyz
-done
-
-for eig_type in vmin vint vmax; do
-    echo $eig_type comparing to vol
-    for file in as?-?????-${eig_type}.vol; do 
-	xyzvol_cmp -v $debugLevel -d $file as?-?????-$eig_type.xyz -o ${eig_type}-${file}.cmp
+if [ 1 == 1 ]; then
+    for group in "${groups[@]}"; do
+	s_eigs < $group.s > $group.eigs
+	eigs2xyz.py $group.eigs > $group.xyz
+	awk '{print $1,$2,$3}' $group.xyz > $group-vmin.xyz
+	awk '{print $4,$5,$6}' $group.xyz > $group-vint.xyz
+	awk '{print $7,$8,$9}' $group.xyz > $group-vmax.xyz
     done
-done
+
+    for eig_type in vmin vint vmax; do
+	echo $eig_type comparing to vol
+	for file in as?-?????-${eig_type}.vol; do 
+	    xyzvol_cmp -v $debugLevel -d $file as?-?????-$eig_type.xyz -o ${eig_type}-${file}.cmp
+	done
+    done
+fi
 
 echo
 echo Done with $0
+
