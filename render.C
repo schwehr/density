@@ -86,6 +86,7 @@
 
 // local includes
 #include "render_cmd.h"
+#include "InventorUtilities.H"
 
 using namespace std;
 
@@ -145,7 +146,7 @@ SceneInfo::SceneInfo() {
  * Vector Utilities
  ***************************************************************************/
 
-
+#if 0  // REMOVED TO UTILITIES
 SbVec3f ToSbVec3f (const vector<float> &v) {
   assert (3==v.size());
   float x,y,z;
@@ -207,10 +208,15 @@ InterpolatePos(const vector<float> &v1, const vector<float> &v2,
   return (v3);
 }
 
+#endif // REMOVED TO UTILITIES
+
+
 
 /***************************************************************************
  * Utilities
  ***************************************************************************/
+
+#if 0  // REMOVED TO UTILITIES
 
 
 /// \brief Given a draggers set the camera view from it
@@ -366,21 +372,12 @@ LoadSpotLightDraggers (const string filename, SoSeparator *root, vector<SoSpotLi
 
 
 
-
-
-/***************************************************************************
- * KEYBOARD STUFF
- ***************************************************************************/
-
-// gone
+#endif  // REMOVED TO UTILITIES
 
 
 /***************************************************************************
  * TIMER FOR ANIMATION
  ***************************************************************************/
-
-// timer is gone!
-
 
 
 
@@ -451,7 +448,8 @@ bool WaypointRenderFrameToDisk (const SoSpotLightDragger *d1, const SoSpotLightD
   camera->orientation = newRot;
 
   DebugPrintf (TRACE,("ANIMATION: Rendering frame to disk file\n"));
-  if (!RenderFrameToDisk (basename,typeStr, width, height, root, frame_num) ) {
+  SbColor background(0,0,0);  // FIX: do background colors!
+  if (!RenderFrameToDisk (basename,typeStr, width, height, root, frame_num, background) ) {
     cerr << "ERROR: unable to write frame" << endl;
     return (false);
   }
@@ -481,6 +479,7 @@ int main(int argc, char *argv[])
   DebugPrintf(TRACE,("Debug level = %d\n",debug_level));
 #endif
 
+  if (!CheckLibraryPath()) { cerr << "Bailing.  Library path check failed." << endl;  return(EXIT_FAILURE);}
 
   if (a.list_given) { ListWriteFileTypes();  return (EXIT_SUCCESS); }
   //
