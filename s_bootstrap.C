@@ -71,12 +71,16 @@ static const UNUSED char* RCSid ="@(#) $Id$";
  ***************************************************************************/
 
 
-// return true if all went well.
-// false if trouble of any kind
 
-// Unlike Lisa's code, this one does NOT alter the sigmas on loading
-// which is what her adread subroutine did.
-// Have to call SiteSigma if doing a Site based Parametric Bootstrap
+/// \brief load ascii whitespace delimited text into vectors.
+/// \return \a true if all went well.  \a false if trouble of any kind
+/// \param filename File to open and read data from
+/// \param s Return vector of data.  The \a s diagonalized matrix parameters.  See s_eigs
+/// \param sigmas Return vector of simgma errors
+///
+/// Unlike Lisa's code, this one does NOT alter the sigmas on loading
+/// which is what the adread subroutine did.`
+/// You must call SiteSigma if doing a Site based Parametric Bootstrap
 bool
 LoadS(const string filename,vector <SVec> &s,vector<float> &sigmas) {
   ifstream in(filename.c_str(),ios::in);
@@ -97,6 +101,14 @@ LoadS(const string filename,vector <SVec> &s,vector<float> &sigmas) {
 // MAIN
 //////////////////////////////////////////////////////////////////////
 #ifndef REGRESSION_TEST  // NOT testing
+
+/// \brief What kind of boot strap to do?
+///
+/// \a Site parametic looks at all the data and uses the Hext method to
+/// create one sigma that is applied to all samples.
+///
+/// \a Sample parametric uses the sigma at the end of each sample
+/// (possition 7) to make a new sample that particular measurement.
 
 enum BootTypeEnum { BAD_PARAMETRIC, SITE_PARAMETRIC, SAMPLE_PARAMETRIC };
 enum FormatEnum {BAD_FORMAT, XYZ_FORMAT,TPR_FORMAT,S_FORMAT};
@@ -130,8 +142,13 @@ FormatEnum GetFormat(const char *format_arg) {
   //return(BAD_FORMAT);
 }
 
-
-/// \param oneFile true if out1, out2, and out3 are all the same file
+/// \brief Actually do the boot strap
+/// \param inFiles vector of files to read in and bootstrap
+/// \param out1, out2, out3 Each of the streams to write to.  vmax, vint, vmin.  Make them all the same and set oneFile true to get one file will all 9 parameters
+/// \param numout_arg 1 if out1, out2, and out3 are all the same file, otherwise should be 3
+/// \param format How do we want the output to look.  (S, XYZ, other some other day)
+/// \param type PARAMETRIC_SITE or PARAMETRIC_SAMPLE
+/// \param draw How many sample to draw out of the magic hat
 bool DoS_Bootstrap(const vector<string> &inFiles,
 		   ofstream &out1, ofstream &out2, ofstream &out3,
 		   const int numout_arg, const FormatEnum format, const BootTypeEnum type,
