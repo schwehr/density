@@ -5,3 +5,4 @@
 * Added acoc - Arbitrary command color
 * Turn on anti aliasing for offscreen render
 * Rotate samples about z for best fit
+* Use splines to go between waypoints or something
