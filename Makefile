@@ -67,13 +67,14 @@ CXXFLAGS += -Wno-long-double  -Wno-long-long
 ifdef OPTIMIZE
   CXXFLAGS += -O3 -funroll-loops -fexpensive-optimizations -DNDEBUG
   CXXFLAGS += -ffast-math -mtune=G4 -mcpu=G4 -mpowerpc
-
+  CXXFLAGS += -DQT_NO_DEBUG
 # Fast is specific for G4 and G5 cpus, here only for the G4
 #  CXXFLAGS += -mcpu=7450 -fast
 #  Programs crashing with -fast
 else
   CXXFLAGS += -g3 -O0
   CXXFLAGS += -D_GLIBCXX_DEBUG
+  CXXFLAGS += -DQT_DEBUG
 endif
 
 CFLAGS := ${CXXFLAGS} -Wimplicit-int -Wimplicit-function-declaration -Wnested-externs
@@ -118,9 +119,15 @@ targets-no-test: ${BINS}
 targets: ${TARGETS} test
 
 
+density.info: density.info.in
+	make tar
+	perl -pe "s/\@VERSION\@/`cat VERSION`/g" density.info.in > d.tmp
 
 ######################################################################
 # GENGETOPT programs to build
+
+%.ggo: %.ggo.in
+	perl -pe "s/\@VERSION\@/`cat VERSION`/g" $< > $@
 
 %.c: %.ggo
 	gengetopt --input=$< --file-name=${<:.ggo=} --unamed-opts
@@ -256,7 +263,7 @@ tar: ${GEN_CFILES} ${GENGETOPT_BINS} test
 	rm -rf ${TARNAME} ${TARNAME}.tar ${TARNAME}.tar.bz2
 	mkdir ${TARNAME}
 	@echo
-	cp *.{C,H,ggo,c,h,help2man,help2man.in,bash} ${TARNAME}/
+	cp *.{C,H,ggo.in,c,h,help2man,help2man.in,bash} ${TARNAME}/
 	@echo
 	rm -f HEADER.html HEADER-${VERSION}.hmtl
 	wget http://schwehr.org/software/density/HEADER.html
