@@ -98,7 +98,7 @@ int main (const int argc, char *argv[]) {
 	 << "height         = " << v.getHeight() << "   (y)" << endl
 	 << "images         = " << v.getImages()  << "   (depth/z)" << endl
       ;
-    cout << "bits_per_voxel = " << v.getBitsPerVoxel() << "       bytes = "<<v.getBitsPerVoxel()/8<< endl
+    cout << "bits_per_voxel = " << v.getBitsPerVoxel() << "    (bytes = "<<v.getBitsPerVoxel()/8<<")" <<endl
 	 << "index_bits     = " << v.getIndexBits() << endl;
 
     cout << "scaleX         = " << v.getScaleX() << endl
