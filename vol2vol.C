@@ -99,7 +99,8 @@ int main (int argc, char *argv[]) {
   }
 
   const PackType packing=PackType(a.pack_arg);
-  const string infile (a.in_arg);
+  if (1!=a.inputs_num) {cerr<<"ERROR: must specify exactly one input file"<<endl;return(EXIT_FAILURE);}
+  const string infile (a.inputs[0]);
   const string outfile(a.out_arg);
 
   Density dens(infile,r);
