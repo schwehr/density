@@ -56,10 +56,14 @@ if [ 1 == 1 ]; then
 	xyzdensity ${group}-boot.xyz.vint --out=${group}-vint.vol -p 1 $args $boundaries
 	xyzdensity ${group}-boot.xyz.vmin --out=${group}-vmin.vol -p 1 $args $boundaries
 
-	xyzdensity --out=${group}-vmax.vol -p 1 $args $boundaries \
+	xyzdensity --out=${group}-all-1.0.vol -p 1 -b 8 -w ${cells} -t ${cells} -d ${cells} $boundaries \
 	    ${group}-boot.xyz.vmax \
 	    ${group}-boot.xyz.vint \
 	    ${group}-boot.xyz.vmin 
+
+	
+	volhdr_edit ${group}-all-1.0.vol --out=${group}-all-0.5.vol --xscale=0.5 --yscale=0.5 --zscale=0.5
+	volhdr_edit ${group}-all-1.0.vol --out=${group}-all-2.0.vol --xscale=2.0 --yscale=2.0 --zscale=2.0
 
 	scale="--xscale=0.5 --yscale=0.5 --zscale=0.5"
 	volhdr_edit ${group}-vmax.vol --out=tmp $scale && /bin/mv tmp ${group}-vmax.vol
