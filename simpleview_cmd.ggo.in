@@ -37,5 +37,5 @@ option "type" t "File format to write rendered files too.  See --list for file t
 
 option "waypoints" w "Load in waypoints from a file" string typestr="filename" no
 
-# set the timer interval default="0.25"
-# set the percent += 0.1 to be user defined
+option "interval" i "Minimum time between each frame in animating" float typestr="sec" default="0.25" no
+option "percent"  p "Fraction to move between each waypoint after each frame [0..1].  It is recommended to use an even divisor of 1.0 or your animation will jump at each waypoint" float default="0.1" no
