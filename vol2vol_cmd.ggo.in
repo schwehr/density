@@ -26,21 +26,13 @@ purpose "Change volume files from one type to another (e.g. 16 bit -> 8 bit)"
 
 option "verbosity" v "Set the verbosity level (0=quiet 10=verbose 20=bombastic)" int default="0" no
 
-option "in" i "Input file name\n (must be unsigned ascii x,y,z triples)" string typestr="filename" yes
 option "out" o "Output file name" string typestr="filename" yes
-
-#option "width" w "Num voxels in the x direction" int default="10" no
-#option "tall"  t "Num voxels in the y direction or height" int default="10" no
-#option "depth" d "Num voxels in the z direction" int default="10" no
 
 option "pack" p "How to scale/fit counts into voxels.\n 0=PACK_SCALE, 1=PACK_CLIP, 2=PACK_WRAP" int default="1" no
 
 option "bpv" b "Bits per voxel.  This is an unsigned data type.\nCan be 8, 16, or 32." int default="8" no
 
-# if autoscale, ignore [xyz]scale
-#option "autoscale" a "Let the voxel and real axes determine the scale.  May be broken!" no
-
-# What are goood short letters?
+# What are good short letters?
 option "xscale" j "Scale the voxels." float default="1.0" no
 option "yscale" k "Scale the voxels." float default="1.0" no
 option "zscale" l "Scale the voxels." float default="1.0" no
