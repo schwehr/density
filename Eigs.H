@@ -39,7 +39,7 @@ enum EigsEnum {KMAX=1, KINT=2, KMIN=3};
 /// Note: does \a not force the degrees to be in [0..360]
 inline double rad2deg (const float &rad) {return(rad/M_PI * 180.);}
 /// \brief Converter degrees to radians
-/// \param rad Angle in degrees.
+/// \param deg Angle in degrees.
 /// \return Angle in radians.
 /// 
 /// Note: does \a not force the radians to be in [0..2PI]

@@ -184,7 +184,7 @@ public:
   unsigned char scaleCount(const size_t i, const size_t min, const size_t max) const;
 
   /// \brief fill two vectors with the count and the percent.  Both will be of size getMaxCount()
-  /// \param cdfPercent How many cells have have the value of the index or smaller?
+  /// \param cdfpercent How many cells have have the value of the index or smaller?
   /// \return \a false if there was some trouble
   bool buildCDF(std::vector<float> &cdfpercent) const;
 
