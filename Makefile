@@ -81,6 +81,7 @@ GENGETOPT_BINS += vol2vol
 GENGETOPT_BINS += volhdr_edit
 GENGETOPT_BINS += volinfo
 GENGETOPT_BINS += vol_iv
+GENGETOPT_BINS += volmakecmap
 
 BINS := ${GENGETOPT_BINS}
 BINS += makeCDF
@@ -99,7 +100,9 @@ TEST_BINS += test_Eigs
 
 TARGETS:=${BINS} ${TEST_BINS}
 
+targets-no-test: ${TARGETS}
 targets: ${TARGETS} test
+
 
 
 ######################################################################
@@ -133,6 +136,9 @@ volhdr_edit: volhdr_edit.C VolHeader.o volhdr_edit_cmd.o
 	${CXX} -o $@ $^ ${CXXFLAGS}
 
 vol_iv: vol_iv.C vol_iv_cmd.o
+	${CXX} -o $@ $^ ${CXXFLAGS}
+
+volmakecmap: volmakecmap.C volmakecmap_cmd.o
 	${CXX} -o $@ $^ ${CXXFLAGS}
 
 ######################################################################
@@ -190,12 +196,17 @@ man: ${GENGETOPT_BINS}
 	for file in ${GENGETOPT_BINS}; do echo Processing $$file;help2man -N ./$$file --opt-include $$file.help2man > doc/man/man1/$$file.1; done
 
 
+# Need these so we can make sure the 
+GGOS:=${wildcard *.ggo}
+GEN_CFILES := ${GGOS:.ggo=.c}
+GEN_HFILES := ${GGOS:.ggo=.h}
+
 
 VERSION := ${shell cat VERSION}
 NAME := density
 TARNAME := ${NAME}-${VERSION}
-tar: ${GENGETOPT_BINS}
-	rm -rf ${TARNAME}
+tar: ${GEN_CFILES} ${GENGETOPT_BINS} test
+	rm -rf ${TARNAME} ${TARNAME}.tar ${TARNAME}.tar.bz2
 	mkdir ${TARNAME}
 	@echo
 	cp *.{C,H,ggo,c,h,help2man,bash} ${TARNAME}/
