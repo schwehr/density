@@ -50,9 +50,7 @@ using namespace std;
  ***************************************************************************/
 
 #include "debug.H" // provides FAILED_HERE, UNUSED, DebugPrintf
-//#ifndef NDEBUG
 int debug_level;  // Now used even in optimized mode
-//#endif
 
 /// Let the debugger find out which version is being used.
 static const UNUSED char* RCSid ="@(#) $Id$";
