@@ -6,8 +6,8 @@
 package "xyzdensity"
 version "0.1"
 
-option "in" i "Input file name (file type is auto-detected)" string typestr="filename" no
-option "out" o "Output file name" string typestr="filename" no
+option "in" i "Input file name\n (must be unsigned ascii x,y,z triples)" string typestr="filename" yes
+option "out" o "Output file name" string typestr="filename" yes
 
 option "xmin" x "Minimum x coordinate" float default="-1.0" no
 option "xmax" X "Maximum X coordinate" float default="1.0" no
@@ -16,11 +16,10 @@ option "ymax" Y "Maximum Y coordinate" float default="1.0" no
 option "zmin" z "Minimum z coordinate" float default="-1.0" no
 option "zmax" Z "Maximum Z coordinate" float default="1.0" no
 
+option "width" w "Num voxels in the x direction" int default="10" no
+option "tall"  t "Num voxels in the y direction or height" int default="10" no
+option "depth" d "Num voxels in the z direction" int default="10" no
 
-option "width" w "Number of voxels in the x direction" int default="10" no
-option "tall" t "Number of voxels in the y direction (height)" int default="10" no
-option "depth" d "Number of voxels in the z direction" int default="10" no
+option "pack" p "How to scale/fit counts into voxels.\n 0=PACK_SCALE, 1=PACK_CLIP, 2=PACK_WRAP" int default="0" no
 
-option "pack" p "How to scale or fit counts in voxels. 0=PACK_SCALE, 1=PACK_CLIP, 2=PACK_WRAP" int default="0" no
-
-option "bpv" b "Bits per voxel.  Can be {8,16,32}.  This is an unsigned data type." int default="8" no
+option "bpv" b "Bits per voxel.  This is an unsigned data type.\nCan be 8, 16, or 32." int default="8" no
