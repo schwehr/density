@@ -51,7 +51,7 @@ using namespace std;
 int debug_level=0;
 
 /// Let the debugger find out which version is being used.
-static const UNUSED char* RCSid ="@(#) $Id$";
+static const UNUSED char* RCSid ="$Id$";
 
 /***************************************************************************
  * Local routines
@@ -77,6 +77,49 @@ LoadData(const string filename,vector<float> &x,vector<float> &y,vector<float> &
   while (in >> tmp[0] >> tmp[1] >> tmp[2]) {
     DebugPrintf(BOMBASTIC,("read: %+.7f %+.7f %+.7f\n",tmp[0],tmp[1],tmp[2]));
     x.push_back(tmp[0]);  y.push_back(tmp[1]);  z.push_back(tmp[2]);
+  }
+  return (true);
+}
+
+
+bool Color(ofstream &o, const string &color_str) {
+  // FIX: validate the string
+  o << "\tBaseColor {rgb [ " << color_str << " ] }" << endl;
+  return (true);
+}
+
+/// \param w Width, Height and Depth for the cube
+
+bool Boxes(ofstream &o, 
+	 const vector<float> &x, const vector<float> &y, const vector<float> &z,
+	 const float w)
+{
+  DebugPrintf(TRACE,("Boxes: %d points, width = %f\n",int(x.size()),w));
+  if (x.size() != y.size() || y.size()!=z.size()) return (false);
+  for (size_t i=0;i<x.size();i++) {
+    o << "\tSeparator{ Translation { translation " << x[i] << " " << y[i] << " " << z[i]
+      << " } Cube { width "<<w<<" height "<<w<<" depth "<<w<<" } }"<<endl;
+  }
+  return (true);
+}
+
+/// \param r Radius of the spheres
+///
+/// You may want to add an SoComplexity node in front of the spheres. If rendering is
+/// too slow.
+///
+///  Complexity { value .10 }
+
+
+bool Spheres(ofstream &o, 
+	 const vector<float> &x, const vector<float> &y, const vector<float> &z,
+	 const float r)
+{
+  DebugPrintf(TRACE,("Spheres: %d points, radius = %f\n",int(x.size()),r));
+  if (x.size() != y.size() || y.size()!=z.size()) return (false);
+  for (size_t i=0;i<x.size();i++) {
+    o << "\tSeparator{ Translation { translation " << x[i] << " " << y[i] << " " << z[i]
+      << " } Sphere { radius "<<r<<" } }"<<endl;
   }
   return (true);
 }
@@ -115,9 +158,50 @@ int main (int argc, char *argv[]) {
 
   vector <float> x,y,z;
   for (size_t i=0;i<a.inputs_num;i++) {
-    LoadData(string(a.inputs[i]),x,y,z);
+    if (!LoadData(string(a.inputs[i]),x,y,z)) {
+      ok=false;  cerr << "WARNING: failed to load an input file.  Continuing."<<endl;
+    }
+  }
+
+  ofstream o(a.out_arg,ios::out);
+
+  o << "#Inventor V2.1 ascii" << endl<<endl;
+  o << "# Written by " << RCSid << endl;
+  o << "Separator {"  << endl;
+
+  if (a.color_given) {
+    if (!Color(o,string(a.color_arg))) {
+      ok=false; cerr << "WARNING: failed to write colorx. Continuing." << endl;
+    }
+  }
+  if (a.box_given) {
+    if (!Boxes(o,x,y,z,a.box_arg)) {
+      ok=false; cerr << "WARNING: failed to write boxes. Continuing." << endl;
+    }
+  }
+
+#if 0
+  if (a.linked_given) {
+    if (!(o,x,y,z)) {
+      ok=false; cerr << "WARNING: failed to write linked. Continuing." << endl;
+    }
+  }
+
+  if (a.polarlines_given) {
+    if (!(o,x,y,z,a.polarlines_arg)) {
+      ok=false; cerr << "WARNING: failed to write polarlines. Continuing." << endl;
+    }
+  }
+#endif
+
+  if (a.sphere_given) {
+    if (!Spheres(o,x,y,z,a.sphere_arg)) {
+      ok=false; cerr << "WARNING: failed to write sphere. Continuing." << endl;
+    }
   }
 
 
+
+  o << "} # Separator - EOF"  << endl;
   return (ok?EXIT_SUCCESS:EXIT_FAILURE);
 }
