@@ -23,14 +23,18 @@
 #
 #  Suggested to install Lisa Tauxe's pmag (>=1.8).  Sorry, it is not in fink yet.
 
-# USAGE:
-#
-#  make              - Build with debugging enabled and then test
-#  make OPTIMIZE=1   - Build with optimizations enabled and then test
-#  make clean        - Clean up all the moose droppings
-#  make docs         - Generate doxygen docs
-#  make tar          - Build a distribution
-#
+help:
+	@echo
+	@echo " USAGE:"
+	@echo 
+	@echo "  make targets     - Build with debugging enabled and then test"
+	@echo "  make clean       - Clean up all the moose droppings"
+	@echo "  make docs        - Generate doxygen docs"
+	@echo "  make man         - Generate section 1 man pages"
+	@echo "  make tar         - Build a distribution"
+	@echo
+	@echo "  Add 'OPTIMIZE=1' - Build with optimizations enabled and then test"
+
 
 
 CXXFLAGS := -Wall -Wimplicit -pedantic -W -Wstrict-prototypes -Wredundant-decls
@@ -66,7 +70,15 @@ endif
 
 CFLAGS := ${CXXFLAGS} -Wimplicit-int -Wimplicit-function-declaration -Wnested-externs
 
-BINS := makeCDF histogram s_bootstrap xyzdensity endian xyzvol_cmp
+# These are programs that give --help for help2man
+GENGETOPT_BINS := s_bootstrap
+GENGETOPT_BINS += xyzdensity
+GENGETOPT_BINS += xyzvol_cmp
+
+BINS := ${GENGETOPT_BINS}
+BINS += makeCDF
+BINS += histogram
+BINS += endian
 BINS += volinfo
 BINS += simpleview
 #BINS+= AMScrunch
@@ -172,10 +184,18 @@ test: ${TEST_BINS}
 docs:
 	doxygen
 
+# to view a man page:
+# groff -Tascii -man xyzdensity.1 | less
+man: ${GENGETOPT_BINS}
+	mkdir -p doc/man/man1
+	for file in ${GENGETOPT_BINS}; do echo Processing $$file;help2man -N ./$$file --opt-include $$file.help2man > doc/man/man1/$$file.1; done
+
+
+
 VERSION := ${shell cat VERSION}
 NAME := density
 TARNAME := ${NAME}-${VERSION}
-tar: xyzdensity.h volinfo_cmd.h
+tar: xyzdensity_cmd.h volinfo_cmd.h s_bootstrap_cmd.h xyzvol_cmp_cmd.h
 	rm -rf ${TARNAME}
 	mkdir ${TARNAME}
 	@echo
