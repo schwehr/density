@@ -1,0 +1,37 @@
+# -*- shell-script -*-
+
+#  Copyright (C) 2004  Kurt Schwehr
+
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 2.1 of the License, or (at your option) any later version.
+
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  Lesser General Public License for more details.
+
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+# See also: http://www.gnu.org/software/gengetopt/gengetopt.html
+
+
+package "xyzvol_cmp_cmd.ggo"
+version "0.1"
+purpose "Compare xyz values to a volume density... blobby volume density.\n  Only takes the first 3 values on each line and ignores the rest of the line.\n  Output is\n\n    x y z count %%_or_total_counts %%_cdf"
+
+option "density" d "Density volume file.  .vol format" string typestr="filename" yes
+option "inxyz" i "Ascii x y z file.  One data item per line.  Space or tab delimited" string typestr="filename" yes
+
+
+option "xmin" x "Minimum x coordinate\nIf you specify and of [xyzXYZ], then the defaults kick in.\nOtherwise the value is determined by the density loader." float default="-0.5" no
+option "xmax" X "Maximum X coordinate" float default="0.5" no
+option "ymin" y "Minimum y coordinate" float default="-0.5" no
+option "ymax" Y "Maximum Y coordinate" float default="0.5" no
+option "zmin" z "Minimum z coordinate" float default="-0.5" no
+option "zmax" Z "Maximum Z coordinate" float default="0.5" no
+
