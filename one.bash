@@ -24,13 +24,15 @@
 # Test out all the functionality with just one point to make sure
 # everything lines up.
 
+. utilities.bash
+
 
 export PATH=${PATH}:.
 cells=50
 draw=10000
 declare -r w=0.5
 declare -r boundaries="-x -${w} -X ${w} -y -${w} -Y ${w} -z -${w} -Z ${w}"
-declare -r debug_level=2
+#declare -r debug_level=2
 
 if [ -e Makefile ]; then
     make targets-no-test
