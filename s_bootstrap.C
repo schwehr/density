@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
 	 << "  -p Sample parametric bootstrap" << endl
 	 << "  -P Site   parametric bootstrap" << endl
 	 << endl
-	 << "  e.g.:  " << argv[0] << "-P as1-crypt.s 500 > as1-bootPsite"<<endl
+	 << "  e.g.:  " << argv[0] << " -P as1-crypt.s 500 > as1-bootPsite"<<endl
 	 << endl;
       exit(EXIT_FAILURE);
   }
