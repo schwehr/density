@@ -68,6 +68,7 @@ TEST_BINS += test_VolHeader
 TEST_BINS += test_Density
 TEST_BINS += test_DensityFlagged
 TEST_BINS += test_Cdf
+TEST_BINS += test_Eigs
 
 TARGETS:=${BINS} ${TEST_BINS}
 
@@ -82,6 +83,10 @@ xyzdensity_cmd.o: xyzdensity_cmd.c xyzdensity_cmd.ggo
 
 xyzdensity: xyzdensity.C Density.o VolHeader.o xyzdensity_cmd.o
 	${CXX} -o $@ $^ ${CXXFLAGS}
+
+#Eigs.H
+test_Eigs: Eigs.C 
+	${CXX} -o $@ $< -Wno-long-double -DREGRESSION_TEST ${CXXFLAGS}  -lgsl -lgslcblas
 
 test_Cdf: Cdf.C Cdf.H
 	${CXX} -o $@ $< -DREGRESSION_TEST ${CXXFLAGS}
@@ -144,11 +149,11 @@ docs:
 VERSION := ${shell cat VERSION}
 NAME := density
 TARNAME := ${NAME}-${VERSION}
-tar:
+tar: xyzdensity.h volinfo_cmd.h
 	rm -rf ${TARNAME}
 	mkdir ${TARNAME}
 	@echo
-	cp *.{C,H,ggo} ${TARNAME}/
+	cp *.{C,H,ggo,c,h} ${TARNAME}/
 	@echo
 	cp AUTHOR Makefile Doxyfile LICENSE.LGPL README.txt VERSION demos.bash good.iv ${TARNAME}/
 	@echo
