@@ -139,7 +139,7 @@ vol_iv: vol_iv.C vol_iv_cmd.o
 	${CXX} -o $@ $^ ${CXXFLAGS}
 
 volmakecmap: volmakecmap.C volmakecmap_cmd.o
-	${CXX} -o $@ $^ ${CXXFLAGS}
+	${CXX} -o $@ $^ ${CXXFLAGS} -lCoin
 
 ######################################################################
 # Regular commands sans GENGETOPT
