@@ -298,6 +298,14 @@ float VolHeader::getRotY() const { return (rotY); }
 float VolHeader::getRotZ() const { return (rotZ); }
 
 
+size_t VolHeader::getDataSize() const {
+  // FIX: is it bytesPerCell = (bits_per_voxel+index_bits)/8 ??
+  assert(0==(bits_per_voxel%8));  // Can NOT handle non byte aligned data yet
+  assert(0==index_bits); // Can not handle these yet
+  return ((bits_per_voxel/8)*width*height*images);
+}
+
+
 
 //####################################################################
 // TEST CODE
