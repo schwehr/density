@@ -311,14 +311,15 @@ void ListWriteFileTypes() {
     delete viewport;
     return;
   }
-  cout << "Number of file types: " << numFileTypes << endl;
+  cout << "Number of file type drivers: " << numFileTypes << endl;
+  size_t count=1;
   for (int i=0;i<numFileTypes;i++) {
     SbPList extlist;
     SbString fullname, descr;
     r->getWriteFiletypeInfo(i,extlist,fullname,descr);
-    cout << i<< ": " <<fullname.getString() << " - " << descr.getString() << endl;
+    //cout << i<< ": " <<fullname.getString() << " - " << descr.getString() << endl;
     for (int ext=0;ext<extlist.getLength(); ext++) {
-      cout << "   " << ext << ": " << (const char *)extlist[ext] << endl;
+      cout << "   " << count++ << ": " << (const char *)extlist[ext] << endl;
     }
   }
   delete r;
@@ -501,7 +502,6 @@ void PrintKeyboardShorts() {
        << endl
        << "\t - - Decrease the debug level" << endl
        << "\t + - Incease  the debug level" << endl
-       << "\t - " << endl
        << endl
        << "\t Do not forget to use the right mouse button or option-left mouse for more"<<endl
        << endl;
@@ -885,6 +885,7 @@ int main(int argc, char *argv[])
 
 
   if (a.list_given) { ListWriteFileTypes();  return (EXIT_SUCCESS); }
+  if (a.keys_given) { PrintKeyboardShorts();  return (EXIT_SUCCESS); }
   //
   // Check range of arguments
   //
