@@ -1,12 +1,17 @@
 #!/bin/bash
 
+#
+# Density wrapper to make sure that DYLD_LIBRARY_PATH is set for Darwin
+# FIX:  DYLD_LIBRARY_PATH is Darwin/MacOSX specific.  Fix for other arches!
+#
+
 if [ -z "$DYLD_LIBRARY_PATH" ]; then
     export DYLD_LIBRARY_PATH=@FINK@/lib
 else
     export DYLD_LIBRARY_PATH=@FINK@/lib:$DYLD_LIBRARY_PATH
 fi
 
-#cmd="`dirname $0`/render_bin $*"
-#$cmd
-@FINK@/bin/render $*
+cmd="`dirname $0`/render_bin $*"
+$cmd
+#@FINK@/bin/render $*
 
