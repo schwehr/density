@@ -153,7 +153,7 @@ bool PolarLines(ofstream &o,
 
   o << "\tIndexedLineSet { coordIndex [ " << endl;
   for (size_t i=0;i<x.size();i++) {
-    o << "\t\t0,"<<i<<",-1,"<<endl;
+    o << "\t\t0,"<<i+1<<",-1,"<<endl;
   }
   o << "\t] } # IndexedLineSet" << endl;
 
@@ -191,6 +191,11 @@ int main (int argc, char *argv[]) {
   //////////////////////////////////////////////////////////////////////
   // GET TO WORK YOU SLACKER
   //////////////////////////////////////////////////////////////////////
+
+  if (0==a.inputs_num) {
+    cerr << "WARNING: No input files specified!" << endl;
+    ok=false;
+  }
 
   vector <float> x,y,z;
   for (size_t i=0;i<a.inputs_num;i++) {
