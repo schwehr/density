@@ -163,7 +163,7 @@ int main (int argc, char *argv[]) {
   }
 #else // debugging
   debug_level = a.verbosity_arg;
-  DebugPrintf(TRACE,("Debug level = %d\n",debug_level));
+  DebugPrintf(TRACE,("%s Debug level = %d\n",argv[0],debug_level));
 #endif
 
   if (1<a.inputs_num) {
