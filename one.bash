@@ -26,8 +26,8 @@
 
 
 export PATH=${PATH}:.
-cells=100
-draw=100000
+cells=80
+draw=10000
 declare -r w=0.5
 declare -r boundaries="-x -${w} -X ${w} -y -${w} -Y ${w} -z -${w} -Z ${w}"
 declare -r debug_level=2
@@ -53,13 +53,23 @@ xyzdensity --out=one-all.vol -p 1 -b 8 -w ${cells} -t ${cells} -d ${cells} $boun
     one-boot.xyz.vint \
     one-boot.xyz.vmin 
 
-vol_iv -b=2 -c ALPHA_BLENDING --numslicescontrol=ALL -p NONE -C kurt.cmap -o one-all.iv one-all-1.0.vol
+volmakecmap --cpt=rgba.cpt -o one.cmap --zero=0
+
+vol_iv --box=1.0 -c ALPHA_BLENDING --numslicescontrol=ALL -p NONE -C one.cmap -o one-all.iv one-all.vol
 
 scale="--xscale=0.5 --yscale=0.5 --zscale=0.5"
 volhdr_edit one-vmax.vol --out=tmp $scale && /bin/mv tmp one-vmax.vol
 volhdr_edit one-vint.vol --out=tmp $scale && /bin/mv tmp one-vint.vol
 volhdr_edit one-vmin.vol --out=tmp $scale && /bin/mv tmp one-vmin.vol
+volhdr_edit one-all.vol --out=tmp $scale && /bin/mv tmp one-all.vol
 
 
+s_eigs < one.s > one.eigs
+eigs2xyz.py one.eigs > one.xyz
+awk '{print $1,$2,$3}' one.xyz > one.xyz.vmin
+awk '{print $4,$5,$6}' one.xyz > one.xyz.vint
+awk '{print $7,$8,$9}' one.xyz > one.xyz.vmax
 
-
+xyz_iv --box=0.005 -p --color="1 0 0" --out=one.xyz.vmin.iv -v 30 one.xyz.vmin
+xyz_iv --box=0.005 -p --color="1 1 0" --out=one.xyz.vint.iv -v 30 one.xyz.vint
+xyz_iv --box=0.005 -p --color="0 0 1" --out=one.xyz.vmax.iv -v 30 one.xyz.vmax
