@@ -195,32 +195,39 @@ void ldi2xyz( const float len, const float dec, const float inc, vector<float> &
 // S_Engine
 //####################################################################
 
+S_Engine::S_Engine() {
+  valid=false;
+  if (!init()) {cerr<<"S_Engine ERROR: bad state.  Danger Will Robinson!"<<endl; return;}
+  s.resize(6);
+  valid=false;
+}
+
 S_Engine::S_Engine(const std::vector<float> &_s) {
-  isValid=false;
+  valid=false;
   if (_s.size()!=6 && _s.size()!=7) {
     cerr<< "S_Engine ERROR: requires s vec of size 6 or 7" << endl;
-    isValid=false;
-    return;
+    valid=false; return;
   }
+  if (!init()) {assert(!valid); return;}
   s.resize(6);
-  // FIX: is there a copier that is better/faster?
-  //for (size_t i=0;i<6;i++) s[i] = _s[i];
+  if (!setS(_s)) {
+    cerr << "S_Engine ERROR: unable to set s vector" << endl;
+    valid=false; assert(!valid); return;
+  }
+  valid=true;
+}
 
+bool S_Engine::init() {
   // Setup GNU Scientific Library
   w = gsl_eigen_symmv_alloc (3);
   A = gsl_matrix_alloc(3,3);
   eigenval = gsl_vector_alloc(3);
   eigenvec = gsl_matrix_alloc(3,3);
   if (!w || !A || !eigenval || !eigenvec) {
-    cerr << "S_Engine ERROR: Unable to allocate workspace or matrix" << endl;
-    return; // isValid is still false
+    cerr << "S_Engine ERROR: Unable to allocate gsl workspace, vector, or matrix"<<endl;
+    return (false); // valid is still false
   }
-
-  if (!setS(_s)) {
-    cerr << "S_Engine ERROR: unable to set s vector" << endl;
-  }
-
-  isValid=true;
+  return(true);
 }
 
 S_Engine::~S_Engine() {
@@ -249,13 +256,17 @@ bool S_Engine::setS(const vector<float> &_s) {
 
   // computes the eigenvalues and eigenvectors of the real symmetric matrix A
   int r = gsl_eigen_symmv (A, eigenval, eigenvec, w) ;
-  if (r) {cout << "ERROR ("<<r<<"): " << gsl_strerror(r) << endl;FAILED_HERE;return(false);}
-  if (!GetEigs(eigenvec, eigenval, eigs)) {FAILED_HERE;return(false);}
-  return(true);
+  if (r) {
+    valid=false;
+    cout << "ERROR ("<<r<<"): " << gsl_strerror(r) << endl;FAILED_HERE;return(false);
+  }
+  if (!GetEigs(eigenvec, eigenval, eigs)) {valid=false;FAILED_HERE;return(false);}
+  valid=true;
+  return(valid);
 }
 
-bool S_Engine::getXYZ(const EigsEnum which, vector<float> &xyz) {
-  if (!isValid) return(false);
+bool S_Engine::getXYZ(const EigsEnum which, vector<float> &xyz) const {
+  if (!valid) return(false);
   assert(w);  assert(A); assert(eigenval); assert(eigenvec);
   size_t base;
   switch(which) {
@@ -264,7 +275,7 @@ bool S_Engine::getXYZ(const EigsEnum which, vector<float> &xyz) {
   case KMAX: base=2*3; break;
   default: assert(false); return(false);
   }
- ldi2xyz(eigs[base+0],eigs[base+1], eigs[base+2],xyz);
+  ldi2xyz(eigs[base+0],eigs[base+1], eigs[base+2],xyz);
 
   return (true);
 }
@@ -285,6 +296,14 @@ bool test1() {
   cout << "      test1" << endl;
   {
     double t,p,r;
+
+    xyz2tpr( 1.,0.,0.,t,p,r); cout << "  1  0  0 -> "<<t << " " << p << " " << r << endl;
+    xyz2tpr(-1.,0.,0.,t,p,r); cout << " -1  0  0 -> "<<t << " " << p << " " << r << endl;
+    xyz2tpr(0., 1.,0.,t,p,r); cout << "  0  1  0 -> "<<t << " " << p << " " << r << endl;
+    xyz2tpr(0.,-1.,0.,t,p,r); cout << "  0 -1  0 -> "<<t << " " << p << " " << r << endl;
+    xyz2tpr(0.,0., 1.,t,p,r); cout << "  0  0  1 -> "<<t << " " << p << " " << r << endl;
+    xyz2tpr(0.,0.,-1.,t,p,r); cout << "  0  0 -1 -> "<<t << " " << p << " " << r << endl;
+
 
     xyz2tpr(-0.640764058, -0.405717313,  0.651778281, t,p,r);
     if (!isEqual(t, 0.860869467, 0.0001)) {FAILED_HERE; ok=false;} 
@@ -451,6 +470,14 @@ bool test3() {
     if (!isEqual(xyz[0],xyzs[0],0.001)) {FAILED_HERE;ok=false;}
     if (!isEqual(xyz[1],xyzs[1],0.001)) {FAILED_HERE;ok=false;}
     if (!isEqual(xyz[2],xyzs[2],0.001)) {FAILED_HERE;ok=false;}
+  }
+
+  {
+    S_Engine se;
+    if (se.isValid()) {FAILED_HERE;ok=false;}
+    vector<float> sv7(&s7[0],&s7[7]); 
+    se.setS(sv7);
+    if (!se.isValid()) {FAILED_HERE;ok=false;}
   }
 
   {
