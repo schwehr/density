@@ -121,7 +121,7 @@ s_bootstrap: s_bootstrap.C SiteSigma.o Bootstrap.o s_bootstrap_cmd.o Eigs.o
 	${CXX} -o $@ $^ ${CXXFLAGS} -Wno-long-double -lgsl -lgslcblas
 
 simpleview: simpleview_cmd.o simpleview.C
-	${CXX} -o $@ $^  -I/sw/include/qt ${CXXFLAGS} -lsimage -lCoin -lSoQt -lSimVoleon -lqt-mt
+	${CXX} -o $@ $^  -I/sw/include/qt ${CXXFLAGS} -lsimage -lCoin -lSoQt -lSimVoleon -lqt-mt -bind_at_load -Wno-long-long
 
 xyzdensity: xyzdensity.C Density.o VolHeader.o xyzdensity_cmd.o
 	${CXX} -o $@ $^ ${CXXFLAGS}
@@ -254,7 +254,7 @@ clean:
 	rm -f [0-9].{vol,s,xyz}
 	rm -f [0-9][0-9].{vol,s,xyz*}
 	rm -f one.xyz* one-* one.cmap one.s
-	rm -f current.cmap as[0-9]-*all-1.0.iv
+	rm -f current.cmap as[0-9]-*all-1.0.iv as?-?????-????-8.iv vol.iv
 	rm -f *.vol.cmp
 	rm -f test3.vol*
 
