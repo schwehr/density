@@ -59,7 +59,6 @@ DebugEcho $VERBOSE $LINENO "boundaries are $boundaries"
 
 if [ -e Makefile ]; then
     make targets-no-test
-    #make s_bootstrap xyzdensity xyzvol_cmp volhdr_edit vol_iv volmakecmap vol2vol
 fi
 
 #
@@ -143,7 +142,6 @@ if [ 1 == 1 ]; then
 	done
     done
 fi
-
 
 ######################################################################
 # Owens Lake data
