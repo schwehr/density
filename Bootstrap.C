@@ -18,6 +18,11 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 */
+
+/***************************************************************************
+ * INCLUDES
+ ***************************************************************************/
+
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h> // gaussian distributed random number generator
 
@@ -53,7 +58,6 @@ BootstrapParametricSample(const vector<SVec> &s, const vector<float> &sigmas,
 
   for (size_t i=0;i<6;i++) {
     const float delta = sigmas[sampleNum] * gsl_ran_gaussian (r, 1.0);
-    //cout << i << " delta = " << delta << endl;
     newSample[i] = s[sampleNum][i] + delta;
   }
 
@@ -62,7 +66,6 @@ BootstrapParametricSample(const vector<SVec> &s, const vector<float> &sigmas,
     const float trace=newSample[0]+newSample[1]+newSample[2];
     for (size_t i=0;i<6;i++) newSample[i]/=trace;
   }
-
   return (sampleNum);
 }
 
@@ -73,7 +76,6 @@ float Trace(const SVec &s) {
 }
 
 
-#define REGRESSION_TEST 1
 // returns the sample index that was picked for this iteration
 size_t
 BootstrapParametricSite(const vector<SVec> &s, const float sigma, //const vector<float> &sigmas,
@@ -93,7 +95,6 @@ BootstrapParametricSite(const vector<SVec> &s, const float sigma, //const vector
 
   // must normalize each sample!
   {
-    //static bool done=false;if(!done){cerr<<"normalize"<<endl;done=true;}
     const float trace=newSample[0]+newSample[1]+newSample[2];
     for (size_t i=0;i<6;i++) newSample[i]/=trace;
   }
