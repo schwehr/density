@@ -39,8 +39,10 @@ option "StringInput" I "String to pass to splot or plot"  string typestr="plot-a
 
 option "format" f "Output format (pdf,png,jpg,gif) for gnuplot output terminal" string default="png" no
 
-option "xmin" x "Starting rotation in degrees" float default="0.0" no
-option "xmax" X "Far rotation in degrees" float default="0.0" no
+option "StepSize" s "How much to move between each frame" float typestr="degrees" default="0.5" no
 
-option "zmin" z "Starting rotation in degrees" float default="0.0" no
-option "zmax" Z "Far rotation in degrees" float default="0.0" no
+option "xmin" x "Starting rotation in degrees" float default="45.0" no
+option "xmax" X "Far rotation in degrees" float default="90.0" no
+
+option "zmin" z "Starting rotation in degrees" float default="50.0" no
+option "zmax" Z "Far rotation in degrees" float default="70.0" no
