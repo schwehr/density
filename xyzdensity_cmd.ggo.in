@@ -50,3 +50,5 @@ option "autoscale" a "Let the voxel and real axes determine the scale.  May be b
 option "xscale" j "Scale the voxels.  Seems to behave funny if not 1" float default="1.0" no
 option "yscale" k "Scale the voxels.  Seems to behave funny if not 1" float default="1.0" no
 option "zscale" l "Scale the voxels.  Seems to behave funny if not 1" float default="1.0" no
+
+option "xyzc" 4 "Take x,y,z,count rather than just x,y,z" flag off
