@@ -75,9 +75,9 @@ int main (const int argc, char *argv[]) {
   DebugPrintf(TRACE,("Debug level = %d",debug_level));
 #endif
 
-  for (int i=0; i<a.in_given;i++) {
-    cout << i << " " << a.in_arg[i] << endl;
-    const string filename(a.in_arg[i]);
+  for (int i=0;i<a.inputs_num;i++) {
+    cout << i << " " << a.inputs[i] << endl;
+    const string filename(a.inputs[i]);
     bool r;
 
     struct stat sb;
