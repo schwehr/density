@@ -1,0 +1,34 @@
+# -*- shell-script -*-
+#  Copyright (C) 2004  Kurt Schwehr
+
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 2.1 of the License, or (at your option) any later version.
+
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  Lesser General Public License for more details.
+
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+# See also: http://www.gnu.org/software/gengetopt/gengetopt.html
+
+
+package "s_bootstrap"
+version "0.1"
+
+option "in" i "Input file name\n Must be a Voleon vol file" string typestr="filename" yes multiple
+
+option "format" f "Output format.\n  s - 7 number s values (see s_eigs)\n  tpr - polar\n  xyz - cartesian" string default="xyz" no
+option "numout" n "Number of output files.\n  1 - put min, int, max in a single file\n  3 - put min, int, max each in a separate file.  Appends the number to the filename." int default="1" no
+
+option "draw" d "How many samples to draw/bootstrap from a particular file" int default="1000" no
+
+option "site" P "Site parametric error using Hext method for sigma"
+option "sample" p "Sample parametric using the per sample sigma (default)"
+
+option "out" o "Output file name.  If 3 is selected for numout, then a number will be appended to the filenames" string typestr="filename" yes
