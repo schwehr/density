@@ -48,7 +48,8 @@
 #endif
 
 #ifdef REGRESSION_TEST
-#define FAILED_HERE cout <<  __FILE__ << ":" << __LINE__ << " test failed" << endl
+#define FAILED_HERE cout <<  __FILE__ << ":" << __LINE__  \
+			 << " failed in function " << __FUNCTION__ << endl
 #else
 /*!
   \brief Use \a 'FAILED_HERE;' to emit a string that looks like a compiler warning
