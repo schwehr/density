@@ -130,6 +130,9 @@ public:
   bool connect_the_dots; ///< true if showing last path
   SoSeparator *connect_sep;
 
+  float  cur_percent; ///< how far between waypoints
+  size_t cur_mark;   //< Which waypoint are we on
+
 
   /// Use magic numbers to make sure you actually get this class when you
   /// must do a cast to/from void pointer
@@ -149,6 +152,10 @@ SceneInfo::SceneInfo() {
 
   connect_the_dots=false;
   connect_sep=0;
+
+  // Animation position
+  cur_percent=0; // how far between waypoints
+  cur_mark=0;   // Which waypoint are we on
 }
 
 
@@ -232,7 +239,21 @@ InterpolatePos(const vector<float> &v1, const vector<float> &v2,
 /***************************************************************************
  * Utilities
  ***************************************************************************/
-// FIX: could optimize by keeping one renderer in memory
+
+
+/// \brief Given a draggers set the camera view from it
+///
+/// This is the simpler case where we do not have to interpolate
+/// between to draggers
+void SetCameraFromDragger(SoCamera *c,SoSpotLightDragger *d) {
+  assert (d); assert(c);
+  SbVec3f pos=d->translation.getValue();
+  c->position = pos;
+  SbRotation rot = d->rotation.getValue();
+  c->orientation = rot;
+}
+
+
 
 /// \brief Ship off a picture to disk
 /// \param basename start the file name with this
@@ -241,6 +262,9 @@ InterpolatePos(const vector<float> &v1, const vector<float> &v2,
 /// \param root Top of the scene graph to render
 /// \param frame_num return the frame number that we wrote
 /// \return \a false if we flailed trying to get a pretty picture to disk
+///
+/// \bug FIX: could optimize by keeping one renderer in memory
+
 bool RenderFrameToDisk (const string &basename,const string &filetype,
 			const int width, const int height,
 			SoNode *root, size_t &frame_num)
@@ -461,12 +485,16 @@ void PrintKeyboardShorts() {
        << "Keyboard shortcuts:" << endl << endl
        << "\t a - Toggle (A)nimation -  Start/Stop" << endl
     // FIX: implement these!
-    // << "\t b - Jump to the (B)eginning of the animation sequence" << endl
+       << "\t b - Jump to the (B)eginning of the animation sequence" << endl
        << "\t c - (C)onnect the dots.  Put lines between the waypoints" << endl
        << "\t d - (D)ump the current view to an image" << endl
        << "\t f - Write scene graph to a (F)File" << endl
        << "\t h - Print out this (H)elp list" << endl
        << "\t i - (I)nsert a waypoint at the current camera location" << endl
+
+       << "\t n - (N)ext waypoint" << endl
+       << "\t p - (P)revious waypoint" << endl
+    
        << "\t r - (R)Render frames as they animate" << endl
        << "\t s - (S)how/Hide way point markers" << endl
        << "\t w - Write the current set of (W)aypoints to a file" << endl
@@ -509,6 +537,20 @@ keyPressCallback(void *data, SoEventCallback *cb) {
     si->animating = (si->animating?false:true); // flip
     cout << "toggling animation to " << (si->animating?"true":"false") << endl;
     //cout.flush();
+    return;
+  }
+  
+  //
+  // B - Jump to the (B)eginning of the animation sequence
+  //
+  if (SO_KEY_PRESS_EVENT(keyEvent, B)) {
+    DebugPrintf(TRACE,("Keyhit: B - Jump to the (B)eginning of the animation sequence\n"));
+    si->cur_percent=0;
+    si->cur_mark=0;
+    if (si->draggerVec.size()>0) {
+      DebugPrintf(VERBOSE,("Setting the camera"));
+      SetCameraFromDragger(si->camera, si->draggerVec[si->cur_mark]);
+    } else { DebugPrintf(VERBOSE,("No draggers... not setting the camera"));}
     return;
   }
 
@@ -610,10 +652,38 @@ keyPressCallback(void *data, SoEventCallback *cb) {
   } // KEY_PRESS I - Insert waypoint
 
 
-  // + - Toggle render mode for during animation.  If true write all frames to disk
+  //
+  // N - Jump to the next waypoint.
+  //
+  if (SO_KEY_PRESS_EVENT(keyEvent, N)) {
+    if (0==si->draggerVec.size()) return;
+    si->cur_percent=0;
+    si->cur_mark++;
+    if (si->cur_mark >= si->draggerVec.size()) si->cur_mark=0;
+    SetCameraFromDragger(si->camera, si->draggerVec[si->cur_mark]);
+    DebugPrintf(TRACE,("Keyhit: N - now at waypoint %d\n",int(si->cur_mark)));
+    return;
+  }
+
+  //
+  // P - Jump to the previous waypoint.
+  //
+  if (SO_KEY_PRESS_EVENT(keyEvent, P)) {
+    if (0==si->draggerVec.size()) return;
+    si->cur_percent=0;
+    if (0==si->cur_mark) si->cur_mark=si->draggerVec.size()-1;
+    else si->cur_mark--;
+
+    SetCameraFromDragger(si->camera, si->draggerVec[si->cur_mark]);
+    DebugPrintf(TRACE,("Keyhit: P - now at waypoint %d\n",int(si->cur_mark)));
+    return;
+  }
+
+
+
+  // R - Toggle render mode for during animation.  If true write all frames to disk
   if (SO_KEY_PRESS_EVENT(keyEvent, R)) {
     si->render_frames_to_disk = (si->render_frames_to_disk?false:true); // flip
-
     DebugPrintf(TRACE,("Keyhit: R - toggle render to %s\n",(si->render_frames_to_disk?"true":"false")));
     return;
   }
@@ -689,25 +759,25 @@ void timerSensorCallback(void *data, SoSensor *sensor) {
 
   // Now lets animate things!
 
-  static float percent=10.;
-  static size_t cur=0;
+  //static float percent=10.;  - now cur_percent
+  //static size_t cur=0; - now cur_mark
 
   // handle setup.
+#if 0
   if (!initialized) {
     initialized=true;
     cout << "Initialization for animation." << endl;
     percent = 0.;
     cur = 0;
   }
+#endif
 
-  if (percent >= 1.0) {
-    percent=0.;
-    cur++;
-    cout << "Switching to mark #" << cur << endl;
-    //if (si->draggerVec.size()-1<=cur) {
-    if (si->draggerVec.size()==cur) {
-      //cout << "Looping" << endl;
-      cur=0;
+  if (si->cur_percent >= 1.0) {
+    si->cur_percent=0.;
+    si->cur_mark++;
+    cout << "Switching to mark #" << si->cur_mark << endl;
+    if (si->draggerVec.size()==si->cur_mark) {
+      si->cur_mark=0;
     }
   }
 
@@ -715,33 +785,31 @@ void timerSensorCallback(void *data, SoSensor *sensor) {
   // Calc the camera position and set it!
   //
   //cout << "using: " << cur << " " << cur+1 << endl;
-  SoSpotLightDragger *d1 = si->draggerVec[cur];
+  SoSpotLightDragger *d1 = si->draggerVec[si->cur_mark];
   SoSpotLightDragger *d2;
-  if (cur==si->draggerVec.size()-1) {
-    d2 = si->draggerVec[0];
-    //cout << "Using " << cur << "-0" << endl;
-  } else d2 = si->draggerVec[cur+1];
+  if (si->cur_mark==si->draggerVec.size()-1) {
+    d2 = si->draggerVec[0]; // Loop back to the first mark
+  } else d2 = si->draggerVec[si->cur_mark+1];
 
   SbVec3f pos1 = d1->translation.getValue();
   SbVec3f pos2 = d2->translation.getValue();
 
   vector<float> v1 = ToVector(pos1);
   vector<float> v2 = ToVector(pos2);
-
   
-  vector<float> v3 = InterpolatePos (v1,v2,percent);
+  vector<float> v3 = InterpolatePos (v1,v2,si->cur_percent);
   SbVec3f pos3 = ToSbVec3f (v3);
 
   si->camera->position = pos3;
 
   SbRotation rot1 = d1->rotation.getValue();
   SbRotation rot2 = d2->rotation.getValue();
-  SbRotation newRot = SbRotation::slerp (rot1, rot2, percent);
+  SbRotation newRot = SbRotation::slerp (rot1, rot2, si->cur_percent);
 
   si->camera->orientation = newRot;
 
-  DebugPrintf (VERBOSE,("Mark: %d      Step:  %f\n",int(cur),percent));
-  percent += si->a->percent_arg; // User configurable jump
+  DebugPrintf (VERBOSE,("Mark: %d      Step:  %f\n",int(si->cur_mark),si->cur_percent));
+  si->cur_percent += si->a->percent_arg; // User configurable jump
 
   if (si->render_frames_to_disk) {
     DebugPrintf (TRACE,("ANIMATION: Rendering frame to disk file\n"));
