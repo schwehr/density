@@ -15,7 +15,6 @@
     You should have received a copy of the GNU Lesser General Public
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
 */
 
 /// \brief Help make color maps
@@ -24,6 +23,8 @@
 /// (cpt).  For example: /sw/share/gmt/cpt/GMT_cool.cpt.
 ///
 /// You CPT files need to go from [0..1]
+
+/// FIX: need some pre canned color maps!  see GMT's makecpt and grd2cpt
 
 /***************************************************************************
  * INCLUDES
@@ -75,7 +76,9 @@ public:
   //ColorPallet();
   /// \parameter ok \a true if load went ok
   ColorPallet(const string &filename, bool &ok);
-  /// offset must be between 0 and 255
+
+  /// \brief Retrief the RGB value for a cell level
+  /// \param offset must be between 0 and 255
   bool getRGBA(const size_t offset, float &r, float &g, float &b, float &a) const;
   bool setRGBA(const size_t offset, const float r, const float g, const float b, const float a);
 
@@ -155,11 +158,78 @@ ColorPallet::ColorPallet(const string &filename, bool &ok) {
   }
 } // ColorPallet(filename) constructor
 
-bool ColorPallet::handleA_Line(const string &bufStr) {cout << bufStr; return (false);} // handleA_Line
-bool ColorPallet::handleLA_Line(const string &bufStr) {cout << bufStr; return (false);} // handleLA_Line
-bool ColorPallet::handleHSVA_Line(const string &bufStr) {cout << bufStr; return (false);} // handleHSVA_Line
+bool ColorPallet::handleA_Line(const string &bufStr) {
+  cout << bufStr<< endl << "FIX need to implement ALPHA handling" << endl; 
+  return (false);
+} // handleA_Line
+
+bool ColorPallet::handleLA_Line(const string &bufStr) {
+  cout << bufStr << endl << "FIX need to implement LUM_ALPHA handling" << endl;
+  return (false);
+} // handleLA_Line
+
+/// Use Coin/OpenInventor for converting Hue Saturation Value color to Red Green Blue color
+bool hsv2rgb(const float h,const float s,const float v, float &r, float &g, float &b) {
+  DebugPrintf (VERBOSE+3,("hsv2rgb %f %f %f\n",h,s,v));
+  SbColor color;
+  color.setHSVValue(h,s,v);
+  uint32_t packedColor = color.getPackedValue(0.0f);
+  unsigned char *c = (unsigned char *) &packedColor;
+  r = c[0]/255.;
+  g = c[1]/255.;
+  b = c[2]/255.;
+  DebugPrintf (VERBOSE+1,("hsv2rgb %f %f %f -> %f %f %f\n",h,s,v,r,g,b));
+
+  return (true);
+}
+
+bool ColorPallet::handleHSVA_Line(const string &bufStr) {
+  DebugPrintf(VERBOSE+1,("handleHSVA_Line %s\n",bufStr.c_str()));
+  const size_t L=0,H=1,S=2,V=3,A=4; // L == level (v in RGBA line);
+  float v1[5],  v2[5];
+  istringstream istr(bufStr.c_str());
+  istr >> v1[L] >> v1[H] >> v1[S] >> v1[V] >> v1[A]
+       >> v2[L] >> v2[H] >> v2[S] >> v2[V] >> v2[A];
+  if (istr.fail()) {
+    cerr << "Read failed for:" << bufStr << endl;
+    return(false);
+  }
+
+  if (v1[L]>v2[L]) {cerr <<"Bad cmap entry. 0" << endl; return(false);}
+  if (v1[L]==v2[L]) {cerr <<"Bad cmap entry. 1" << endl; return(false);}
+  if (0>v1[L] || 1<v1[L]) {cerr <<"Bad cmap entry. 2" << endl; return(false);}
+  if (0>v2[L] || 2<v1[L]) {cerr <<"Bad cmap entry. 3" << endl; return(false);}
+
+  // slopes
+  const float mh = (v2[H]-v1[H])/(v2[L]-v1[L]); const float bh = v1[H] - mh * v1[L];
+  const float ms = (v2[S]-v1[S])/(v2[L]-v1[L]); const float bs = v1[S] - ms * v1[L];
+  const float mv = (v2[V]-v1[V])/(v2[L]-v1[L]); const float bv = v1[V] - mv * v1[L];
+  const float ma = (v2[A]-v1[A])/(v2[L]-v1[L]); const float ba = v1[A] - ma * v1[L];
+
+  // FIX: better algorithm needed
+  for (size_t i=0;i<256; i++) {
+    const float v = i/255.;
+    if (v1[L]>v || v2[L]<v) continue;
+    // FIX: cause h to wrap if it goes over 1.0
+    float _h = v * mh + bh; if (1.0<_h) _h=1.f; // Handle floating point jitter
+    float _s = v * ms + bs; if (1.0<_s) _s=1.f; // Handle floating point jitter
+    float _v = v * mv + bv; if (1.0<_v) _v=1.f; // Handle floating point jitter
+    float _a = v * ma + ba; if (1.0<_a) _a=1.f; // Handle floating point jitter
+
+    float RGB[3];
+    if (!hsv2rgb(_h,_s,_v,RGB[0],RGB[1],RGB[2])) { cerr << "hsr2rgb error!" << endl; return (false);}
+    r[i] = RGB[0];
+    g[i] = RGB[1];
+    b[i] = RGB[2];
+    a[i] = _a;
+  }
+
+
+  return (true);
+} // handleHSVA_Line
 
 bool ColorPallet::handleRGBA_Line(const string &bufStr) {
+  assert(RGBA==colorModel);
   float v1,r1,g1,b1,a1,  v2,r2,g2,b2,a2;
   istringstream istr(bufStr.c_str());
   istr >> v1>>r1>>g1>>b1 >>a1 >>v2>>r2>>g2>>b2>>a2;
@@ -168,11 +238,11 @@ bool ColorPallet::handleRGBA_Line(const string &bufStr) {
     return(false);
   }
 
-  if ( (HSVA!=colorModel) && !( (0.<=v1 && v1 <= 1.) 
-				&& (0.<=r1 && r1 <= 1.) && (0.<=g1 && g1 <= 1.) && (0.<=b1 && b1 <= 1.) && (0.<=a1 && a1 <= 1.)
-				&& (0.<=v2 && v2 <= 1.) 
-				&& (0.<=r2 && r2 <= 1.) && (0.<=g2 && g2 <= 1.) && (0.<=b2 && b2 <= 1.) && (0.<=a2 && a2 <= 1.)
-				))
+  if (  !( (0.<=v1 && v1 <= 1.) 
+	   && (0.<=r1 && r1 <= 1.) && (0.<=g1 && g1 <= 1.) && (0.<=b1 && b1 <= 1.) && (0.<=a1 && a1 <= 1.)
+	   && (0.<=v2 && v2 <= 1.) 
+	   && (0.<=r2 && r2 <= 1.) && (0.<=g2 && g2 <= 1.) && (0.<=b2 && b2 <= 1.) && (0.<=a2 && a2 <= 1.)
+	   ))
     {
       cerr << "WARNING: all values must be between 0.0 and 1.0" << endl << "\t" << bufStr << endl;
       return (false);
@@ -210,7 +280,7 @@ bool ColorPallet::insertCmapEntryRGBA(const float v1, const float r1, const floa
   const float ma = (a2-a1)/(v2-v1); const float ba = a1 - ma * v1;
 
   // FIX: better algorithm needed
-  for (size_t i;i<256; i++) {
+  for (size_t i=0;i<256; i++) {
     const float v = i/255.;
     if (v1>v || v2<v) continue;
     r[i] = v * mr + br; if (1.0<r[i]) r[i]=1.f; // Handle floating point jitter
@@ -289,3 +359,5 @@ int main (int argc, char *argv[]) {
   return (ok?EXIT_SUCCESS:EXIT_FAILURE);
 }
 
+
+// FIX: add test routines, especially for hsv2rgb()
