@@ -23,6 +23,8 @@
 
 // Local includes
 #include "VolHeader.H"
+#include "volinfo_cmd.h"
+#include "Density.H"
 
 using namespace std;
 
@@ -65,16 +67,18 @@ static const UNUSED char* RCSid ="@(#) $Id$";
 //####################################################################
 
 int main (const int argc, char *argv[]) {
-  if (argc<2) {
-    cout << "Usage : " << argv[0] << " filenames" << endl
-	 << "Tell about vol formatted voxel files." << endl
-      ;
+  bool ok=true;
+
+  gengetopt_args_info a;
+  if (0!=cmdline_parser(argc,argv,&a)) {
+    cerr << "FIX: should never get here" << endl;
+    cerr << "Early exit" << endl;
     return (EXIT_FAILURE);
   }
 
-  bool ok=true;
-  for (int i=1;i<argc;i++) {
-    const string filename(argv[i]);
+  for (int i=0; i<a.in_given;i++) {
+    cout << i << " " << a.in_arg[i] << endl;
+    const string filename(a.in_arg[i]);
     bool r;
     VolHeader v(filename,r);
     if (!r) {ok=false; cerr << "Failed to read file: " << filename << endl; continue;}
@@ -96,7 +100,17 @@ int main (const int argc, char *argv[]) {
 	 << "rotY   = " << v.getRotY() << endl
 	 << "rotZ   = " << v.getRotZ() << endl
       ;
-  }
+
+    cout << "range given " << a.range_given << endl; cout.flush();
+    if (0!=a.range_given) {
+      cout << "here goes..." << endl; cout.flush();
+      Density d(filename,r);
+      if (!r) {ok=false; cerr << "Failed to read file: " << filename << endl; continue;}
+      cout << "minVal = " << d.getMinCount() << endl
+	   << "minVal = " << d.getMaxCount() << endl;
+    }
+  } // for a.in_given
+
 
   return (ok?EXIT_SUCCESS:EXIT_FAILURE);
 }
