@@ -79,7 +79,8 @@ endif
 CFLAGS := ${CXXFLAGS} -Wimplicit-int -Wimplicit-function-declaration -Wnested-externs
 
 # These are programs that give --help for help2man
-GENGETOPT_BINS := render
+GENGETOPT_BINS := histogram
+GENGETOPT_BINS += render
 GENGETOPT_BINS += s_bootstrap
 GENGETOPT_BINS += simpleview
 GENGETOPT_BINS += xyzdensity
@@ -93,7 +94,6 @@ GENGETOPT_BINS += volmakecmap
 
 # Those without gengetopt
 SIMPLE_BINS := endian
-SIMPLE_BINS += histogram
 SIMPLE_BINS += is_equal
 SIMPLE_BINS += makeCDF
 #SIMPLE_BINS+= AMScrunch
@@ -124,6 +124,9 @@ targets: ${TARGETS} test
 
 %.c: %.ggo
 	gengetopt --input=$< --file-name=${<:.ggo=} --unamed-opts
+
+histogram: histogram_cmd.o histogram.C
+	${CXX} -o $@ $^  ${CXXFLAGS}
 
 render: render_cmd.o render.C
 	${CXX} -o $@ $^  ${CXXFLAGS} -lsimage -lCoin -lSimVoleon -bind_at_load
