@@ -100,6 +100,38 @@ if [ 1 == 1 ]; then
 fi
 
 #
+# Label the all 3 component images using ImageMagic
+# http://www-106.ibm.com/developerworks/library/l-graf/?ca=dnt-428
+#
+if [ 1 == 1 ]; then 
+    if [ 1 == 1 ]; then 
+	DebugEcho $TERSE $LINENO "Label the 'all' images"
+	for group in "${ol_groups[@]}"; do
+	    DebugEcho $TERSE $LINENO "  Group: $group"
+	    for file in $group-all-*.png; do
+		convert -font helvetica -fill white -pointsize 12 -draw "text 10,15 $group" $file tmp-$file
+		/bin/mv -f tmp-$file $file
+	    done
+	done
+    fi
+    DebugEcho $TERSE $LINENO "Labeling the component images - vmin"
+    for file in g?-*-vmin-*.png; do
+	convert -font helvetica -fill white -pointsize 12 -draw "text 10,15 Vmin" $file tmp-$file
+	/bin/mv -f tmp-$file $file
+    done
+    DebugEcho $TERSE $LINENO "Labeling the component images - vint"
+    for file in g?-*-vint-*.png; do
+	convert -font helvetica -fill white -pointsize 12 -draw "text 10,15 Vint" $file tmp-$file
+	/bin/mv -f tmp-$file $file
+    done
+    DebugEcho $TERSE $LINENO "Labeling the component images - vmax"
+    for file in g?-*-vmax-*.png; do
+	convert -font helvetica -fill white -pointsize 12 -draw "text 10,15 Vmax" $file tmp-$file
+	/bin/mv -f tmp-$file $file
+    done
+fi
+
+#
 # Group all rendered frames for one step into one big movie frame
 # 
 
