@@ -81,7 +81,8 @@ public:
   size_t getCellFromWHD(const size_t xIndex, const size_t yIndex, const size_t zIndex) const;
 
 
-  /// x less, x more, y less, y more, z less, z more
+  /// \brief Which neightbor cell/voxel are we talking about.
+  /// In order then are x-axis less, x more, y less, y more, z less, z more
   enum NeighborEnum {LEFT,RIGHT,FRONT,BACK,BELOW,ABOVE,NUM_NEIGHBORS=6};
   /// returns \a badValue if the neighbor is outside of the volume
   size_t getCellNeighbor(const size_t i, NeighborEnum which) const; 
@@ -99,7 +100,28 @@ public:
 
   /// \brief Write out a vol formatted file for SIM Voleon in uchar format
   /// \return \a true on success or \a false if there was an error
-  bool writeVol(const std::string &filename);
+  /// This write scales the data between min/max
+  bool writeVolScale(const std::string &filename) const;
+
+  /// \brief How to squeeze data into the output sample size
+  /// If the counts are greater than the max value of the output
+  /// bitsPerPixel, this is how we should handle the values.
+  /// Additionally PACK_SCALE will scale no mater what.
+  /// You can control the color scheme of these points on load time
+  /// in SIM Voleon using a \a colorMap in an SoTransferFunction node
+
+  enum PackType {PACK_SCALE, PACK_CLIP, PACK_WRAP};
+
+  /// Compress data based on PackType
+  size_t ScaleValue(const size_t value, const PackType p, const size_t bitsPerVoxel) const;
+
+  /// \brief Write out a Voleon style voxel 3D cell file.
+  /// \return \a true if success or \a false if there was some trouble
+  /// Uses the x,y, and z ranges to set the Scale[XYZ] fields of the header
+  /// \bug What does index_bits do?
+  bool writeVol(const std::string &filename,const size_t bitsPerPixel,const PackType p,
+		const float RotX=0., const float RotY=0.,const float RotZ=0.) const;
+
 
   /// This is the value for an unknown or bad entry.  Should be a huge number that we would never encounter.
   static size_t badValue() {return(std::numeric_limits<size_t>::max());}
