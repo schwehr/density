@@ -149,3 +149,72 @@ testno=$[testno+1]
 
 
 
+######################################################################
+# Make sure that s_bootstrap returns the same value if sigma is zero.
+
+tail -1 as2-slump.s | awk '{print $1,$2,$3,$4,$5,$6,0.}' > $testno.s
+s_bootstrap $testno.s -f xyz -n 1 --out $testno-boot.xyz -d 1 -p
+s_eigs < $testno.s > $testno.eigs
+eigs2xyz.py $testno.eigs > $testno.xyz
+declare -a a=( `cat $testno.xyz` )
+declare -a b=( `cat $testno-boot.xyz`  )
+
+is_Equal  ${a[0]} ${b[0]} 0.001 || (echo "Test number $testno:    FAILED";exit 1)
+is_Equal  ${a[1]} ${b[1]} 0.001 || (echo "Test number $testno:    FAILED";exit 1)
+is_Equal  ${a[2]} ${b[2]} 0.001 || (echo "Test number $testno:    FAILED";exit 1)
+is_Equal  ${a[3]} ${b[3]} 0.001 || (echo "Test number $testno:    FAILED";exit 1)
+is_Equal  ${a[4]} ${b[4]} 0.001 || (echo "Test number $testno:    FAILED";exit 1)
+is_Equal  ${a[5]} ${b[5]} 0.001 || (echo "Test number $testno:    FAILED";exit 1)
+is_Equal  ${a[6]} ${b[6]} 0.001 || (echo "Test number $testno:    FAILED";exit 1)
+is_Equal  ${a[7]} ${b[7]} 0.001 || (echo "Test number $testno:    FAILED";exit 1)
+is_Equal  ${a[8]} ${b[8]} 0.001 || (echo "Test number $testno:    FAILED";exit 1)
+
+testno=$[testno+1]
+
+######################################################################
+# make sure that vmin and vmax are getting written out correctly
+# len(vmin) < len(vmax)
+# for the 3 file output from s_bootstrap
+
+head -1 as2-slump.s > $testno.s
+s_bootstrap $testno.s -f xyz -n 3 --out $testno.xyz. -d 1 -p
+declare -a vmin=( `cat $testno.xyz.3.vmin` )
+declare -a vint=( `cat $testno.xyz.2.vint` )
+declare -a vmax=( `cat $testno.xyz.1.vmax` )
+vminlen=`echo "${vmin[0]}  ${vmin[1]}  ${vmin[2]}"  |  awk '{print sqrt($1*$1 + $2*$2 + $3*$3)}'`
+vintlen=`echo "${vint[0]}  ${vint[1]}  ${vint[2]}"  |  awk '{print sqrt($1*$1 + $2*$2 + $3*$3)}'`
+vmaxlen=`echo "${vmax[0]}  ${vmax[1]}  ${vmax[2]}"  |  awk '{print sqrt($1*$1 + $2*$2 + $3*$3)}'`
+
+unset vmin vint vmax
+
+t=`echo $vminlen $vintlen | awk '{if ($1>$2) print 0; else print 1}' `
+if [ 0 == $t ]; then echo "Test number $testno:    FAILED 1";exit 1; fi
+t=`echo $vminlen $vmaxlen | awk '{if ($1>$2) print 0; else print 1}' `
+if [ 0 == $t ]; then echo "Test number $testno:    FAILED 2";exit 1; fi
+t=`echo $vintlen $vmaxlen | awk '{if ($1>$2) print 0; else print 1}' `
+if [ 0 == $t ]; then echo "Test number $testno:    FAILED 3";exit 1; fi
+
+testno=$[testno+1]
+
+# for the 1 file output from s_bootstrap
+# Make sure that things all come out in the right order
+
+head -1 as2-slump.s > $testno.s
+s_bootstrap $testno.s -f xyz -n 1 --out $testno.xyz -d 1 -p
+declare -a v=( `cat $testno.xyz` )
+vminlen=`echo "${v[0]}  ${v[1]}  ${v[2]}"  |  awk '{print sqrt($1*$1 + $2*$2 + $3*$3)}'`
+vintlen=`echo "${v[3]}  ${v[4]}  ${v[5]}"  |  awk '{print sqrt($1*$1 + $2*$2 + $3*$3)}'`
+vmaxlen=`echo "${v[6]}  ${v[7]}  ${v[8]}"  |  awk '{print sqrt($1*$1 + $2*$2 + $3*$3)}'`
+
+#echo min = $vminlen int = $vintlen max = $vmaxlen
+unset v
+
+t=`echo $vminlen $vintlen | awk '{if ($1>$2) print 0; else print 1}' `
+if [ 0 == $t ]; then echo "Test number $testno:    FAILED 1";exit 1; fi
+t=`echo $vminlen $vmaxlen | awk '{if ($1>$2) print 0; else print 1}' `
+if [ 0 == $t ]; then echo "Test number $testno:    FAILED 2";exit 1; fi
+t=`echo $vintlen $vmaxlen | awk '{if ($1>$2) print 0; else print 1}' `
+if [ 0 == $t ]; then echo "Test number $testno:    FAILED 3";exit 1; fi
+
+testno=$[testno+1]
+
