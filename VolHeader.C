@@ -143,10 +143,89 @@ VolHeader::VolHeader(const size_t _width, const size_t _height, const size_t dep
   rotX=rotY=rotZ=(hton_float(1.f));
 }
 
+#include <fcntl.h>   /* File control definitions */
+#include <errno.h>   /* Error number definitions */
+#include <termios.h> /* POSIX terminal control definitions */
+#include <term.h>
+#include <sys/select.h>
+#include <unistd.h>  // Select 
+#include <sys/mman.h>	// mmap
+#include <sys/types.h>
+#include <sys/stat.h>
+
+// It is not okay to talk to a this class if it returns false
 VolHeader::VolHeader(const std::string filename, bool &ok) {
   ok=true;
-  assert (false);
-}
+  struct stat sb;
+  int r = stat (filename.c_str(), &sb);
+  if (0 != r) {
+    perror("stat to get file size FAILED");
+    ok=false; return;
+  }
+  cout << "File size: " << sb.st_size << endl;
+
+  if (8> sb.st_size) {
+    cerr << "File too small to be a valid volume/voxel file" << endl;
+    ok=false;
+    return;
+  }
+
+  int fd = open (filename.c_str(), O_RDONLY, 0);
+  if (-1==fd) {
+    perror ("open failed");
+    return ;
+  }
+  char *file = (char *)mmap (0, sb.st_size, PROT_READ,  MAP_FILE, fd, 0);
+  if ((char *)(-1)==file) {
+    perror ("mmap FAILED");
+    return ;
+  }
+  close(fd); // Close does not munmap
+
+  char *next=file;
+
+  uint32_t *mnPtr  = (uint32_t *)(next); next+=sizeof(uint32_t);
+  uint32_t *hlPtr  = (uint32_t *)(next); next+=sizeof(uint32_t);
+  uint32_t *wPtr   = (uint32_t *)(next); next+=sizeof(uint32_t);
+  uint32_t *hPtr   = (uint32_t *)(next); next+=sizeof(uint32_t);
+  uint32_t *iPtr   = (uint32_t *)(next); next+=sizeof(uint32_t);
+  uint32_t *bpvPtr = (uint32_t *)(next); next+=sizeof(uint32_t);
+  uint32_t *ibPtr  = (uint32_t *)(next); next+=sizeof(uint32_t);
+
+  float *sxPtr = (float *)(next); next+=sizeof(float);
+  float *syPtr = (float *)(next); next+=sizeof(float);
+  float *szPtr = (float *)(next); next+=sizeof(float);
+
+  float *rxPtr = (float *)(next); next+=sizeof(float);
+  float *ryPtr = (float *)(next); next+=sizeof(float);
+  float *rzPtr = (float *)(next); next+=sizeof(float);
+
+  if (nMagicNum() != *mnPtr) {ok=false;cerr<<"bad magic number"<<endl;}
+  if (requiredSize() != ntoh_uint32(*hlPtr)) {ok=false;cerr<<"bad header size"<<endl;}
+
+  magic_number = *mnPtr;
+  header_length = *hlPtr;
+
+  width = *wPtr;
+  height = *hPtr;
+  images = *iPtr;
+  bits_per_voxel = *bpvPtr;
+  index_bits = *ibPtr;
+
+  scaleX = *sxPtr;
+  scaleY = *syPtr;
+  scaleZ = *szPtr;
+
+  rotX = *rxPtr;
+  rotY = *ryPtr;
+  rotZ = *rzPtr;
+
+  {
+    int r = munmap(file,sb.st_size);
+    if (-1==r) {perror ("munmap failed");ok=false; return;}
+  }
+  return;
+} // VolHeader(filename)
 
 uint32_t VolHeader::getMagicNumber() const { return (ntoh_uint32(magic_number)); }
 uint32_t VolHeader::getHeaderLength() const { return (ntoh_uint32(header_length)); }
@@ -171,12 +250,27 @@ float VolHeader::getRotZ() const { return (ntoh_float(rotZ)); }
 #ifdef REGRESSION_TEST
 
 bool test1() {
+  bool ok=true;
   cout << "      test1" << endl;
 
-  VolHeader v(10,10,10);
+  {
+    VolHeader v(10,10,10);
+  }
 
-  return (true);
+  return (ok);
 } // test1
+
+
+bool test2() {
+  bool ok=true;
+  cout << "      test2" << endl;
+
+  bool okLoad;
+  VolHeader v(string("test3.vol"),okLoad);
+  if (!okLoad) {ok=false; cerr << "failed to load test3.vol header"<<endl;}
+
+  return (ok);
+} // test2
 
 int main (UNUSED int argc, char *argv[]) {
   // Put test code here
@@ -198,6 +292,7 @@ int main (UNUSED int argc, char *argv[]) {
   if (4!=sizeof(uint32_t)) {FAILED_HERE;ok=false;} // Must be 4 for vol_header
 
   if (!test1()) {FAILED_HERE;ok=false;}
+  if (!test2()) {FAILED_HERE;ok=false;}
 
   cout << "  " << argv[0] << " test:  " << (ok?"ok":"failed")<<endl;
   return (ok?EXIT_SUCCESS:EXIT_FAILURE);
