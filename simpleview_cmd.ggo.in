@@ -30,12 +30,14 @@ option "verbosity" v "Set the verbosity level (0=quiet 10=verbose 20=bombastic)"
 option "width" W "Width of rendered frames in pixels" int default="800" no
 option "height" H "Height of rendered frames in pixels" int default="600" no
 
+option  "color" c "Set the background color, e.g. white would be 255,255,255" string default="0,0,0" no
+
 option "basename" b "Basename to use when creating output files" string default="simpleview-frame-"
 
 option "keys" k "Dump the hot keys list that work inside the viewer" no
 
 option "list" l "List the output file formats available for dumping images" no
-option "type" t "File format to write rendered files too.  See --list for file types" string default="png" no 
+option "type" t "File format to write rendered files too.  See --list for file types" string default="rgb" no 
 
 option "waypoints" w "Load in waypoints from a file" string typestr="filename" no
 
