@@ -70,8 +70,8 @@ bool LoadData(const string &filename, Density &d) {
   float _x,_y,_z;
   size_t count=0;
   while (in >> _x >> _y >> _z) {
-    if      (10<=debug_level) { if (0==count%100000 ) cout << count << endl; count ++; }
-    else if ( 4<=debug_level) { if (0==count%1000000) cout << count << endl; count ++;}
+    if      (10<=debug_level) { if (0==count%100000  && 0!=count) cout << count << endl; count ++; }
+    else if ( 4<=debug_level) { if (0==count%1000000 && 0!=count) cout << count << endl; count ++;}
     d.addPoint(_x,_y,_z);
   }
 
@@ -169,7 +169,7 @@ int main (int argc, char *argv[]) {
 
   if (!r) {ok=false; cerr << " ERROR: Unable to correctly write out vol file" << endl;}
 
-  DebugPrintf(TRACE,("Exit status: %s\n", (ok?"ok":"failure") ));
+  DebugPrintf(VERBOSE+1,("Exit status: %s\n", (ok?"ok":"failure") ));
 
   return (ok?EXIT_SUCCESS:EXIT_FAILURE);
 }
