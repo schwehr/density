@@ -108,18 +108,40 @@ Cdf::Cdf(const vector<size_t> &data, bool countZeros) {
       count++;
     }
   }
+  value.push_back(d[d.size()-1]);
+  percent.push_back(1.0);
 } // Cdf::Cdf
 
 
 float Cdf::getCDF(const size_t val) {
   size_t offset;
-  for (offset=0;offset<value.size() && val<value[offset];offset++);
+  for (offset=0;offset<value.size() && val>value[offset];offset++) {
+  }
   if (offset>=value.size()) return (1.f);
   if (val==value[offset]) return (percent[offset]);
   if (0==offset && val < value[offset]) return (0.f);
   if (val < value[offset]) return (value[offset-1]);
   assert(false); // Should not be able to reach here
   return(0);
+}
+
+float Cdf::getCDF(const size_t val, float &bottom, float &top) {
+  float result;
+  size_t offset;
+  for (offset=0;offset<value.size() && val>value[offset];offset++);
+  if (offset>=value.size()) result=1.f;
+  else if (val==value[offset]) result=percent[offset];
+  else if (0==offset && val < value[offset]) result = 0.f;
+  else if (val < value[offset]) result = value[offset-1];
+  else {assert(false);}
+
+  if (0==offset) {bottom=0.; top=result;}
+  else {
+    top=result;
+    bottom=percent[offset-1];
+  }
+
+  return(result);
 }
 
 
@@ -136,7 +158,8 @@ void Cdf::writeForGraphing(const string &filename) {
     if (0!=i) o << value[i-1] << " " << percent[i] << endl;
     o << value[i] << " " << percent[i] << endl;
   }
-  o << value[value.size()-1]+1 << " " << 1.0;
+  //o << value[value.size()-1] << " " << 1.0 <<endl;
+  //o << value[value.size()-1]+1 << " " << 1.0 << endl;
 }
 
 
@@ -145,6 +168,16 @@ void Cdf::writeForGraphing(const string &filename) {
 //####################################################################
 #ifdef REGRESSION_TEST
 
+static bool
+isEqual (const float a, const float b, const float del) {
+  return ( ( a<b+del && a > b-del) ? true : false );
+}
+
+void print(const vector<size_t> &v) {
+  for (vector<size_t>::const_iterator i=v.begin();i!=v.end();i++)
+    cout << *i << endl;
+}
+
 bool test1() {
   cout << "      test1" << endl;
   vector<size_t> t;
@@ -152,9 +185,28 @@ bool test1() {
   for(size_t i=0;i<10;i++) t.push_back(10);
   for(size_t i=0;i<12;i++) t.push_back(11);
   for(size_t i=0;i<10;i++) t.push_back(13);
+  //print(t);
+
   Cdf cdf(t,true);
   cdf.print();
   cdf.writeForGraphing(string("test1.cdf"));
+
+  if (!isEqual(0.1153,cdf.getCDF(5), 0.001)) {FAILED_HERE; return(false);}
+  {
+    float top,bot;
+    if (!isEqual(0.1153,cdf.getCDF(5,bot,top), 0.001)) {FAILED_HERE; return(false);}
+    if (!isEqual(0.09615, bot, 0.001)) {FAILED_HERE; return(false);}
+    if (!isEqual(0.11538, top, 0.001)) {FAILED_HERE; return(false);}
+
+    if (!isEqual(0.01923,cdf.getCDF(0,bot,top), 0.001)) {FAILED_HERE; return(false);}
+    if (!isEqual(0.00000, bot, 0.0001)) {FAILED_HERE; return(false);}
+    if (!isEqual(0.01923, top, 0.0001)) {FAILED_HERE; return(false);}
+
+    if (!isEqual(1.00000,cdf.getCDF(19,bot,top), 0.001)) {FAILED_HERE; return(false);}
+    if (!isEqual(0.98077, bot, 0.0001)) {FAILED_HERE; return(false);}
+    if (!isEqual(1.00000, top, 0.0001)) {FAILED_HERE; return(false);}
+
+  }
 
   return (true);
 }
