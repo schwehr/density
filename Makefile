@@ -39,7 +39,10 @@ help:
 	@echo "  make info        - Display a number of internal make variables"
 	@echo
 	@echo "  Add 'OPTIMIZE=1' - Build with optimizations enabled and then test"
-
+	@echo
+	@echo " To run a complete demo"
+	@echo
+	@echo '  export PATH=$${PATH}:`pwd`; export ACOCRC=`pwd`/.acoc.conf;  acoc bootbol-thesis.bash'
 
 
 CXXFLAGS := -Wall -Wimplicit -pedantic -W -Wstrict-prototypes -Wredundant-decls
