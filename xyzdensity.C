@@ -84,7 +84,10 @@ static const UNUSED char* RCSid ="@(#) $Id$";
 bool LoadData(const string &filename, Density &d) {
 
   ifstream in(filename.c_str(),ios::in);
-  cout << "FIX: check that file opened ok" << endl;
+  if (!in.is_open()) {
+    cerr << "ERROR: failed to open " << filename << endl;
+    return(false);
+  }
 
   float _x,_y,_z;
   while (in >> _x >> _y >> _z) d.addPoint(_x,_y,_z);
@@ -123,6 +126,10 @@ int main (int argc, char *argv[]) {
 	 << "    " << argv[0] << " --help" << endl;
     return (EXIT_FAILURE);
   }
+
+  if (a.xmin_arg>=a.xmax_arg) {cerr<<"ERROR: xmax must be greater than xmin" << endl; return(EXIT_FAILURE);}
+  if (a.ymin_arg>=a.ymax_arg) {cerr<<"ERROR: ymax must be greater than ymin" << endl; return(EXIT_FAILURE);}
+  if (a.zmin_arg>=a.zmax_arg) {cerr<<"ERROR: zmax must be greater than zmin" << endl; return(EXIT_FAILURE);}
 
   const PackType packing=PackType(a.pack_arg);
   const string infile (a.in_arg);
