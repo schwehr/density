@@ -25,7 +25,7 @@ float ntoh_float(const float value);
 /// This is kind of close:
 ///
 /// http://www.cs.purdue.edu/homes/sun/Teach/530_01S/Assignments/Data/FORMAT.TXT///
-/// Stores data internally in network byte order
+/// Stores data internally in host byte order
 
 class  VolHeader {
 public:
@@ -35,6 +35,10 @@ public:
   /// \param filename File to read from
   /// \param ok Passes back \a true if file read ok
   VolHeader(const std::string filename, bool &ok);
+
+  /// \brief Use fwrite to put out the header
+  /// \return Returns the number of bytes written
+  size_t write(FILE *outFile);
 
   //size_t getSize() const {return(sizeof(VolHeader));}
 
