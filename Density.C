@@ -94,11 +94,12 @@ Density::addPoint(const float x, const float y, const float z) {
   if (cellNum==badValue()) return (false); // Outside!!
   assert (cellNum<counts.size());
   counts[cellNum]++;
+  totalPointsInside++;
   return(true);
 }
 
 void Density::printCellCounts()const {
-  for (size_t i; i<width*height*depth;i++) {
+  for (size_t i=0; i<width*height*depth;i++) {
     float x,y,z; getCellCenter(i,x,y,z);
     size_t cx,cy,cz;
     cout << i << " " << counts[i] 
@@ -110,9 +111,9 @@ void Density::printCellCounts()const {
 
 size_t
 Density::getCell(const float x, const float y, const float z) const {
-  if (!(xR[0] <= x || x <= xR[1])) return (badValue());  // Outside
-  if (!(yR[0] <= y || y <= yR[1])) return (badValue());  // Outside
-  if (!(zR[0] <= z || z <= zR[1])) return (badValue());  // Outside
+  if (!(xR[0] <= x && x <= xR[1])) return (badValue());  // Outside
+  if (!(yR[0] <= y && y <= yR[1])) return (badValue());  // Outside
+  if (!(zR[0] <= z && z <= zR[1])) return (badValue());  // Outside
 
   const size_t xIndex = getCellX(x);  //size_t((x-xR[0])/dx);
   const size_t yIndex = getCellY(y);  //size_t((y-yR[0])/dy);
@@ -167,10 +168,31 @@ bool test1() {
   if (d.addPoint(.5,0.5,5))  {FAILED_HERE;return(false);}
   if (1!=d.getCountInside()) {FAILED_HERE;return(false);}
 
+  if (1!=d.getWidth()) {FAILED_HERE;return(false);}
+  if (1!=d.getHeight()) {FAILED_HERE;return(false);}
+  if (1!=d.getDepth()) {FAILED_HERE;return(false);}
+
+  cout << "  cell counts: " <<  endl;
   d.printCellCounts();
 
   return (true);
-}
+} // test1
+
+bool test2() {
+  cout << "      test2" << endl;
+
+  Density d(2,1,1,  0.,2.,  0.,1.,  0.,1.);
+  if (0!=d.getCountInside())     {FAILED_HERE;return(false);}
+  d.addPoint(0.5,.1,.1);
+  if (1!=d.getCellCount(0))     {FAILED_HERE;return(false);}
+  if (0!=d.getCellCount(1))     {FAILED_HERE;return(false);}
+  d.addPoint(1.5,.1,.1);
+  if (1!=d.getCellCount(0))     {FAILED_HERE;return(false);}
+  if (1!=d.getCellCount(1))     {FAILED_HERE;return(false);}
+
+  return(true);
+} // test2
+
 
 int main (UNUSED int argc, char *argv[]) {
   // Put test code here
@@ -179,6 +201,7 @@ int main (UNUSED int argc, char *argv[]) {
   cout << "      Size of Density Class (in bytes): " << sizeof(Density) << endl;
 
   if (!test1()) {FAILED_HERE;ok=false;}
+  if (!test2()) {FAILED_HERE;ok=false;}
 
   cout << "  " << argv[0] << " test:  " << (ok?"ok":"failed")<<endl;
   return (ok?EXIT_SUCCESS:EXIT_FAILURE);

@@ -37,6 +37,8 @@ public:
 
   void getCellCenter(const size_t cellNum, float &x, float &y, float &z) const;
 
+  size_t getCellCount(size_t i) const{assert(isValidCell(i));return(counts[i]);}
+
 
   /// This is the value for an unknown or bad entry.  Should be a huge number that we would never encounter.
   static size_t badValue() {return(std::numeric_limits<size_t>::max());}
