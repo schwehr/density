@@ -150,13 +150,22 @@ keyPressCallback(void *data, SoEventCallback *cb) {
       static int count=0;
       char countBuf[12];
       snprintf(countBuf,12,"%04d",count++);
-      const string filename=string(si->a->basename_arg)+string(countBuf)+string(".rgb");
+      //const string filename=string(si->a->basename_arg)+string(countBuf)+string(".rgb");
+      const string filename =
+	string(si->a->basename_arg)
+	+ string(countBuf)
+	+ string(".")
+	+ string(si->a->type_arg);
+#if 0
       FILE *outFile=fopen(filename.c_str(),"wb");
       if (!outFile) {
 	perror ("Unable to open output file");
 	return;
       }
-      ok = renderer->writeToRGB(outFile);
+#endif
+      //ok = renderer->writeToRGB(outFile);
+      SbName filetype(si->a->type_arg);
+      ok = renderer->writeToFile(filename.c_str(), filetype);
       if (!ok) {
 	cerr << "Failed to render" << endl;
       }
@@ -203,6 +212,19 @@ void ListWriteFileTypes() {
 
 } // ListWriteFileTypes
 
+/// \brief Check with coin/simage to see if the image extension works
+bool CheckTypeValid(const string &type) {
+  
+  if (!SoDB::isInitialized()) SoDB::init();
+  SbViewportRegion *viewport= new SbViewportRegion();
+  SoOffscreenRenderer *r = new SoOffscreenRenderer(*viewport);
+  SbName name(type.c_str());
+  SbBool ok=r->isWriteSupported(name);
+  delete r;
+  delete viewport;
+  return (ok);
+}
+
 /***************************************************************************
  * MAIN
  ***************************************************************************/
@@ -230,10 +252,13 @@ int main(int argc, char *argv[])
 
   if (a.list_given) { ListWriteFileTypes();  return (EXIT_SUCCESS); }
 
-
   QWidget* myWindow = SoQt::init(argv[0]);
   if ( myWindow==NULL ) return (EXIT_FAILURE);
   SoVolumeRendering::init();
+
+  if (a.type_given)
+    if (!CheckTypeValid(string(a.type_arg)))
+      { cerr << "File type not valid: --type=" << a.type_arg << endl; return (EXIT_FAILURE); }
 
 
   SceneInfo *si = new SceneInfo;
@@ -249,6 +274,7 @@ int main(int argc, char *argv[])
 
   {
     si->camera = new SoPerspectiveCamera;
+    si->root->addChild(si->camera);
   }
 
 
