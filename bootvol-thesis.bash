@@ -27,8 +27,8 @@
 # Owens Lake data.
 
 export PATH=${PATH}:.
-cells=20
-draw=10000
+cells=50
+draw=100000
 declare -ar groups=( as1-crypt as2-slump as3-undef )
 declare -r w=0.5
 declare -r boundaries="-x -${w} -X ${w} -y -${w} -Y ${w} -z -${w} -Z ${w}"
@@ -36,7 +36,7 @@ declare -r boundaries="-x -${w} -X ${w} -y -${w} -Y ${w} -z -${w} -Z ${w}"
 echo $boundaries
 
 # FIX: remove this make
-make s_bootstrap xyzdensity xyzvol_cmp volhdr_edit
+make s_bootstrap xyzdensity xyzvol_cmp volhdr_edit vol_iv
 
 
 
@@ -65,11 +65,17 @@ if [ 1 == 1 ]; then
 	volhdr_edit ${group}-all-1.0.vol --out=${group}-all-0.5.vol --xscale=0.5 --yscale=0.5 --zscale=0.5
 	volhdr_edit ${group}-all-1.0.vol --out=${group}-all-2.0.vol --xscale=2.0 --yscale=2.0 --zscale=2.0
 
+	#vol_iv -b=2 -c ALPHA_BLENDING --numslicescontrol=ALL -p NONE -C kurt.cmap -o density.iv density.vol
+	vol_iv -b=2 -c ALPHA_BLENDING --numslicescontrol=ALL -p NONE -C kurt.cmap -o ${group}-all-1.0.iv ${group}-all-1.0.vol
+
 	scale="--xscale=0.5 --yscale=0.5 --zscale=0.5"
 	volhdr_edit ${group}-vmax.vol --out=tmp $scale && /bin/mv tmp ${group}-vmax.vol
 	volhdr_edit ${group}-vint.vol --out=tmp $scale && /bin/mv tmp ${group}-vint.vol
 	volhdr_edit ${group}-vmin.vol --out=tmp $scale && /bin/mv tmp ${group}-vmin.vol
     #volinfo -r -i ${group}-vmax.vol
+
+
+
     done
 fi
 
