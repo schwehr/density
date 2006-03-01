@@ -132,14 +132,15 @@ targets: ${TARGETS} test
 # e.g. make simpleview FINK='/sw'
 FINK:=/sw
 FINK_SAFE:=${subst /,\\/,${FINK}}
-
-density.info: density.info.in Makefile
+FINK_VER:=10.4-transitional
+density.info: density.info.in Makefile clean
 	make tar
 	perl -pe "s/\@VERSION\@/`cat VERSION`/g" density.info.in > d.tmp
 	perl -pe "s/\@MD5\@/`md5sum ${TARNAME}.tar.bz2 | cut -d' ' -f1`/g" d.tmp > density.info
 	rm -f d.tmp
-	mkdir -p ${FINK}/fink/10.3/local/main/finkinfo/graphics
-	cp density.info ${FINK}/fink/10.3/local/main/finkinfo/graphics
+	mkdir -p ${FINK}/fink/${FINK_VER}/local/main/finkinfo/graphics
+	sudo mkdir -p ${FINK}/fink/${FINK_VER}/local/main/finkinfo/graphics
+	cp density.info ${FINK}/fink/${FINK_VER}/local/main/finkinfo/graphics
 	sudo cp ${TARNAME}.tar.bz2 ${FINK}/src
 
 ######################################################################
