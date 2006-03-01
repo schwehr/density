@@ -20,6 +20,7 @@
 #ifndef _VECANGLE_H_
 #define _VECANGLE_H_
 
+#include <math.h>
 
 /// \file
 /// \brief  Utilities for vectors and angles.
