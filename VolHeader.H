@@ -125,8 +125,8 @@ private:
   uint32_t height;        ///< Height in cells/pixels in the y direction
   uint32_t images;        ///< Depth in cells/pixels in the z direction
   uint32_t bits_per_voxel; ///< We are only going to support 8 for now!
-  /// \bug Do not know what to do with index bits
-  uint32_t index_bits;    ///< 0.  What are index bits for?
+  /// FIX does the bug tag not work?  bug Do not know what to do with index bits
+  uint32_t index_bits;    ///< What are index bits for?
   /// Scale the model in the x-axis.  Usually 1.0
   float scaleX, scaleY, scaleZ;
   /// You could rotate this model here
