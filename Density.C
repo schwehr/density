@@ -633,7 +633,7 @@ bool test3() {
     // FIX: Would be better to read someone elses file.
     bool result;
     Density d(filename,result);
-    if (!result) {FAILED_HERE;return(FALSE);}
+    if (!result) {FAILED_HERE;return(false);}
     if (!d.writeVolScale(filename+string("2"))) {FAILED_HERE;return(false);}
   }
 
