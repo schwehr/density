@@ -46,8 +46,8 @@ help:
 	@echo
 	@echo '  export PATH=$${PATH}:`pwd`; export ACOCRC=`pwd`/.acoc.conf;  acoc bootbol-thesis.bash'
 
-
-CXXFLAGS := -Wall -Wimplicit -pedantic -W -Wstrict-prototypes -Wredundant-decls
+# -Wstrict-prototypes
+CXXFLAGS := -Wall -Wimplicit -pedantic -W -Wredundant-decls
 CXXFLAGS += -I/sw/include -L/sw/lib -I/sw/include/qt
 
 
