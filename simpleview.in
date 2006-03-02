@@ -1,9 +1,11 @@
 #!/bin/bash
 
-if [ -z "$DYLD_LIBRARY_PATH" ]; then
-    export DYLD_LIBRARY_PATH=@FINK@/lib
+unset DYLD_LIBRARY_PATH
+
+if [ -z "$DYLD_FALLBACK_LIBRARY_PATH" ]; then
+    export DYLD_FALLBACK_LIBRARY_PATH=@FINK@/lib
 else
-    export DYLD_LIBRARY_PATH=@FINK@/lib:$DYLD_LIBRARY_PATH
+    export DYLD_FALLBACK_LIBRARY_PATH=@FINK@/lib:$DYLD_LIBRARY_PATH
 fi
 
 # FIX: what if this is in the local directory?
