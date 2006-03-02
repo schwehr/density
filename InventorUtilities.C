@@ -344,19 +344,22 @@ WriteSceneGraph (const string &filename, SoNode *root) {
   return (true);
 }
 
+
+// 10.4 uses DYLD_FALLBACK_LIBRARY_PATH not DYLD_LIBRARY_PATH
+// Change to just warn, not fail
 bool CheckLibraryPath () {
 #ifdef __APPLE__ // DARWIN/MacOSX
-  char *path = getenv("DYLD_LIBRARY_PATH");
+  char *path = getenv("DYLD_FALLBACK_LIBRARY_PATH");
   if (!path) {
     cerr  << __FILE__ << ":" << __LINE__ << " ERROR!\n"
-	  << "  Unable to find DYLD_LIBRARY_PATH.  Must have it set for simage to work!\n"
+	  << "  Unable to find DYLD_FALLBACK_LIBRARY_PATH.  Must have it set for simage to work!\n"
 	  << "  e.g. for bash\n\n"
-	  << "        export DYLD_LIBRARY_PATH=/sw/lib\n"
+	  << "        export DYLD_FALLBACK_LIBRARY_PATH=/sw/lib\n"
 	  << endl;
     return (false);
   }
   if (0==strstr(path,"/sw/lib")) {
-    cerr << "WARNING:  did not find /sw/lib in your DYLD_LIBRARY_PATH.\n"
+    cerr << "WARNING:  did not find /sw/lib in your DYLD_FALLBACK_LIBRARY_PATH.\n"
 	 << "  This may be ok, but do not be surprised if simage will not write images to disk\n"
 	 << "  Continuing on despite the danger\n"
 	 << endl;
