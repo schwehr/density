@@ -18,4 +18,6 @@
 * Add a headlight to the offscreen render!
 
 * nana design by contract for any further coding
-* unit testing which "check" or CUnit
+* unit testing which "check" or CUnit 
+* cppunit is probably the best bet
+* The main directory is getting too cluttered
