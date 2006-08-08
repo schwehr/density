@@ -381,10 +381,18 @@ info:
 	@echo " GENGETOPT_BINS  -  " ${GENGETOPT_BINS}
 
 
+mentor:
+	open "http://www-evasion.imag.fr/Membres/Francois.Faure/doc/inventorMentor/sgi_html/"
+toolmaker:
+	open "http://www-evasion.imag.fr/Membres/Francois.Faure/doc/inventorToolmaker/sgi_html/index.html"
+
 # When you need to "RTFS/RTFM"... get the latest
 CVSROOT_SIM:= ":pserver:cvs@cvs.coin3d.org:/export/cvsroot"
 sim-cvs-login:
 	-mkdir tmp
+	@echo
+	@echo "cvs user is 'cvs' and a blank passwd"
+	@echo
 	cd tmp && export CVSROOT=${CVSROOT_SIM} && cvs login
 get-cvs-coin:
 	-mkdir tmp
