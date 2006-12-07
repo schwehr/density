@@ -174,8 +174,12 @@ simpleview: simpleview.in simpleview_bin
 	perl -pe "s/\@FINK\@/${FINK_SAFE}/g" $< > $@
 	chmod +x $@
 
+IVLIBS := ${shell soqt-config --libs} ${shell simvoleon-config --libs}
+IVLDFLAGS := ${shell soqt-config --ldflags}
+
 simpleview_bin: simpleview_cmd.o InventorUtilities.o simpleview.C
-	${CXX} -o $@ $^  -I/sw/include/qt ${CXXFLAGS} -lsimage -lCoin -lSoQt -lSimVoleon -lqt-mt -bind_at_load -Wno-long-long
+	${CXX} -o $@ $^  -I/sw/include/qt ${CXXFLAGS}  ${IVLDFLAGS} ${IVLIBS} -bind_at_load -Wno-long-long
+#	${CXX} -o $@ $^  -I/sw/include/qt ${CXXFLAGS} -lsimage -lCoin -lSoQt -lSimVoleon -lqt-mt -bind_at_load -Wno-long-long
 
 xyzdensity: xyzdensity.C Density.o VolHeader.o xyzdensity_cmd.o
 	${CXX} -o $@ $^ ${CXXFLAGS}
