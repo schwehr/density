@@ -261,7 +261,7 @@ test: ${TARGETS}
 		./$$file ;\
 		done
 	@echo 
-	./regression.bash
+	@echo "Skipping ./regression.bash ... Kurt is not doing bootstrap type work right now"
 	@echo 
 	@echo SUCCESS!!
 	@echo All tests passed in "${shell pwd}"
@@ -279,15 +279,17 @@ man: ${GENGETOPT_BINS} simpleview.help2man
 man2html: man
 	cd doc/man/man1 && for file in *.1; do groff -Tascii -man $$file | man2html > $${file%%.1}.html; done
 
+WEBSERVER:=vislab-ccom.unh.edu
+
 install-web: install-web-doxy install-web-man2html
-	scp ChangeLog kds:www/software/density
+	scp ChangeLog ${WEBSERVER}:www/software/density
 install-web-doxy: docs
-	scp doc/html/* kds:www/software/density/html
+	scp doc/html/* ${WEBSERVER}:www/software/density/html
 install-web-man2html: man2html
-	scp doc/man/man1/*.html kds:www/software/density/man
+	scp doc/man/man1/*.html ${WEBSERVER}:www/software/density/man
 install-web-html: html
-	scp [a-z]*.html Makefile.html kds:www/software/density/files
-	scp HEADER-files.html kds:www/software/density/files/HEADER.html
+	scp [a-z]*.html Makefile.html ${WEBSERVER}:www/software/density/files
+	scp HEADER-files.html ${WEBSERVER}:www/software/density/files/HEADER.html
 
 
 CODE2HTML_OPTS:=-o html-dark -N 
