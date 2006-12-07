@@ -602,7 +602,12 @@ int main(int argc, char *argv[])
   DebugPrintf(TRACE,("Debug level = %d\n",debug_level));
 #endif
 
+
+#if 1
   if (!CheckLibraryPath()) { cerr << "Bailing.  Library path check failed." << endl;  return(EXIT_FAILURE);}
+#else
+  cerr << "Skipping lib check!!!  DANGER\n";  // Use this for in the debugger if you must
+#endif
 
 
   if (a.list_given) { ListWriteFileTypes();  return (EXIT_SUCCESS); }
