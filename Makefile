@@ -68,7 +68,8 @@ CXXFLAGS += -Wno-long-double  -Wno-long-long
 
 ifdef OPTIMIZE
   CXXFLAGS += -O3 -funroll-loops -fexpensive-optimizations -DNDEBUG
-  CXXFLAGS += -ffast-math -mpowerpc
+#  CXXFLAGS += -mpowerpc
+  CXXFLAGS += -ffast-math
   CXXFLAGS += -DQT_NO_DEBUG
 # Don't want to exclude those with G3 cpus.
 # CXXFLAGS += -mtune=G4 -mcpu=G4

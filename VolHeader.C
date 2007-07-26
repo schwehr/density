@@ -125,7 +125,7 @@ hton_float(const float value)
   t2[2]=t1[1];
   t2[3]=t1[0];
   return(tmp);
-#elsex
+#else
 #  error UNKNOWN ENDIAN TYPE!
 #endif
 }
