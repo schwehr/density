@@ -1,10 +1,11 @@
 Package: density
 Version: @VERSION@
 Revision: 1
-Source: http://schwehr.org/software/density/%n-%v.tar.bz2
+#Source: http://schwehr.org/software/density/%n-%v.tar.bz2
+Source: http://vislab-ccom.unh.edu/~schwehr/software/density/%n-%v.tar.bz2
 Source-MD5: @MD5@
-BuildDepends: doxygen, soqt21-dev, simvoleon41, help2man, man2html, gsl, nana, gengetopt (>= 2.12)
-Depends: soqt21-shlibs, simvoleon41-shlibs, gnuplot, acoc, nana, gsl-shlibs
+BuildDepends: doxygen, soqt25-dev, simvoleon41, help2man, man2html, gsl, nana, gengetopt (>= 2.12)
+Depends: soqt25-shlibs, simvoleon41-shlibs, gnuplot, acoc, nana, gsl-shlibs
 CompileScript: <<
   #make test
   #make clean

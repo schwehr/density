@@ -133,7 +133,7 @@ targets: ${TARGETS} test
 # e.g. make simpleview FINK='/sw'
 FINK:=/sw
 FINK_SAFE:=${subst /,\\/,${FINK}}
-FINK_VER:=10.4-transitional
+FINK_VER:=10.4
 density.info: density.info.in Makefile clean
 	make tar
 	perl -pe "s/\@VERSION\@/`cat VERSION`/g" density.info.in > d.tmp
