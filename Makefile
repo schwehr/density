@@ -139,6 +139,8 @@ density.info: density.info.in Makefile clean
 	perl -pe "s/\@VERSION\@/`cat VERSION`/g" density.info.in > d.tmp
 	perl -pe "s/\@MD5\@/`md5sum ${TARNAME}.tar.bz2 | cut -d' ' -f1`/g" d.tmp > density.info
 	rm -f d.tmp
+
+install-desnity.info:
 	mkdir -p ${FINK}/fink/${FINK_VER}/local/main/finkinfo/graphics
 	sudo mkdir -p ${FINK}/fink/${FINK_VER}/local/main/finkinfo/graphics
 	cp density.info ${FINK}/fink/${FINK_VER}/local/main/finkinfo/graphics

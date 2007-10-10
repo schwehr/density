@@ -1,5 +1,10 @@
 #!/bin/bash
 
+#
+# Density wrapper to make sure that DYLD_LIBRARY_PATH is set for Darwin
+# FIX:  DYLD_LIBRARY_PATH is Darwin/MacOSX specific.  Fix for other arches!
+#
+
 unset DYLD_LIBRARY_PATH
 
 if [ -z "$DYLD_FALLBACK_LIBRARY_PATH" ]; then

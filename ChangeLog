@@ -1,3 +1,7 @@
+2007-10-10 Kurt Schwehr
+	* render.in  Was not working.  Suffered same JPEG error as was occuring with simpleview
+	* density.info.in. Fixed missing dependency on coin45-dev
+
 2006-03-22 Kurt Schwehr
 	* Switch to SVN server at CCOM
 	
