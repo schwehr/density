@@ -46,6 +46,10 @@
 #include <vector>
 #include <string>
 
+
+// QT so that we can resize the display
+#include <qwidget.h>
+
 //
 // Inventor/Coin
 //
@@ -625,6 +629,9 @@ int main(int argc, char *argv[])
   //
   QWidget* myWindow = SoQt::init(argv[0]);
   if ( myWindow==NULL ) return (EXIT_FAILURE);
+
+  // Use QWidget to give a better window size
+  myWindow->resize(a.width_arg,a.height_arg);
 #ifndef NO_VOLEON
   SoVolumeRendering::init();
 #endif
