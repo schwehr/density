@@ -684,6 +684,9 @@ int main(int argc, char *argv[])
     si->background = c;
     myViewer->setBackgroundColor(c);
   }
+
+  // View all so we get a sane initial view
+  si->camera->viewAll(si->root,myViewer->getViewportRegion(),10);
   
   myViewer->setSceneGraph( si->root );
   myViewer->show();
