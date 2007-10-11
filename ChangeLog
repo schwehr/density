@@ -1,4 +1,10 @@
+xxxx-xx-xx Kurt Schwehr <schwehr@mtbrewer>
+	* version: Released 0.23
+	* simpleview.C: Now use qwidget to set the screen size 
+	* simpleview.C: Camera viewall for better starting view point
+	
 2007-10-10 Kurt Schwehr
+	* version: Released 0.22
 	* render.in  Was not working.  Suffered same JPEG error as was occuring with simpleview
 	* density.info.in. Fixed missing dependency on coin45-dev
 
