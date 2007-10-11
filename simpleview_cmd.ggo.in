@@ -27,8 +27,8 @@ purpose "Coin/SimVoleon viewer of OpenInventor, VRML, and Voxel data"
 
 option "verbosity" v "Set the verbosity level (0=quiet 10=verbose 20=bombastic)" int default="0" no
 
-option "width" W "Width of rendered frames in pixels" int default="800" no
-option "height" H "Height of rendered frames in pixels" int default="600" no
+option "width" W "Width of rendered frames in pixels" int default="1024" no
+option "height" H "Height of rendered frames in pixels" int default="768" no
 
 option  "color" c "Set the background color, e.g. white would be 255,255,255" string default="0,0,0" no
 
