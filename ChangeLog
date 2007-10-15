@@ -1,4 +1,4 @@
-xxxx-xx-xx Kurt Schwehr <schwehr@mtbrewer>
+2007-10-15 Kurt Schwehr <schwehr@mtbrewer>
 	* version: Released 0.23
 	* simpleview.C: Now use qwidget to set the screen size 
 	* simpleview.C: Camera viewall for better starting view point
