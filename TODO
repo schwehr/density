@@ -1,3 +1,4 @@
+* Use autoconf to make this work cross platform
 * Test on Linux and ???
 * Allow tracking of sample names from .s file through to .cmp
 * simpleview - manipulation of lights
@@ -6,7 +7,6 @@
 * Rotate samples about z for best fit
 * Use splines to go between waypoints or something
 * Make a main man page for density
-* Have ggo's take the version from VERSION.  mv *.ggo to .ggo.in and perl them
 * simpleview needs a quit button or key!
 * Add a labeling command to vol_iv to allow titles
 * Make a new command that displays volume voxels as spheres, numbers, or cubes with optional alpha or color

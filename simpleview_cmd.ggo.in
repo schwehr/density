@@ -44,3 +44,5 @@ option "waypoints" w "Load in waypoints from a file" string typestr="filename" n
 option "interval" i "Minimum time between each frame in animating" float typestr="sec" default="0.25" no
 option "percent"  p "Fraction to move between each waypoint after each frame [0..1].  It is recommended to use an even divisor of 1.0 or your animation will jump at each waypoint" float default="0.1" no
 option "noloop" n "loop the animation" flag off
+
+option "statestamp" s "State history xml file to use for animation" string no

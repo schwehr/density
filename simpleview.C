@@ -46,6 +46,14 @@
 #include <vector>
 #include <string>
 
+// libxml2
+//#define WITH_LIBXML
+#ifdef WITH_LIBXML
+#include <Inventor/SbTime.h>
+#include <libxml/parser.h>
+#include <libxml/xpath.h>
+#endif
+
 
 // QT so that we can resize the display
 #include <qwidget.h>
@@ -147,23 +155,41 @@ public:
   static uint8_t nominalMagicNumber() {return(178);}
   //uint8_t getMagicNumber() const {return(magicNumber);}
   bool magicOk() const {return(nominalMagicNumber()==magicNumber);} ///< Test the class integrity
+
+#ifdef WITH_LIBXML
+    xmlNodeSetPtr ssml_nodes;  ///< State Stamp Markup nodes that give joint positions
+    int ssml_current_index;  ///< Current location within the stamps
+    SbTime lastTimeReal; ///< Previous time that was rendered in real wall clock time
+    SbTime lastTimeSSML; ///< Previous time that was rendered in the frame of the SSML
+    double startTimeSSML, endTimeSSML;
+    // FIX: add a time scale concept
+#endif
+
 private:
   uint8_t magicNumber; ///< Help make sure we have a valid SceneInfo structure 
 };
 
 /// Make a SceneInfo object with all pointers set to zero and not animating
-SceneInfo::SceneInfo() {
+SceneInfo::SceneInfo():camera(0), root(0),draggerSwitch(0),a(0)
+		      ,animating(false),render_frames_to_disk(false)
+		      ,connect_the_dots(false),connect_sep(0)
+		      ,cur_percent(0), cur_mark(0)
+#ifdef WITH_LIBXML
+		      ,ssml_nodes(0), ssml_current_index(0)
+		       //,lastTimeReal(0), lastTimeSSML(0)
+#endif
+{
   magicNumber = nominalMagicNumber();
-  camera = 0; root = 0; draggerSwitch = 0; draggerSwitch = 0;
-  a = 0;
-  animating=render_frames_to_disk=false;
+  //camera = 0; root = 0; draggerSwitch = 0; draggerSwitch = 0;
+  //a = 0;
+  //animating=render_frames_to_disk=false;
 
-  connect_the_dots=false;
-  connect_sep=0;
+  //connect_the_dots=false;
+  //connect_sep=0;
 
   // Animation position
-  cur_percent=0; // how far between waypoints
-  cur_mark=0;   // Which waypoint are we on
+  //cur_percent=0; // how far between waypoints
+  //cur_mark=0;   // Which waypoint are we on
 }
 
 
@@ -486,7 +512,36 @@ void timerSensorCallback(void *data, SoSensor *sensor) {
   assert(sensor);
   SceneInfo *si = (SceneInfo *)data;
 
+
+#ifdef WITH_LIBXML
+  // Take care of time updating and joint angles for state stamp XML control
+  //cout << "hello" << endl;
+  if (si->ssml_nodes) {
+      SbTime now = SbTime::getTimeOfDay();
+      const double deltaT = now.getValue() - si->lastTimeReal.getValue();
+      si->lastTimeReal = now;
+
+      DebugPrintf (BOMBASTIC,("deltaT %.4f\n",deltaT));
+      si->lastTimeSSML.setValue(si->lastTimeSSML.getValue()+deltaT);
+
+      if (si->lastTimeSSML.getValue() >= si->endTimeSSML) {
+	  DebugPrintf (TRACE,("Looping back to the beginning of the SSML\n"));
+	  si->lastTimeSSML.setValue(si->startTimeSSML);
+      }
+      //double currentTimeSSML = si->lastTimeSSML.getValue();
+      DebugPrintf (BOMBASTIC,("new SSML time %.4f\n",si->lastTimeSSML.getValue()));
+      
+      
+
+  } else {
+      DebugPrintf (BOMBASTIC,("No ssml loaded\n"));
+  }
+#endif
+
+
   if (!si->animating) {return;}  // not turned on right now
+
+
   if (si->draggerVec.size()<2) { si->animating=false;  cout << "nothing to animate!" << endl;   return;  }
 
   //
@@ -534,7 +589,11 @@ void timerSensorCallback(void *data, SoSensor *sensor) {
   DebugPrintf (VERBOSE,("Mark: %d      Step:  %f\n",int(si->cur_mark),si->cur_percent));
   si->cur_percent += si->a->percent_arg; // User configurable jump
 
+
+
   if (si->render_frames_to_disk) {
+    printf ("rendering frames to disk currently crashes the X11 server for Apple\n");
+#if 0
     DebugPrintf (TRACE,("ANIMATION: Rendering frame to disk file\n"));
     size_t frame_num;
     if (!RenderFrameToDisk (string(si->a->basename_arg),string(si->a->type_arg),
@@ -544,6 +603,7 @@ void timerSensorCallback(void *data, SoSensor *sensor) {
       cerr << "ERROR: Unable to write your artistic work.\n  You have been sensored." << endl;
     }
     DebugPrintf(TRACE+1,("ANIMATION: Finished writing frame number %04d\n",int(frame_num)));
+#endif
   }
 
   return;
@@ -606,6 +666,61 @@ int main(int argc, char *argv[])
   DebugPrintf(TRACE,("Debug level = %d\n",debug_level));
 #endif
 
+#ifdef WITH_LIBXML
+
+  if (!a.statestamp_given) {
+      DebugPrintf(VERBOSE,("No state stamp xml history given\n"));
+  } else {
+      DebugPrintf(TERSE,("statestamp... %s\n",a.statestamp_arg));
+      //DebugPrintf(VERBOSE,("statestamp_orig... %s\n",a.statestamp_orig));
+  }
+
+  SceneInfo *si = new SceneInfo;
+  si->a=&a;
+
+  //////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
+  if (a.statestamp_given) {
+      xmlDocPtr ssmldoc=xmlParseFile(a.statestamp_arg);
+      if (!ssmldoc) { fprintf(stderr,"FATAL ERROR: failed to load state stamp markup file.\n  We must not have a mind shaft gap!\n"); exit(EXIT_FAILURE);  }
+      //xmlNodePtr cur = xmlDocGetRootElement(ssmldoc);
+      xmlXPathContextPtr context = xmlXPathNewContext(ssmldoc);
+      if (!context) {fprintf(stderr,"FATAL ERROR: Can not get xmlXPathContextPtr!\n"); exit(EXIT_FAILURE);}
+      xmlXPathObjectPtr result = xmlXPathEvalExpression((xmlChar *)"//StateStampHistory/StateStamp", context);
+      xmlXPathFreeContext(context);
+      if (!result) {fprintf(stderr,"FATAL ERROR: XPath meltdown!\n  There will be no fighting in the war room.\n"); exit(EXIT_FAILURE);}
+      if(xmlXPathNodeSetIsEmpty(result->nodesetval)) {xmlXPathFreeObject(result);fprintf(stderr,"FATAL ERROR: not statestamps found\n");exit(EXIT_FAILURE);}
+      xmlNodeSetPtr nodeset=result->nodesetval;
+      DebugPrintf(TRACE,("Found %i state stamp nodes\n",nodeset->nodeNr));
+      const int numnodes=nodeset->nodeNr;
+      const xmlChar *startTime=xmlGetProp(nodeset->nodeTab[0],(xmlChar*)"Time");
+      const xmlChar *endTime=xmlGetProp(nodeset->nodeTab[numnodes-1],(xmlChar*)"Time");
+      DebugPrintf(TRACE,("  Time range: %s -> %s \n",startTime,endTime));
+
+      sscanf((const char *)startTime,"%lf",&(si->startTimeSSML));
+      sscanf((const char *)endTime,"%lf",&(si->endTimeSSML));
+      DebugPrintf(BOMBASTIC,("  Time range: %.4f -> %.4f \n",si->startTimeSSML,si->endTimeSSML));
+
+      si->ssml_nodes=nodeset;
+      si->lastTimeReal.setToTimeOfDay();
+      double ssmlStart;
+      sscanf((const char *)endTime,"%lf",&ssmlStart);
+      si->lastTimeSSML.setValue(ssmlStart);
+
+      DebugPrintf (BOMBASTIC,("  Initial real time: %10.5f\n",si->lastTimeReal.getValue()));
+      DebugPrintf (BOMBASTIC,("  Initial SSML time: %10.5f\n",si->lastTimeSSML.getValue()));
+      
+      //xmlNodeSetPtr nodeset=0;
+  } // statestamp_given
+
+  //printf ("EARLY EXIT\n");
+  //exit(1);
+  //////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
+
+#endif // WITH_LIBXML
 
 #if 1
   if (!CheckLibraryPath()) { cerr << "Bailing.  Library path check failed." << endl;  return(EXIT_FAILURE);}
@@ -641,10 +756,7 @@ int main(int argc, char *argv[])
       { cerr << "File type not valid: --type=" << a.type_arg << endl; return (EXIT_FAILURE); }
 
   DebugPrintf(VERBOSE,("FIX: check the range on width and height!\n"));
-  // FIX: allow rendering without opening a window
 
-  SceneInfo *si = new SceneInfo;
-  si->a=&a;
 
   si->root = new SoSeparator;
   si->root->ref();
