@@ -45,4 +45,5 @@ option "interval" i "Minimum time between each frame in animating" float typestr
 option "percent"  p "Fraction to move between each waypoint after each frame [0..1].  It is recommended to use an even divisor of 1.0 or your animation will jump at each waypoint" float default="0.1" no
 option "noloop" n "loop the animation" flag off
 
-option "statestamp" s "State history xml file to use for animation" string no
+option "statestamp" s "State history xml file to use for animation (SSML)" string no
+option "timescale" T "Scale the rate that time goes by for SSML (8..10 for Phoenix; 1 for realtime)" float default="1" no

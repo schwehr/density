@@ -185,6 +185,7 @@ public:
     double endTimeSSML; ///< Latest (newest) time in the ssml
     vector <StateStampJoints> statestamps;
     // FIX: add a time scale concept... faster/slower than realtime
+    float timeScale;
 #endif
 
 private:
@@ -198,6 +199,7 @@ SceneInfo::SceneInfo():camera(0), root(0),draggerSwitch(0),a(0)
 		      ,cur_percent(0), cur_mark(0)
 #ifdef WITH_LIBXML
 		      ,ssml_nodes(0), ssml_current_index(0)
+		      ,timeScale(1.)
 		       //,lastTimeReal(0), lastTimeSSML(0)
 #endif
 {
@@ -540,7 +542,9 @@ void timerSensorCallback(void *data, SoSensor *sensor) {
   //cout << "hello" << endl;
   if (si->ssml_nodes) {
       SbTime now = SbTime::getTimeOfDay();
-      const double deltaT = now.getValue() - si->lastTimeReal.getValue();
+      const double deltaT = si->timeScale*(now.getValue() - si->lastTimeReal.getValue());
+      cout << "deltaT " << deltaT << endl;
+
       si->lastTimeReal = now;
 
       DebugPrintf (BOMBASTIC,("deltaT %.4f\n",deltaT));
@@ -564,16 +568,13 @@ void timerSensorCallback(void *data, SoSensor *sensor) {
 	  for (size_t i=0;i<si->statestamps[si->ssml_current_index].rotNodes.size(); i++) {
 	      //cout << "setting angle: " << si->statestamps[si->ssml_current_index].angles[i].getValue() << endl;
 	      SoSFFloat angle = si->statestamps[si->ssml_current_index].angles[i];
-#if 1
 	      si->statestamps[si->ssml_current_index].rotNodes[i]->angle 
 		  = angle;
-#endif
 	  }
       }
       
-
-      double currentTimeSSML = si->lastTimeSSML.getValue();
-      DebugPrintf (BOMBASTIC,("new SSML time %.4f\n",currentTimeSSML));
+      //double currentTimeSSML = si->lastTimeSSML.getValue();
+      //DebugPrintf (BOMBASTIC,("new SSML time %.4f\n",currentTimeSSML));
 
   } else {
       DebugPrintf (BOMBASTIC,("No ssml loaded\n"));
@@ -697,7 +698,7 @@ bool LoadStateStampToVectors(vector<StateStampJoints> &statestamps, xmlNodeSetPt
     for (int i=0; i<nodeset->nodeNr; i++) {
 	xmlNodePtr n= nodeset->nodeTab[i];
 	const xmlChar *timeStampStr = xmlGetProp(n,(xmlChar*)"Time");
-	cout << "Loading time: " << timeStampStr << endl;
+	//cout << "Loading time: " << timeStampStr << endl;
 	struct StateStampJoints ssj;
 	double timeStamp;
 	sscanf((const char *)timeStampStr,"%lf",&timeStamp);
@@ -715,7 +716,7 @@ bool LoadStateStampToVectors(vector<StateStampJoints> &statestamps, xmlNodeSetPt
 	    //printf ("%.4f %s\n",timeStamp,name);
 	    SoSFFloat angle;
 	    angle.setValue(strtod(radStr,0));
-	    cout << "\t" << name << " -> " << angle.getValue() << endl;
+	    //cout << "\t" << name << " -> " << angle.getValue() << endl;
 
 	    // Find the node so that we can cache the pointer and get back to it quickly
 	    SoSearchAction mySearchAction;
@@ -791,6 +792,7 @@ int main(int argc, char *argv[])
   si->a=&a;
 
 
+
   // Use QWidget to give a better window size
   myWindow->resize(a.width_arg,a.height_arg);
 #ifndef NO_VOLEON
@@ -848,6 +850,10 @@ int main(int argc, char *argv[])
   //////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////
   if (a.statestamp_given) {
+      si->timeScale=a.timescale_arg;
+      DebugPrintf(TERSE,("TimeScale (higher is faster.  1==realtime): %f\n",a.timescale_arg));
+
+      
       xmlDocPtr ssmldoc=xmlParseFile(a.statestamp_arg);
       if (!ssmldoc) { fprintf(stderr,"FATAL ERROR: failed to load state stamp markup file.\n"); exit(EXIT_FAILURE); }
       //xmlNodePtr cur = xmlDocGetRootElement(ssmldoc);
