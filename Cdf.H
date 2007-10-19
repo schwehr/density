@@ -35,6 +35,8 @@
 /// The first value will \a not be 0.  The final value should be ~1.
 size_t cdf(const std::vector<size_t> &data, std::vector<size_t> &value, std::vector<float> percent);
 
+/// \brief cumulative density function
+
 class Cdf {
 public:
   /// This constructor assumes that is ok to copy and sort the data... that it is not too big.

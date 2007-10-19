@@ -93,6 +93,12 @@
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 
+// Stuff for the SSML animations
+#include <Inventor/nodes/SoRotationXYZ.h> // For statestamp
+#include <Inventor/SoPath.h>
+#include <Inventor/nodes/SoSeparator.h>
+#include <Inventor/actions/SoSearchAction.h>
+
 // Draggers
 //#include <Inventor/draggers/SoTranslate1Dragger.h>
 #include <Inventor/draggers/SoSpotLightDragger.h>
@@ -112,6 +118,8 @@ using namespace std;
  * MACROS, DEFINES, GLOBALS
  ***************************************************************************/
 
+bool streq (const char *s1, const char *s2) {return 0==strcmp(s1,s2);}
+
 // FIX: this needs to be a separate header
 SoSeparator *MakeSoLineSet (vector<SoSpotLightDragger *> &draggerVec);
 
@@ -122,16 +130,28 @@ int debug_level=0;
 /// Let the debugger find out which version is being used.
 static const UNUSED char* RCSid ="$Id$";
 
+/// \brief Only for RotationXYZ
+struct StateStampJoints {
+    SbTime time;
+    vector<SoRotationXYZ *> rotNodes;
+    vector<SoSFFloat> angles;
+};
+
+//typedef vector<StateStampJoints> StateStampJointsVec;
+
+
+
 /***************************************************************************
  * SCENEINFO - the big global variable
  ***************************************************************************/
 
+/// \brief State information for the callbacks.  This is as bad as global variables.
+
 class SceneInfo {
 public:
-  SceneInfo();
-  SoCamera *camera;
-  //SoNode *root;
-  SoSeparator *root;
+    SceneInfo();  
+  SoCamera *camera; ///< Fiddle with this to look around the scene
+  SoSeparator *root; ///< Top of the scene graph
 
   vector<SoSpotLightDragger *> draggerVec; ///< All of the draggers that have been added.
   SoSwitch *draggerSwitch; ///< On/off of the separators.  May add code to show one at a time
@@ -150,19 +170,21 @@ public:
 
   SbColor background; ///< Background rendering color
 
-  /// Use magic numbers to make sure you actually get this class when you
-  /// must do a cast to/from void pointer
-  static uint8_t nominalMagicNumber() {return(178);}
-  //uint8_t getMagicNumber() const {return(magicNumber);}
+  // Use magic numbers to make sure you actually get this class when you
+  // must do a cast to/from void pointer
+  static uint8_t nominalMagicNumber() {return(178);}  ///< find out the magic number
   bool magicOk() const {return(nominalMagicNumber()==magicNumber);} ///< Test the class integrity
 
 #ifdef WITH_LIBXML
-    xmlNodeSetPtr ssml_nodes;  ///< State Stamp Markup nodes that give joint positions
+    // This code blows chunks
+    xmlNodeSetPtr ssml_nodes;  ///< State Stamp Markup nodes that give joint positions. A libxml2 data structure.
     int ssml_current_index;  ///< Current location within the stamps
     SbTime lastTimeReal; ///< Previous time that was rendered in real wall clock time
     SbTime lastTimeSSML; ///< Previous time that was rendered in the frame of the SSML
-    double startTimeSSML, endTimeSSML;
-    // FIX: add a time scale concept
+    double startTimeSSML; ///< Earliest (oldest) time in the State Stamp markup language
+    double endTimeSSML; ///< Latest (newest) time in the ssml
+    vector <StateStampJoints> statestamps;
+    // FIX: add a time scale concept... faster/slower than realtime
 #endif
 
 private:
@@ -524,14 +546,34 @@ void timerSensorCallback(void *data, SoSensor *sensor) {
       DebugPrintf (BOMBASTIC,("deltaT %.4f\n",deltaT));
       si->lastTimeSSML.setValue(si->lastTimeSSML.getValue()+deltaT);
 
+      bool needUpdate=false;  // Flag true if the joint angles have changed
+
       if (si->lastTimeSSML.getValue() >= si->endTimeSSML) {
 	  DebugPrintf (TRACE,("Looping back to the beginning of the SSML\n"));
 	  si->lastTimeSSML.setValue(si->startTimeSSML);
+	  si->ssml_current_index=0;
+	  needUpdate=true;
+      } else {
+	  if (si->lastTimeSSML > si->statestamps[si->ssml_current_index].time) {
+	      needUpdate=true;
+	      si->ssml_current_index++;
+	  }
       }
-      //double currentTimeSSML = si->lastTimeSSML.getValue();
-      DebugPrintf (BOMBASTIC,("new SSML time %.4f\n",si->lastTimeSSML.getValue()));
+
+      if (needUpdate) {
+	  for (size_t i=0;i<si->statestamps[si->ssml_current_index].rotNodes.size(); i++) {
+	      //cout << "setting angle: " << si->statestamps[si->ssml_current_index].angles[i].getValue() << endl;
+	      SoSFFloat angle = si->statestamps[si->ssml_current_index].angles[i];
+#if 1
+	      si->statestamps[si->ssml_current_index].rotNodes[i]->angle 
+		  = angle;
+#endif
+	  }
+      }
       
-      
+
+      double currentTimeSSML = si->lastTimeSSML.getValue();
+      DebugPrintf (BOMBASTIC,("new SSML time %.4f\n",currentTimeSSML));
 
   } else {
       DebugPrintf (BOMBASTIC,("No ssml loaded\n"));
@@ -646,6 +688,60 @@ bool InRange (const float check, const float v1, const float v2) {
   return (true);
 }
 
+/// \brief Convert the libxml2 tree to a C++ vector based data structure to avoid trouble
+
+bool LoadStateStampToVectors(vector<StateStampJoints> &statestamps, xmlNodeSetPtr nodeset, SoNode *root) {
+    bool success=true;
+    assert (root);
+
+    for (int i=0; i<nodeset->nodeNr; i++) {
+	xmlNodePtr n= nodeset->nodeTab[i];
+	const xmlChar *timeStampStr = xmlGetProp(n,(xmlChar*)"Time");
+	cout << "Loading time: " << timeStampStr << endl;
+	struct StateStampJoints ssj;
+	double timeStamp;
+	sscanf((const char *)timeStampStr,"%lf",&timeStamp);
+	ssj.time = SbTime(timeStamp);
+
+	// Loop through all the joints
+	for (xmlNodePtr joint=n->children; joint ; joint=joint->next) {
+	    if (!streq("Joint",(const char *)joint->name)) {
+		if (!streq("text",(const char *)joint->name)) 
+		    cout << "\nIgnoring: "<< joint->name << endl;
+		continue; // not the right child
+	    }
+	    const char *name = (const char*)(xmlGetProp(joint,(xmlChar*)"Name"));
+	    const char *radStr = (const char*)(xmlGetProp(joint,(xmlChar*)"Radians"));
+	    //printf ("%.4f %s\n",timeStamp,name);
+	    SoSFFloat angle;
+	    angle.setValue(strtod(radStr,0));
+	    cout << "\t" << name << " -> " << angle.getValue() << endl;
+
+	    // Find the node so that we can cache the pointer and get back to it quickly
+	    SoSearchAction mySearchAction;
+	    mySearchAction.setType(SoRotationXYZ::getClassTypeId(), FALSE); // Only search for SoRotationsXYZ
+	    mySearchAction.setName(name);
+	    mySearchAction.setInterest(SoSearchAction::FIRST);
+	    mySearchAction.apply(root);
+	    SoPath *path = mySearchAction.getPath();
+	    if (!path) {
+		cerr << "WARNING can't find RotationXYZ named: " << name << endl;
+		continue;  // FIX: should this just fail?
+	    }
+	    SoRotationXYZ *rotNode = (SoRotationXYZ *)(path->getTail());
+
+	    ssj.rotNodes.push_back(rotNode);
+	    ssj.angles.push_back(angle);
+	    
+	}
+
+	statestamps.push_back(ssj);
+    }
+    
+    //cerr << "Boom" << endl;    exit(EXIT_FAILURE);
+    return success;
+}
+
 /***************************************************************************
  * MAIN
  ***************************************************************************/
@@ -666,61 +762,6 @@ int main(int argc, char *argv[])
   DebugPrintf(TRACE,("Debug level = %d\n",debug_level));
 #endif
 
-#ifdef WITH_LIBXML
-
-  if (!a.statestamp_given) {
-      DebugPrintf(VERBOSE,("No state stamp xml history given\n"));
-  } else {
-      DebugPrintf(TERSE,("statestamp... %s\n",a.statestamp_arg));
-      //DebugPrintf(VERBOSE,("statestamp_orig... %s\n",a.statestamp_orig));
-  }
-
-  SceneInfo *si = new SceneInfo;
-  si->a=&a;
-
-  //////////////////////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////////////////////
-  if (a.statestamp_given) {
-      xmlDocPtr ssmldoc=xmlParseFile(a.statestamp_arg);
-      if (!ssmldoc) { fprintf(stderr,"FATAL ERROR: failed to load state stamp markup file.\n  We must not have a mind shaft gap!\n"); exit(EXIT_FAILURE);  }
-      //xmlNodePtr cur = xmlDocGetRootElement(ssmldoc);
-      xmlXPathContextPtr context = xmlXPathNewContext(ssmldoc);
-      if (!context) {fprintf(stderr,"FATAL ERROR: Can not get xmlXPathContextPtr!\n"); exit(EXIT_FAILURE);}
-      xmlXPathObjectPtr result = xmlXPathEvalExpression((xmlChar *)"//StateStampHistory/StateStamp", context);
-      xmlXPathFreeContext(context);
-      if (!result) {fprintf(stderr,"FATAL ERROR: XPath meltdown!\n  There will be no fighting in the war room.\n"); exit(EXIT_FAILURE);}
-      if(xmlXPathNodeSetIsEmpty(result->nodesetval)) {xmlXPathFreeObject(result);fprintf(stderr,"FATAL ERROR: not statestamps found\n");exit(EXIT_FAILURE);}
-      xmlNodeSetPtr nodeset=result->nodesetval;
-      DebugPrintf(TRACE,("Found %i state stamp nodes\n",nodeset->nodeNr));
-      const int numnodes=nodeset->nodeNr;
-      const xmlChar *startTime=xmlGetProp(nodeset->nodeTab[0],(xmlChar*)"Time");
-      const xmlChar *endTime=xmlGetProp(nodeset->nodeTab[numnodes-1],(xmlChar*)"Time");
-      DebugPrintf(TRACE,("  Time range: %s -> %s \n",startTime,endTime));
-
-      sscanf((const char *)startTime,"%lf",&(si->startTimeSSML));
-      sscanf((const char *)endTime,"%lf",&(si->endTimeSSML));
-      DebugPrintf(BOMBASTIC,("  Time range: %.4f -> %.4f \n",si->startTimeSSML,si->endTimeSSML));
-
-      si->ssml_nodes=nodeset;
-      si->lastTimeReal.setToTimeOfDay();
-      double ssmlStart;
-      sscanf((const char *)endTime,"%lf",&ssmlStart);
-      si->lastTimeSSML.setValue(ssmlStart);
-
-      DebugPrintf (BOMBASTIC,("  Initial real time: %10.5f\n",si->lastTimeReal.getValue()));
-      DebugPrintf (BOMBASTIC,("  Initial SSML time: %10.5f\n",si->lastTimeSSML.getValue()));
-      
-      //xmlNodeSetPtr nodeset=0;
-  } // statestamp_given
-
-  //printf ("EARLY EXIT\n");
-  //exit(1);
-  //////////////////////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////////////////////
-
-#endif // WITH_LIBXML
 
 #if 1
   if (!CheckLibraryPath()) { cerr << "Bailing.  Library path check failed." << endl;  return(EXIT_FAILURE);}
@@ -739,11 +780,16 @@ int main(int argc, char *argv[])
   if (a.percent_given)
     if (!InRange(a.percent_arg,0.0,1.0)) {cerr<<"ERROR: Interval must be 0.0<=i<=1.0"<<endl; return (EXIT_FAILURE);}
 
+
   //
-  // Init the SoDB and SimVoleon
+  // Init the SoDB and SimVoleon - Must do the init before any use of Coin3D/IV data types/structures
   //
   QWidget* myWindow = SoQt::init(argv[0]);
   if ( myWindow==NULL ) return (EXIT_FAILURE);
+
+  SceneInfo *si = new SceneInfo;
+  si->a=&a;
+
 
   // Use QWidget to give a better window size
   myWindow->resize(a.width_arg,a.height_arg);
@@ -787,6 +833,71 @@ int main(int argc, char *argv[])
 
     si->root->addChild(node);
   }
+
+
+#ifdef WITH_LIBXML
+
+  if (!a.statestamp_given) {
+      DebugPrintf(VERBOSE,("No state stamp xml history given\n"));
+  } else {
+      DebugPrintf(TERSE,("statestamp... %s\n",a.statestamp_arg));
+      //DebugPrintf(VERBOSE,("statestamp_orig... %s\n",a.statestamp_orig));
+  }
+
+  //////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
+  if (a.statestamp_given) {
+      xmlDocPtr ssmldoc=xmlParseFile(a.statestamp_arg);
+      if (!ssmldoc) { fprintf(stderr,"FATAL ERROR: failed to load state stamp markup file.\n"); exit(EXIT_FAILURE); }
+      //xmlNodePtr cur = xmlDocGetRootElement(ssmldoc);
+      xmlXPathContextPtr context = xmlXPathNewContext(ssmldoc);
+      if (!context) {fprintf(stderr,"FATAL ERROR: Can not get xmlXPathContextPtr!\n"); exit(EXIT_FAILURE);}
+      xmlXPathObjectPtr result = xmlXPathEvalExpression((xmlChar *)"//StateStampHistory/StateStamp", context);
+      xmlXPathFreeContext(context);
+      if (!result) {fprintf(stderr,"FATAL ERROR: XPath meltdown!\n  There will be no fighting in the war room.\n"); exit(EXIT_FAILURE);}
+      if(xmlXPathNodeSetIsEmpty(result->nodesetval)) {xmlXPathFreeObject(result);fprintf(stderr,"FATAL ERROR: not statestamps found\n");exit(EXIT_FAILURE);}
+      xmlNodeSetPtr nodeset=result->nodesetval;
+      DebugPrintf(TRACE,("Found %i state stamp nodes\n",nodeset->nodeNr));
+      const int numnodes=nodeset->nodeNr;
+
+      const xmlChar *startTime=xmlGetProp(nodeset->nodeTab[0],(xmlChar*)"Time");
+      const xmlChar *endTime=xmlGetProp(nodeset->nodeTab[numnodes-1],(xmlChar*)"Time");
+      DebugPrintf(TRACE,("  Time range: %s -> %s \n",startTime,endTime));
+
+      sscanf((const char *)startTime,"%lf",&(si->startTimeSSML));
+      sscanf((const char *)endTime,"%lf",&(si->endTimeSSML));
+      DebugPrintf(BOMBASTIC,("  Time range: %.4f -> %.4f \n",si->startTimeSSML,si->endTimeSSML));
+
+      si->ssml_nodes=nodeset;
+      si->lastTimeReal.setToTimeOfDay();
+      double ssmlStart;
+      sscanf((const char *)endTime,"%lf",&ssmlStart);
+      si->lastTimeSSML.setValue(ssmlStart);
+
+      DebugPrintf (BOMBASTIC,("  Initial real time: %10.5f\n",si->lastTimeReal.getValue()));
+      DebugPrintf (BOMBASTIC,("  Initial SSML time: %10.5f\n",si->lastTimeSSML.getValue()));
+
+      // Put all of the critical XML values into a vector such that the main loop is fast and simple
+      // Crappy ass knockoff of viz 1.0
+      if (!LoadStateStampToVectors(si->statestamps, nodeset,si->root)) {
+	  fprintf (stderr,"You are hosed bub.  Could not load the ssml for some ugly reason\n");
+	  exit(EXIT_FAILURE);
+      }
+
+      
+      //xmlNodeSetPtr nodeset=0;
+  } // statestamp_given
+
+  //printf ("EARLY EXIT\n");
+  //exit(1);
+  //////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
+
+#endif // WITH_LIBXML
+
+
 
   // Set background color
   {
