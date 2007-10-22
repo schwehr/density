@@ -543,7 +543,6 @@ void timerSensorCallback(void *data, SoSensor *sensor) {
   if (si->ssml_nodes) {
       SbTime now = SbTime::getTimeOfDay();
       const double deltaT = si->timeScale*(now.getValue() - si->lastTimeReal.getValue());
-      cout << "deltaT " << deltaT << endl;
 
       si->lastTimeReal = now;
 
@@ -552,25 +551,34 @@ void timerSensorCallback(void *data, SoSensor *sensor) {
 
       bool needUpdate=false;  // Flag true if the joint angles have changed
 
+      cout << "deltaT " << deltaT << "  " << si->lastTimeSSML.getValue() << endl;
+
       if (si->lastTimeSSML.getValue() >= si->endTimeSSML) {
 	  DebugPrintf (TRACE,("Looping back to the beginning of the SSML\n"));
 	  si->lastTimeSSML.setValue(si->startTimeSSML);
 	  si->ssml_current_index=0;
 	  needUpdate=true;
       } else {
-	  if (si->lastTimeSSML > si->statestamps[si->ssml_current_index].time) {
+	  while (si->lastTimeSSML > si->statestamps[si->ssml_current_index].time) {
 	      needUpdate=true;
 	      si->ssml_current_index++;
+	      if (si->lastTimeSSML.getValue() >= si->endTimeSSML) {
+		  si->lastTimeSSML.setValue(si->startTimeSSML);
+		  si->ssml_current_index=0;
+	      }
 	  }
       }
 
       if (needUpdate) {
+	  cout << si->ssml_current_index << " ";
 	  for (size_t i=0;i<si->statestamps[si->ssml_current_index].rotNodes.size(); i++) {
 	      //cout << "setting angle: " << si->statestamps[si->ssml_current_index].angles[i].getValue() << endl;
 	      SoSFFloat angle = si->statestamps[si->ssml_current_index].angles[i];
 	      si->statestamps[si->ssml_current_index].rotNodes[i]->angle 
 		  = angle;
+	      cout << angle.getValue() << " ";
 	  }
+	  cout << endl;
       }
       
       //double currentTimeSSML = si->lastTimeSSML.getValue();
