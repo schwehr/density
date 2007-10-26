@@ -28,6 +28,7 @@
 /// \bug Need to breakup simpleview info support libraries that can be
 /// used to render a flight path without having SoQt/SoXt/SoWin
 
+/// \todo FIX add an option to interpolate between ssml nodes.
 
 /***************************************************************************
  * INCLUDES

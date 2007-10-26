@@ -1,3 +1,14 @@
+2007-10-26 Kurt Schwehr <schwehr@mtbrewer>
+	* version: Released 0.24
+	* simpleview.C: Added state stamp markup language files for animation (ssml).  Uses libxml2
+	* simpleview.C: Uses SbTime for tracking time
+	* simpleview.C: Reworked intialization on startup a bit
+	* simpleview_cmd.ggo.in: Added statestamp and timescale options
+	* general: used gengetopt 2.21 instead of 2.19
+	* Makefile: added libxml2 to simpleview
+	* Makefile: SRL found a typo in rule name for install-density.info
+	* TODO: Realizing that autoconf is soon in the future
+	
 2007-10-15 Kurt Schwehr <schwehr@mtbrewer>
 	* version: Released 0.23
 	* simpleview.C: Now use qwidget to set the screen size 
