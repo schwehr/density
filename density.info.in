@@ -13,8 +13,12 @@ CompileScript: <<
   make docs man
 <<
 InstallScript: <<
+#!/bin/bash -ev
   mkdir -p %i/bin
   mv histogram makeCDF render s_bootstrap simpleview vol2vol vol_iv volhdr_edit volinfo volmakecmap xyz_iv xyzdensity xyzvol_cmp render_bin simpleview_bin %i/bin
+
+  # Avoid collision with raster3d
+  mv %i/bin/{render,simpleview_render}
 
   mkdir -p %i/share/man/man1
   mv doc/man/man1/* %i/share/man/man1/
@@ -37,6 +41,10 @@ Includes simple view for creating flight paths and screen shots.  You
 can then use render to create frames for fly-through movies.
 
 Recommend (but not required) that you install the pmag package.
+
+WARNING: offscreen rendering seems to crash the Apple X11 server on
+PPC and gives shader errors on Intel.
+
 <<
 License: GPL
 Homepage: http://schwehr.org/software/density
