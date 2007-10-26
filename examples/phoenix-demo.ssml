@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Put the Phoenix lander in two different positions.  Time stamp is UTC seconds since the Epoch -->
+<StateStampHistory>
+	<StateStamp Time="905388428.3874">
+	  <Joint Name="SHOULDER_AZ" Radians="4.71238898038"/>
+	  <Joint Name="SHOULDER_EL" Radians="0.0"/>
+	  <Joint Name="ELBOW" Radians="3.14159265359"/>
+	  <Joint Name="WRIST" Radians="-1.57079632679"/>
+	</StateStamp>
+	<StateStamp Time="905388448.9127">
+	  <Joint Name="SHOULDER_AZ" Radians="4.71238898038"/>
+	  <Joint Name="SHOULDER_EL" Radians="-0.78545"/>
+	  <Joint Name="ELBOW" Radians="3.14159265359"/>
+	  <Joint Name="WRIST" Radians="-1.57079632679"/>
+	</StateStamp>
+</StateStampHistory>

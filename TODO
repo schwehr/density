@@ -21,3 +21,5 @@
 * unit testing which "check" or CUnit 
 * cppunit is probably the best bet
 * The main directory is getting too cluttered
+
+* move the rest of the data files under examples (or maybe a data dir?)
