@@ -1,6 +1,7 @@
 2007-10-26 Kurt Schwehr <schwehr@mtbrewer>
 	* version: Released 0.24
-	* simpleview.C: Added state stamp markup language files for animation (ssml).  Uses libxml2
+	* simpleview.C: Added state stamp markup language files for animation (ssml).  Uses libxml2.
+	* ssml: A language that is a more time oriented than RKSML (Rover Kintematic State Markup Language)
 	* simpleview.C: Uses SbTime for tracking time
 	* simpleview.C: Reworked intialization on startup a bit
 	* simpleview_cmd.ggo.in: Added statestamp and timescale options
