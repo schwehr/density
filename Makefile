@@ -323,15 +323,15 @@ tar: ${GEN_CFILES} ${BINS}
 	rm -rf ${TARNAME} ${TARNAME}.tar ${TARNAME}.tar.bz2
 	mkdir ${TARNAME}
 	@echo
-	cp *.{C,H,in,c,h,help2man,bash} ${TARNAME}/
+	cp -p *.{C,H,in,c,h,help2man,bash} ${TARNAME}/
 	@echo
-	cp AUTHOR ChangeLog Doxyfile INSTALL LICENSE.GPL HEADER.html ${TARNAME}/
-	cp Makefile Makefile.endian README.txt TODO VERSION axes.iv ${TARNAME}/
+	cp -p AUTHOR ChangeLog Doxyfile INSTALL LICENSE.GPL HEADER.html ${TARNAME}/
+	cp -p Makefile Makefile.endian README.txt TODO VERSION axes.iv ${TARNAME}/
 	@echo Copying example data for one.bash and bootvolume-thesis.bash
 	@echo Leaving out rosenbaum-ams-stripped.dat until published
-	cp sample.wpt *.cpt rosenbaum-ams-stripped.dat as1-crypt.s as2-slump.s as3-undef.s ${TARNAME}/
-	cp .acoc.conf ${TARNAME}/acoc.conf
-	cp *.py example.ssml ${TARNAME}/
+	cp -p sample.wpt *.cpt rosenbaum-ams-stripped.dat as1-crypt.s as2-slump.s as3-undef.s ${TARNAME}/
+	cp -p .acoc.conf ${TARNAME}/acoc.conf
+	cp -p *.py example.ssml ${TARNAME}/
 	cp -rp examples ${TARNAME}/
 	rm -rf ${TARNAME}/examples/.svn
 	@echo
