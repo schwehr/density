@@ -331,7 +331,7 @@ tar: ${GEN_CFILES} ${BINS}
 	@echo Leaving out rosenbaum-ams-stripped.dat until published
 	cp sample.wpt *.cpt rosenbaum-ams-stripped.dat as1-crypt.s as2-slump.s as3-undef.s ${TARNAME}/
 	cp .acoc.conf ${TARNAME}/acoc.conf
-	cp *.py ${TARNAME}/
+	cp *.py example.ssml ${TARNAME}/
 	cp -rp examples ${TARNAME}/
 	rm -rf ${TARNAME}/examples/.svn
 	@echo

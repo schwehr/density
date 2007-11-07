@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StateStampHistory>
+	<StateStamp Time="899322197.1125">
+		<Joint Name="SHOULDER_AZ" Radians="1.1394"/>
+		<Joint Name="SHOULDER_EL" Radians="-0.4093"/>
+		<Joint Name="ELBOW" Radians="1.3836"/>
+		<Joint Name="WRIST" Radians="-0.1409"/>
+	</StateStamp>
+	<StateStamp Time="899322197.2129">
+		<Joint Name="SHOULDER_AZ" Radians="1.1394"/>
+		<Joint Name="SHOULDER_EL" Radians="-0.4109"/>
+		<Joint Name="ELBOW" Radians="1.3891"/>
+		<Joint Name="WRIST" Radians="-0.1409"/>
+	</StateStamp>
+</StateStampHistory>
